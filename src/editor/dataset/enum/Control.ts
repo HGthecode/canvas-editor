@@ -1,7 +1,8 @@
 export enum ControlType {
   TEXT = 'text',
   SELECT = 'select',
-  CHECKBOX = 'checkbox'
+  CHECKBOX = 'checkbox',
+  DATE = 'date',
 }
 
 export enum ControlComponent {
@@ -9,10 +10,10 @@ export enum ControlComponent {
   POSTFIX = 'postfix',
   PLACEHOLDER = 'placeholder',
   VALUE = 'value',
-  CHECKBOX = 'checkbox'
+  CHECKBOX = 'checkbox',
 }
 
 export enum ImageDisplay {
   INLINE = 'inline',
-  BLOCK = 'block'
+  BLOCK = 'block',
 }

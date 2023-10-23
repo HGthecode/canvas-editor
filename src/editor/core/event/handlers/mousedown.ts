@@ -1,3 +1,4 @@
+import { ControlComponent, ControlType } from '../../../dataset/enum/Control'
 import { ElementType } from '../../../dataset/enum/Element'
 import { MouseEventButton } from '../../../dataset/enum/Event'
 import { deepClone } from '../../../utils'
@@ -15,10 +16,7 @@ export function mousedown(evt: MouseEvent, host: CanvasEvent) {
   if (!host.isAllowDrag) {
     const range = rangeManager.getRange()
     if (!isReadonly && range.startIndex !== range.endIndex) {
-      const isPointInRange = rangeManager.getIsPointInRange(
-        evt.offsetX,
-        evt.offsetY
-      )
+      const isPointInRange = rangeManager.getIsPointInRange(evt.offsetX, evt.offsetY)
       if (isPointInRange) {
         host.isAllowDrag = true
         host.cacheRange = deepClone(range)
@@ -37,22 +35,15 @@ export function mousedown(evt: MouseEvent, host: CanvasEvent) {
   host.isAllowSelection = true
   const positionResult = position.adjustPositionContext({
     x: evt.offsetX,
-    y: evt.offsetY
+    y: evt.offsetY,
   })
   if (!positionResult) return
-  const {
-    index,
-    isDirectHit,
-    isCheckbox,
-    isImage,
-    isTable,
-    tdValueIndex,
-    hitLineStartIndex
-  } = positionResult
+  const { index, isDirectHit, isCheckbox, isImage, isTable, tdValueIndex, hitLineStartIndex } =
+    positionResult
   // 记录选区开始位置
   host.mouseDownStartPosition = {
     ...positionResult,
-    index: isTable ? tdValueIndex! : index
+    index: isTable ? tdValueIndex! : index,
   }
   const elementList = draw.getElementList()
   const positionList = position.getPositionList()
@@ -72,7 +63,7 @@ export function mousedown(evt: MouseEvent, host: CanvasEvent) {
         checkbox.value = !checkbox.value
       } else {
         curElement.checkbox = {
-          value: true
+          value: true,
         }
       }
       const control = draw.getControl()
@@ -85,12 +76,12 @@ export function mousedown(evt: MouseEvent, host: CanvasEvent) {
       curIndex,
       isSubmitHistory: isSetCheckbox,
       isSetCursor: !isDirectHitImage && !isDirectHitCheckbox,
-      isCompute: false
+      isCompute: false,
     })
     // 首字需定位到行首，非上一行最后一个字后
     if (hitLineStartIndex) {
       host.getDraw().getCursor().drawCursor({
-        hitLineStartIndex
+        hitLineStartIndex,
       })
     }
   }
@@ -104,13 +95,13 @@ export function mousedown(evt: MouseEvent, host: CanvasEvent) {
       curElement.type === ElementType.LATEX
         ? {
             mime: 'svg',
-            srcKey: 'laTexSVG'
+            srcKey: 'laTexSVG',
           }
-        : {}
+        : {},
     )
     // 光标事件代理丢失，重新定位
     draw.getCursor().drawCursor({
-      isShow: false
+      isShow: false,
     })
   }
   // 表格工具组件
@@ -132,7 +123,14 @@ export function mousedown(evt: MouseEvent, host: CanvasEvent) {
   // 日期控件
   const dateParticle = draw.getDateParticle()
   dateParticle.clearDatePicker()
-  if (curElement.type === ElementType.DATE && !isReadonly) {
+
+  console.log(curElement)
+
+  if (
+    (curElement.type === ElementType.DATE || curElement.control?.type === ControlType.DATE) &&
+    curElement.value !== ControlComponent.POSTFIX &&
+    !isReadonly
+  ) {
     dateParticle.renderDatePicker(curElement, positionList[curIndex])
   }
 }

@@ -1,10 +1,7 @@
 import { EDITOR_ELEMENT_STYLE_ATTR } from '../../../../dataset/constant/Element'
 import { ControlComponent } from '../../../../dataset/enum/Control'
 import { KeyMap } from '../../../../dataset/enum/KeyMap'
-import {
-  IControlContext,
-  IControlInstance
-} from '../../../../interface/Control'
+import { IControlContext, IControlInstance } from '../../../../interface/Control'
 import { IElement } from '../../../../interface/Element'
 import { omitObject } from '../../../../utils'
 import { formatElementContext } from '../../../../utils/element'
@@ -86,11 +83,12 @@ export class TextControl implements IControlInstance {
       const newElement: IElement = {
         ...anchorElement,
         ...data[i],
-        controlComponent: ControlComponent.VALUE
+        controlComponent: ControlComponent.VALUE,
       }
       formatElementContext(elementList, [newElement], startIndex)
       draw.spliceElementList(elementList, start + i, 0, newElement)
     }
+
     return start + data.length - 1
   }
 
@@ -98,9 +96,7 @@ export class TextControl implements IControlInstance {
     const elementList = context.elementList || this.control.getElementList()
     const range = context.range || this.control.getRange()
     const { startIndex, endIndex } = range
-    this.control
-      .getDraw()
-      .spliceElementList(elementList, startIndex + 1, endIndex - startIndex)
+    this.control.getDraw().spliceElementList(elementList, startIndex + 1, endIndex - startIndex)
     const value = this.getValue()
     if (!value.length) {
       this.control.addPlaceholder(startIndex)
@@ -121,11 +117,7 @@ export class TextControl implements IControlInstance {
     if (evt.key === KeyMap.Backspace) {
       // 移除选区元素
       if (startIndex !== endIndex) {
-        draw.spliceElementList(
-          elementList,
-          startIndex + 1,
-          endIndex - startIndex
-        )
+        draw.spliceElementList(elementList, startIndex + 1, endIndex - startIndex)
         const value = this.getValue()
         if (!value.length) {
           this.control.addPlaceholder(startIndex)
@@ -152,11 +144,7 @@ export class TextControl implements IControlInstance {
     } else if (evt.key === KeyMap.Delete) {
       // 移除选区元素
       if (startIndex !== endIndex) {
-        draw.spliceElementList(
-          elementList,
-          startIndex + 1,
-          endIndex - startIndex
-        )
+        draw.spliceElementList(elementList, startIndex + 1, endIndex - startIndex)
         const value = this.getValue()
         if (!value.length) {
           this.control.addPlaceholder(startIndex)

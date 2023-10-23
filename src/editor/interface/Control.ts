@@ -21,6 +21,12 @@ export interface IControlCheckbox {
   checkbox?: ICheckbox
 }
 
+export interface IControlDate {
+  dateFormat?: string
+  min?: number
+  max?: number
+}
+
 export interface IControlBasic {
   type: ControlType
   value: IElement[] | null
@@ -35,7 +41,8 @@ export interface IControlBasic {
 
 export type IControl = IControlBasic &
   Partial<IControlSelect> &
-  Partial<IControlCheckbox>
+  Partial<IControlCheckbox> &
+  Partial<IControlDate>
 
 export interface IControlOption {
   placeholderColor?: string

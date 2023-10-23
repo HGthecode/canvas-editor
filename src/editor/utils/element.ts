@@ -1,12 +1,5 @@
 import { cloneProperty, deepClone, getUUID, isArrayEqual, splitText } from '.'
-import {
-  ElementType,
-  IEditorOption,
-  IElement,
-  ListStyle,
-  ListType,
-  RowFlex
-} from '..'
+import { ElementType, IEditorOption, IElement, ListStyle, ListType, RowFlex } from '..'
 import { LaTexParticle } from '../core/draw/particle/latex/LaTexParticle'
 import { NON_BREAKING_SPACE, ZERO } from '../dataset/constant/Common'
 import {
@@ -15,16 +8,13 @@ import {
   INLINE_NODE_NAME,
   TABLE_CONTEXT_ATTR,
   TABLE_TD_ZIP_ATTR,
-  TEXTLIKE_ELEMENT_TYPE
+  TEXTLIKE_ELEMENT_TYPE,
 } from '../dataset/constant/Element'
-import {
-  listStyleCSSMapping,
-  listTypeElementMapping
-} from '../dataset/constant/List'
+import { listStyleCSSMapping, listTypeElementMapping } from '../dataset/constant/List'
 import {
   titleNodeNameMapping,
   titleOrderNumberMapping,
-  titleSizeMapping
+  titleSizeMapping,
 } from '../dataset/constant/Title'
 import { ControlComponent, ControlType } from '../dataset/enum/Control'
 import { DeepRequired } from '../interface/Common'
@@ -48,22 +38,15 @@ interface IFormatElementListOption {
   editorOptions: DeepRequired<IEditorOption>
 }
 
-export function formatElementList(
-  elementList: IElement[],
-  options: IFormatElementListOption
-) {
+export function formatElementList(elementList: IElement[], options: IFormatElementListOption) {
   const { isHandleFirstElement, editorOptions } = <IFormatElementListOption>{
     isHandleFirstElement: true,
-    ...options
+    ...options,
   }
   const startElement = elementList[0]
-  if (
-    isHandleFirstElement &&
-    startElement?.value !== ZERO &&
-    startElement?.value !== '\n'
-  ) {
+  if (isHandleFirstElement && startElement?.value !== ZERO && startElement?.value !== '\n') {
     elementList.unshift({
-      value: ZERO
+      value: ZERO,
     })
   }
   let i = 0
@@ -77,7 +60,7 @@ export function formatElementList(
       const valueList = el.valueList || []
       formatElementList(valueList, {
         ...options,
-        isHandleFirstElement: false
+        isHandleFirstElement: false,
       })
       // 追加节点
       if (valueList.length) {
@@ -109,7 +92,7 @@ export function formatElementList(
       // 格式化元素
       const valueList = el.valueList || []
       formatElementList(valueList, {
-        ...options
+        ...options,
       })
       // 追加节点
       if (valueList.length) {
@@ -132,10 +115,7 @@ export function formatElementList(
           const tr = el.trList[t]
           const trId = getUUID()
           tr.id = trId
-          if (
-            !tr.minHeight ||
-            tr.minHeight < editorOptions.defaultTrMinHeight
-          ) {
+          if (!tr.minHeight || tr.minHeight < editorOptions.defaultTrMinHeight) {
             tr.minHeight = editorOptions.defaultTrMinHeight
           }
           if (tr.height < tr.minHeight) {
@@ -147,7 +127,7 @@ export function formatElementList(
             td.id = tdId
             formatElementList(td.value, {
               ...options,
-              isHandleFirstElement: true
+              isHandleFirstElement: true,
             })
             for (let v = 0; v < td.value.length; v++) {
               const value = td.value[v]
@@ -195,10 +175,9 @@ export function formatElementList(
       }
       i--
     } else if (el.type === ElementType.CONTROL) {
-      const { prefix, postfix, value, placeholder, code, type, valueSets } =
-        el.control!
+      const { prefix, postfix, value, placeholder, code, type, valueSets } = el.control!
       const {
-        editorOptions: { control: controlOption, checkbox: checkboxOption }
+        editorOptions: { control: controlOption, checkbox: checkboxOption },
       } = options
       const controlId = getUUID()
       // 移除父节点
@@ -218,7 +197,7 @@ export function formatElementList(
           type: el.type,
           control: el.control,
           controlComponent: ControlComponent.PREFIX,
-          ...thePrePostfixArgs
+          ...thePrePostfixArgs,
         })
         i++
       }
@@ -234,11 +213,8 @@ export function formatElementList(
           if (Array.isArray(valueSets) && valueSets.length) {
             // 拆分valueList优先使用其属性
             const valueStyleList = valueList.reduce(
-              (pre, cur) =>
-                pre.concat(
-                  cur.value.split('').map(v => ({ ...cur, value: v }))
-                ),
-              [] as IElement[]
+              (pre, cur) => pre.concat(cur.value.split('').map((v) => ({ ...cur, value: v }))),
+              [] as IElement[],
             )
             let valueStyleIndex = 0
             for (let v = 0; v < valueSets.length; v++) {
@@ -252,8 +228,8 @@ export function formatElementList(
                 controlComponent: ControlComponent.CHECKBOX,
                 checkbox: {
                   code: valueSet.code,
-                  value: codeList.includes(valueSet.code)
-                }
+                  value: codeList.includes(valueSet.code),
+                },
               })
               i++
               // 文本
@@ -268,7 +244,7 @@ export function formatElementList(
                   type: el.type,
                   letterSpacing: isLastLetter ? checkboxOption.gap : 0,
                   control: el.control,
-                  controlComponent: ControlComponent.VALUE
+                  controlComponent: ControlComponent.VALUE,
                 })
                 valueStyleIndex++
                 i++
@@ -278,12 +254,12 @@ export function formatElementList(
         } else {
           if (!value || !value.length) {
             if (Array.isArray(valueSets) && valueSets.length) {
-              const valueSet = valueSets.find(v => v.code === code)
+              const valueSet = valueSets.find((v) => v.code === code)
               if (valueSet) {
                 valueList = [
                   {
-                    value: valueSet.value
-                  }
+                    value: valueSet.value,
+                  },
                 ]
               }
             }
@@ -299,7 +275,7 @@ export function formatElementList(
                 value,
                 type: el.type,
                 control: el.control,
-                controlComponent: ControlComponent.VALUE
+                controlComponent: ControlComponent.VALUE,
               })
               i++
             }
@@ -320,7 +296,7 @@ export function formatElementList(
             type: el.type,
             control: el.control,
             controlComponent: ControlComponent.PLACEHOLDER,
-            ...thePlaceholderArgs
+            ...thePlaceholderArgs,
           })
           i++
         }
@@ -335,15 +311,12 @@ export function formatElementList(
           type: el.type,
           control: el.control,
           controlComponent: ControlComponent.POSTFIX,
-          ...thePrePostfixArgs
+          ...thePrePostfixArgs,
         })
         i++
       }
       i--
-    } else if (
-      (!el.type || el.type === ElementType.TEXT) &&
-      el.value.length > 1
-    ) {
+    } else if ((!el.type || el.type === ElementType.TEXT) && el.value.length > 1) {
       elementList.splice(i, 1)
       const valueList = splitText(el.value)
       for (let v = 0; v < valueList.length; v++) {
@@ -368,10 +341,7 @@ export function formatElementList(
   }
 }
 
-export function isSameElementExceptValue(
-  source: IElement,
-  target: IElement
-): boolean {
+export function isSameElementExceptValue(source: IElement, target: IElement): boolean {
   const sourceKeys = Object.keys(source)
   const targetKeys = Object.keys(target)
   if (sourceKeys.length !== targetKeys.length) return false
@@ -397,9 +367,9 @@ export function isSameElementExceptValue(
 
 export function pickElementAttr(payload: IElement): IElement {
   const element: IElement = {
-    value: payload.value === ZERO ? `\n` : payload.value
+    value: payload.value === ZERO ? `\n` : payload.value,
   }
-  EDITOR_ELEMENT_ZIP_ATTR.forEach(attr => {
+  EDITOR_ELEMENT_ZIP_ATTR.forEach((attr) => {
     const value = payload[attr] as never
     if (value !== undefined) {
       element[attr] = value
@@ -415,11 +385,7 @@ export function zipElementList(payload: IElement[]): IElement[] {
   while (e < elementList.length) {
     let element = elementList[e]
     // 上下文首字符（占位符）
-    if (
-      e === 0 &&
-      element.value === ZERO &&
-      (!element.type || element.type === ElementType.TEXT)
-    ) {
+    if (e === 0 && element.value === ZERO && (!element.type || element.type === ElementType.TEXT)) {
       e++
       continue
     }
@@ -431,7 +397,7 @@ export function zipElementList(payload: IElement[]): IElement[] {
       const titleElement: IElement = {
         type: ElementType.TITLE,
         value: '',
-        level
+        level,
       }
       const valueList: IElement[] = []
       while (e < elementList.length) {
@@ -456,7 +422,7 @@ export function zipElementList(payload: IElement[]): IElement[] {
         value: '',
         listId,
         listType,
-        listStyle
+        listStyle,
       }
       const valueList: IElement[] = []
       while (e < elementList.length) {
@@ -482,10 +448,10 @@ export function zipElementList(payload: IElement[]): IElement[] {
             const zipTd: ITd = {
               colspan: td.colspan,
               rowspan: td.rowspan,
-              value: zipElementList(td.value)
+              value: zipElementList(td.value),
             }
             // 压缩单元格属性
-            TABLE_TD_ZIP_ATTR.forEach(attr => {
+            TABLE_TD_ZIP_ATTR.forEach((attr) => {
               const value = td[attr] as never
               if (value !== undefined) {
                 zipTd[attr] = value
@@ -501,7 +467,7 @@ export function zipElementList(payload: IElement[]): IElement[] {
       const hyperlinkElement: IElement = {
         type: ElementType.HYPERLINK,
         value: '',
-        url: element.url
+        url: element.url,
       }
       const valueList: IElement[] = []
       while (e < elementList.length) {
@@ -519,10 +485,12 @@ export function zipElementList(payload: IElement[]): IElement[] {
       element = hyperlinkElement
     } else if (element.type === ElementType.DATE) {
       const dateId = element.dateId
+      console.log(element)
+
       const dateElement: IElement = {
         type: ElementType.DATE,
         value: '',
-        dateFormat: element.dateFormat
+        dateFormat: element.dateFormat,
       }
       const valueList: IElement[] = []
       while (e < elementList.length) {
@@ -545,7 +513,7 @@ export function zipElementList(payload: IElement[]): IElement[] {
       const controlElement: IElement = {
         type: ElementType.CONTROL,
         value: '',
-        control
+        control,
       }
       const valueList: IElement[] = []
       while (e < elementList.length) {
@@ -575,12 +543,8 @@ export function zipElementList(payload: IElement[]): IElement[] {
       while (e < elementList.length) {
         const nextElement = elementList[e + 1]
         e++
-        if (
-          nextElement &&
-          isSameElementExceptValue(pickElement, pickElementAttr(nextElement))
-        ) {
-          const nextValue =
-            nextElement.value === ZERO ? '\n' : nextElement.value
+        if (nextElement && isSameElementExceptValue(pickElement, pickElementAttr(nextElement))) {
+          const nextValue = nextElement.value === ZERO ? '\n' : nextElement.value
           pickElement.value += nextValue
         } else {
           break
@@ -616,10 +580,7 @@ export function isTextLikeElement(element: IElement): boolean {
   return !element.type || TEXTLIKE_ELEMENT_TYPE.includes(element.type)
 }
 
-export function getAnchorElement(
-  elementList: IElement[],
-  anchorIndex: number
-): IElement | null {
+export function getAnchorElement(elementList: IElement[], anchorIndex: number): IElement | null {
   const anchorElement = elementList[anchorIndex]
   if (!anchorElement) return null
   const anchorNextElement = elementList[anchorIndex + 1]
@@ -640,55 +601,40 @@ export function formatElementContext(
   sourceElementList: IElement[],
   formatElementList: IElement[],
   anchorIndex: number,
-  options?: IFormatElementContextOption
+  options?: IFormatElementContextOption,
 ) {
   const copyElement = getAnchorElement(sourceElementList, anchorIndex)
   if (!copyElement) return
   const { isBreakWhenWrap = false } = options || {}
   for (let e = 0; e < formatElementList.length; e++) {
     const targetElement = formatElementList[e]
-    if (
-      isBreakWhenWrap &&
-      !copyElement.listId &&
-      /^\n/.test(targetElement.value)
-    ) {
+    if (isBreakWhenWrap && !copyElement.listId && /^\n/.test(targetElement.value)) {
       break
     }
     // 定位元素非列表，无需处理粘贴列表的上下文
     if (!copyElement.listId && targetElement.type === ElementType.LIST) {
-      targetElement.valueList?.forEach(valueItem => {
+      targetElement.valueList?.forEach((valueItem) => {
         cloneProperty<IElement>(TABLE_CONTEXT_ATTR, copyElement, valueItem)
       })
       continue
     }
     if (targetElement.valueList?.length) {
-      formatElementContext(
-        sourceElementList,
-        targetElement.valueList,
-        anchorIndex
-      )
+      formatElementContext(sourceElementList, targetElement.valueList, anchorIndex)
     }
-    cloneProperty<IElement>(
-      EDITOR_ELEMENT_CONTEXT_ATTR,
-      copyElement,
-      targetElement
-    )
+    cloneProperty<IElement>(EDITOR_ELEMENT_CONTEXT_ATTR, copyElement, targetElement)
   }
 }
 
 export function convertElementToDom(
   element: IElement,
-  options: DeepRequired<IEditorOption>
+  options: DeepRequired<IEditorOption>,
 ): HTMLElement {
   let tagName: keyof HTMLElementTagNameMap = 'span'
   if (element.type === ElementType.SUPERSCRIPT) {
     tagName = 'sup'
   } else if (element.type === ElementType.SUBSCRIPT) {
     tagName = 'sub'
-  } else if (
-    element.rowFlex === RowFlex.CENTER ||
-    element.rowFlex === RowFlex.RIGHT
-  ) {
+  } else if (element.rowFlex === RowFlex.CENTER || element.rowFlex === RowFlex.RIGHT) {
     tagName = 'p'
   }
   const dom = document.createElement(tagName)
@@ -717,9 +663,7 @@ export function convertElementToDom(
   return dom
 }
 
-export function splitListElement(
-  elementList: IElement[]
-): Map<number, IElement[]> {
+export function splitListElement(elementList: IElement[]): Map<number, IElement[]> {
   let curListIndex = 0
   const listElementListMap: Map<number, IElement[]> = new Map()
   for (let e = 0; e < elementList.length; e++) {
@@ -738,7 +682,7 @@ export function splitListElement(
         const listElementList = listElementListMap.get(curListIndex) || []
         listElementList.push({
           ...element,
-          value
+          value,
         })
         listElementListMap.set(curListIndex, listElementList)
       }
@@ -749,7 +693,7 @@ export function splitListElement(
 
 export function createDomFromElementList(
   elementList: IElement[],
-  options: DeepRequired<IEditorOption>
+  options: DeepRequired<IEditorOption>,
 ) {
   function buildDom(payload: IElement[]): HTMLDivElement {
     const clipboardDom = document.createElement('div')
@@ -780,29 +724,25 @@ export function createDomFromElementList(
         clipboardDom.append(tableDom)
       } else if (element.type === ElementType.HYPERLINK) {
         const a = document.createElement('a')
-        a.innerText = element.valueList!.map(v => v.value).join('')
+        a.innerText = element.valueList!.map((v) => v.value).join('')
         if (element.url) {
           a.href = element.url
         }
         clipboardDom.append(a)
       } else if (element.type === ElementType.TITLE) {
-        const h = document.createElement(
-          `h${titleOrderNumberMapping[element.level!]}`
-        )
+        const h = document.createElement(`h${titleOrderNumberMapping[element.level!]}`)
         const childDom = buildDom(zipElementList(element.valueList!))
         h.innerHTML = childDom.innerHTML
         clipboardDom.append(h)
       } else if (element.type === ElementType.LIST) {
-        const list = document.createElement(
-          listTypeElementMapping[element.listType!]
-        )
+        const list = document.createElement(listTypeElementMapping[element.listType!])
         if (element.listStyle) {
           list.style.listStyleType = listStyleCSSMapping[element.listStyle]
         }
         // 按照换行符拆分
         const zipList = zipElementList(element.valueList!)
         const listElementListMap = splitListElement(zipList)
-        listElementListMap.forEach(listElementList => {
+        listElementListMap.forEach((listElementList) => {
           const li = document.createElement('li')
           const childDom = buildDom(listElementList)
           li.innerHTML = childDom.innerHTML
@@ -840,7 +780,7 @@ export function createDomFromElementList(
         if (element.type === ElementType.CONTROL) {
           text = element.control!.value?.[0]?.value || ''
         } else if (element.type === ElementType.DATE) {
-          text = element.valueList?.map(v => v.value).join('') || ''
+          text = element.valueList?.map((v) => v.value).join('') || ''
         } else {
           text = element.value
         }
@@ -863,15 +803,11 @@ export function createDomFromElementList(
   return buildDom(zipElementList(elementList))
 }
 
-export function convertTextNodeToElement(
-  textNode: Element | Node
-): IElement | null {
+export function convertTextNodeToElement(textNode: Element | Node): IElement | null {
   if (!textNode || textNode.nodeType !== 3) return null
   const parentNode = <HTMLElement>textNode.parentNode
   const anchorNode =
-    parentNode.nodeName === 'FONT'
-      ? <HTMLElement>parentNode.parentNode
-      : parentNode
+    parentNode.nodeName === 'FONT' ? <HTMLElement>parentNode.parentNode : parentNode
   const rowFlex = getElementRowFlex(anchorNode)
   const value = textNode.textContent
   const style = window.getComputedStyle(anchorNode)
@@ -881,7 +817,7 @@ export function convertTextNodeToElement(
     color: style.color,
     bold: Number(style.fontWeight) > 500,
     italic: style.fontStyle.includes('italic'),
-    size: Math.floor(parseFloat(style.fontSize))
+    size: Math.floor(parseFloat(style.fontSize)),
   }
   // 元素类型-默认文本
   if (anchorNode.nodeName === 'SUB' || style.verticalAlign === 'sub') {
@@ -910,7 +846,7 @@ interface IGetElementListByHTMLOption {
 
 export function getElementListByHTML(
   htmlText: string,
-  options: IGetElementListByHTMLOption
+  options: IGetElementListByHTMLOption,
 ): IElement[] {
   const elementList: IElement[] = []
   function findTextNode(dom: Element | Node) {
@@ -926,7 +862,7 @@ export function getElementListByHTML(
         // br元素与display:block元素需换行
         if (node.nodeName === 'BR') {
           elementList.push({
-            value: '\n'
+            value: '\n',
           })
         } else if (node.nodeName === 'A') {
           const aElement = node as HTMLLinkElement
@@ -937,10 +873,10 @@ export function getElementListByHTML(
               value: '',
               valueList: [
                 {
-                  value
-                }
+                  value,
+                },
               ],
-              url: aElement.href
+              url: aElement.href,
             })
           }
         } else if (/H[1-6]/.test(node.nodeName)) {
@@ -950,14 +886,11 @@ export function getElementListByHTML(
             value: '',
             type: ElementType.TITLE,
             level: titleNodeNameMapping[node.nodeName],
-            valueList
+            valueList,
           })
-          if (
-            node.nextSibling &&
-            !INLINE_NODE_NAME.includes(node.nextSibling.nodeName)
-          ) {
+          if (node.nextSibling && !INLINE_NODE_NAME.includes(node.nextSibling.nodeName)) {
             elementList.push({
-              value: '\n'
+              value: '\n',
             })
           }
         } else if (node.nodeName === 'UL' || node.nodeName === 'OL') {
@@ -965,25 +898,23 @@ export function getElementListByHTML(
           const listElement: IElement = {
             value: '',
             type: ElementType.LIST,
-            valueList: []
+            valueList: [],
           }
           if (node.nodeName === 'OL') {
             listElement.listType = ListType.OL
           } else {
             listElement.listType = ListType.UL
-            listElement.listStyle = <ListStyle>(
-              (<unknown>listNode.style.listStyleType)
-            )
+            listElement.listStyle = <ListStyle>(<unknown>listNode.style.listStyleType)
           }
-          listNode.querySelectorAll('li').forEach(li => {
+          listNode.querySelectorAll('li').forEach((li) => {
             const liValueList = getElementListByHTML(li.innerHTML, options)
-            liValueList.forEach(list => {
+            liValueList.forEach((list) => {
               if (list.value === '\n') {
                 list.listWrap = true
               }
             })
             liValueList.unshift({
-              value: '\n'
+              value: '\n',
             })
             listElement.valueList!.push(...liValueList)
           })
@@ -991,7 +922,7 @@ export function getElementListByHTML(
         } else if (node.nodeName === 'HR') {
           elementList.push({
             value: '\n',
-            type: ElementType.SEPARATOR
+            type: ElementType.SEPARATOR,
           })
         } else if (node.nodeName === 'IMG') {
           const { src, width, height } = node as HTMLImageElement
@@ -1000,7 +931,7 @@ export function getElementListByHTML(
               width,
               height,
               value: src,
-              type: ElementType.IMAGE
+              type: ElementType.IMAGE,
             })
           }
         } else if (node.nodeName === 'TABLE') {
@@ -1009,27 +940,22 @@ export function getElementListByHTML(
             type: ElementType.TABLE,
             value: '\n',
             colgroup: [],
-            trList: []
+            trList: [],
           }
           // 基础数据
-          tableElement.querySelectorAll('tr').forEach(trElement => {
-            const trHeightStr = window
-              .getComputedStyle(trElement)
-              .height.replace('px', '')
+          tableElement.querySelectorAll('tr').forEach((trElement) => {
+            const trHeightStr = window.getComputedStyle(trElement).height.replace('px', '')
             const tr: ITr = {
               height: Number(trHeightStr),
-              tdList: []
+              tdList: [],
             }
-            trElement.querySelectorAll('th,td').forEach(tdElement => {
+            trElement.querySelectorAll('th,td').forEach((tdElement) => {
               const tableCell = <HTMLTableCellElement>tdElement
-              const valueList = getElementListByHTML(
-                tableCell.innerHTML,
-                options
-              )
+              const valueList = getElementListByHTML(tableCell.innerHTML, options)
               const td: ITd = {
                 colspan: tableCell.colSpan,
                 rowspan: tableCell.rowSpan,
-                value: valueList
+                value: valueList,
               }
               if (tableCell.style.backgroundColor) {
                 td.backgroundColor = tableCell.style.backgroundColor
@@ -1042,14 +968,11 @@ export function getElementListByHTML(
           })
           if (element.trList!.length) {
             // 列选项数据
-            const tdCount = element.trList![0].tdList.reduce(
-              (pre, cur) => pre + cur.colspan,
-              0
-            )
+            const tdCount = element.trList![0].tdList.reduce((pre, cur) => pre + cur.colspan, 0)
             const width = Math.ceil(options.innerWidth / tdCount)
             for (let i = 0; i < tdCount; i++) {
               element.colgroup!.push({
-                width
+                width,
               })
             }
             elementList.push(element)
@@ -1062,8 +985,8 @@ export function getElementListByHTML(
             type: ElementType.CHECKBOX,
             value: '',
             checkbox: {
-              value: (<HTMLInputElement>node).checked
-            }
+              value: (<HTMLInputElement>node).checked,
+            },
           })
         } else {
           findTextNode(node)
@@ -1071,7 +994,7 @@ export function getElementListByHTML(
             const display = window.getComputedStyle(node as Element).display
             if (display === 'block') {
               elementList.push({
-                value: '\n'
+                value: '\n',
               })
             }
           }
@@ -1084,12 +1007,12 @@ export function getElementListByHTML(
   clipboardDom.innerHTML = htmlText
   document.body.appendChild(clipboardDom)
   const deleteNodes: ChildNode[] = []
-  clipboardDom.childNodes.forEach(child => {
+  clipboardDom.childNodes.forEach((child) => {
     if (child.nodeType !== 1 && !child.textContent?.trim()) {
       deleteNodes.push(child)
     }
   })
-  deleteNodes.forEach(node => node.remove())
+  deleteNodes.forEach((node) => node.remove())
   // 搜索文本节点
   findTextNode(clipboardDom)
   // 移除dom
@@ -1117,7 +1040,7 @@ export function getTextFromElementList(elementList: IElement[]) {
           }
         }
       } else if (element.type === ElementType.HYPERLINK) {
-        text += element.valueList!.map(v => v.value).join('')
+        text += element.valueList!.map((v) => v.value).join('')
       } else if (element.type === ElementType.TITLE) {
         text += `${buildText(zipElementList(element.valueList!))}`
       } else if (element.type === ElementType.LIST) {
@@ -1126,9 +1049,7 @@ export function getTextFromElementList(elementList: IElement[]) {
         const listElementListMap = splitListElement(zipList)
         listElementListMap.forEach((listElementList, listIndex) => {
           const isLast = listElementListMap.size - 1 === listIndex
-          text += `\n${listIndex + 1}.${buildText(listElementList)}${
-            isLast ? `\n` : ``
-          }`
+          text += `\n${listIndex + 1}.${buildText(listElementList)}${isLast ? `\n` : ``}`
         })
       } else if (element.type === ElementType.CHECKBOX) {
         text += element.checkbox?.value ? `☑` : `□`
@@ -1141,7 +1062,7 @@ export function getTextFromElementList(elementList: IElement[]) {
         if (element.type === ElementType.CONTROL) {
           textLike = element.control!.value?.[0]?.value || ''
         } else if (element.type === ElementType.DATE) {
-          textLike = element.valueList?.map(v => v.value).join('') || ''
+          textLike = element.valueList?.map((v) => v.value).join('') || ''
         } else {
           textLike = element.value
         }

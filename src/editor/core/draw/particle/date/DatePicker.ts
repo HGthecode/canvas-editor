@@ -1,6 +1,7 @@
 import { EDITOR_PREFIX } from '../../../../dataset/constant/Editor'
 import { IElement, IElementPosition } from '../../../../interface/Element'
 import { datePicker } from '../../../i18n/lang/zh-CN.json'
+import { ControlType } from '../../../../dataset/enum/Control'
 
 export interface IDatePickerLang {
   now: string
@@ -73,7 +74,7 @@ export class DatePicker {
   constructor(options: IDatePickerOption = {}) {
     this.options = {
       mountDom: document.body,
-      ...options
+      ...options,
     }
     this.lang = datePicker
     this.now = new Date()
@@ -115,10 +116,10 @@ export class DatePicker {
     const datePickerWeek = document.createElement('div')
     datePickerWeek.classList.add(`${EDITOR_PREFIX}-date-week`)
     const {
-      weeks: { sun, mon, tue, wed, thu, fri, sat }
+      weeks: { sun, mon, tue, wed, thu, fri, sat },
     } = this.lang
     const weekList = [sun, mon, tue, wed, thu, fri, sat]
-    weekList.forEach(week => {
+    weekList.forEach((week) => {
       const weekDom = document.createElement('span')
       weekDom.innerText = `${week}`
       datePickerWeek.append(weekDom)
@@ -192,19 +193,19 @@ export class DatePicker {
         preMonth: preMonthTitle,
         now: nowTitle,
         nextMonth: nextMonthTitle,
-        nextYear: nextYearTitle
+        nextYear: nextYearTitle,
       },
       day: datePickerDay,
       time: {
         hour: hourTime!,
         minute: minuteTime!,
-        second: secondTime!
+        second: secondTime!,
       },
       menu: {
         time: timeMenu,
         now: nowMenu,
-        submit: submitMenu
-      }
+        submit: submitMenu,
+      },
     }
   }
 
@@ -233,7 +234,7 @@ export class DatePicker {
       this.dispose()
       this._submit()
     }
-    this.dom.time.hour.onclick = evt => {
+    this.dom.time.hour.onclick = (evt) => {
       if (!this.pickDate) return
       const li = <HTMLLIElement>evt.target
       const id = li.dataset.id
@@ -241,7 +242,7 @@ export class DatePicker {
       this.pickDate.setHours(Number(id))
       this._setTimePick(false)
     }
-    this.dom.time.minute.onclick = evt => {
+    this.dom.time.minute.onclick = (evt) => {
       if (!this.pickDate) return
       const li = <HTMLLIElement>evt.target
       const id = li.dataset.id
@@ -249,7 +250,7 @@ export class DatePicker {
       this.pickDate.setMinutes(Number(id))
       this._setTimePick(false)
     }
-    this.dom.time.second.onclick = evt => {
+    this.dom.time.second.onclick = (evt) => {
       if (!this.pickDate) return
       const li = <HTMLLIElement>evt.target
       const id = li.dataset.id
@@ -264,11 +265,11 @@ export class DatePicker {
     const {
       position: {
         coordinate: {
-          leftTop: [left, top]
+          leftTop: [left, top],
         },
-        lineHeight
+        lineHeight,
       },
-      startTop
+      startTop,
     } = this.renderOptions
     // 位置
     this.dom.container.style.left = `${left}px`
@@ -295,7 +296,7 @@ export class DatePicker {
     this.dom.menu.now.innerText = this.lang.now
     this.dom.menu.submit.innerText = this.lang.confirm
     const {
-      weeks: { sun, mon, tue, wed, thu, fri, sat }
+      weeks: { sun, mon, tue, wed, thu, fri, sat },
     } = this.lang
     const weekList = [sun, mon, tue, wed, thu, fri, sat]
     this.dom.datePickerWeek.childNodes.forEach((child, i) => {
@@ -304,13 +305,9 @@ export class DatePicker {
     })
     const hourTitle = <HTMLSpanElement>this.dom.time.hour.previousElementSibling
     hourTitle.innerText = this.lang.hour
-    const minuteTitle = <HTMLSpanElement>(
-      this.dom.time.minute.previousElementSibling
-    )
+    const minuteTitle = <HTMLSpanElement>this.dom.time.minute.previousElementSibling
     minuteTitle.innerText = this.lang.minute
-    const secondTitle = <HTMLSpanElement>(
-      this.dom.time.second.previousElementSibling
-    )
+    const secondTitle = <HTMLSpanElement>this.dom.time.second.previousElementSibling
     secondTitle.innerText = this.lang.second
   }
 
@@ -332,9 +329,9 @@ export class DatePicker {
     // 当前年月日
     const year = this.now.getFullYear()
     const month = this.now.getMonth() + 1
-    this.dom.title.now.innerText = `${year}${this.lang.year} ${String(
-      month
-    ).padStart(2, '0')}${this.lang.month}`
+    this.dom.title.now.innerText = `${year}${this.lang.year} ${String(month).padStart(2, '0')}${
+      this.lang.month
+    }`
     // 日期补差
     const curDate = new Date(year, month, 0) // 当月日期
     const curDay = curDate.getDate() // 当月总天数
@@ -363,16 +360,11 @@ export class DatePicker {
       if (localYear === year && localMonth === month && localDay === i) {
         dayDom.classList.add('active')
       }
-      if (
-        this.pickDate &&
-        pickYear === year &&
-        pickMonth === month &&
-        pickDay === i
-      ) {
+      if (this.pickDate && pickYear === year && pickMonth === month && pickDay === i) {
         dayDom.classList.add('select')
       }
       dayDom.innerText = `${i}`
-      dayDom.onclick = evt => {
+      dayDom.onclick = (evt) => {
         const newMonth = month - 1
         this.now = new Date(year, newMonth, i)
         this._setDatePick(year, newMonth, i)
@@ -420,22 +412,16 @@ export class DatePicker {
     const hour = this.pickDate?.getHours() || 0
     const minute = this.pickDate?.getMinutes() || 0
     const second = this.pickDate?.getSeconds() || 0
-    const {
-      hour: hourDom,
-      minute: minuteDom,
-      second: secondDom
-    } = this.dom.time
+    const { hour: hourDom, minute: minuteDom, second: secondDom } = this.dom.time
     const timeDomList = [hourDom, minuteDom, secondDom]
     // 清空
-    timeDomList.forEach(timeDom => {
-      timeDom
-        .querySelectorAll('li')
-        .forEach(li => li.classList.remove('active'))
+    timeDomList.forEach((timeDom) => {
+      timeDom.querySelectorAll('li').forEach((li) => li.classList.remove('active'))
     })
     const pickList: [HTMLOListElement, number][] = [
       [hourDom, hour],
       [minuteDom, minute],
-      [secondDom, second]
+      [secondDom, second],
     ]
     pickList.forEach(([dom, time]) => {
       const pickDom = dom.querySelector<HTMLLIElement>(`[data-id='${time}']`)!
@@ -457,9 +443,7 @@ export class DatePicker {
       offsetParents.push(pointer)
       pointer = <HTMLElement>pointer.offsetParent
     }
-    const top =
-      selected.offsetTop +
-      offsetParents.reduce((prev, curr) => prev + curr.offsetTop, 0)
+    const top = selected.offsetTop + offsetParents.reduce((prev, curr) => prev + curr.offsetTop, 0)
     const bottom = top + selected.offsetHeight
     const viewRectTop = container.scrollTop
     const viewRectBottom = viewRectTop + container.clientHeight
@@ -505,7 +489,14 @@ export class DatePicker {
 
   private _submit() {
     if (this.options.onSubmit && this.pickDate) {
-      const format = this.renderOptions?.element.dateFormat
+      let format = this.renderOptions?.element.dateFormat
+      if (
+        !format &&
+        this.renderOptions?.element.control?.type === ControlType.DATE &&
+        this.renderOptions?.element.control?.dateFormat
+      ) {
+        format = this.renderOptions?.element.control?.dateFormat
+      }
       const pickDateString = this.formatDate(this.pickDate, format)
       this.options.onSubmit(pickDateString)
     }
@@ -519,7 +510,7 @@ export class DatePicker {
       'd+': date.getDate().toString(),
       'h+': date.getHours().toString(),
       'm+': date.getMinutes().toString(),
-      's+': date.getSeconds().toString()
+      's+': date.getSeconds().toString(),
     }
     for (const k in dateOption) {
       const reg = new RegExp('(' + k + ')').exec(format)
@@ -527,9 +518,7 @@ export class DatePicker {
       if (reg) {
         dateString = dateString.replace(
           reg[1],
-          reg[1].length === 1
-            ? dateOption[key]
-            : dateOption[key].padStart(reg[1].length, '0')
+          reg[1].length === 1 ? dateOption[key] : dateOption[key].padStart(reg[1].length, '0'),
         )
       }
     }

@@ -5,6 +5,7 @@ import { formatElementContext } from '../../../../utils/element'
 import { RangeManager } from '../../../range/RangeManager'
 import { Draw } from '../../Draw'
 import { DatePicker } from './DatePicker'
+import { ControlType } from '../../../../dataset/enum/Control'
 
 export class DateParticle {
   private draw: Draw
@@ -31,14 +32,14 @@ export class DateParticle {
           wed: t('datePicker.weeks.wed'),
           thu: t('datePicker.weeks.thu'),
           fri: t('datePicker.weeks.fri'),
-          sat: t('datePicker.weeks.sat')
+          sat: t('datePicker.weeks.sat'),
         },
         year: t('datePicker.year'),
         month: t('datePicker.month'),
         hour: t('datePicker.hour'),
         minute: t('datePicker.minute'),
-        second: t('datePicker.second')
-      })
+        second: t('datePicker.second'),
+      }),
     })
   }
 
@@ -50,25 +51,40 @@ export class DateParticle {
     const elementList = this.draw.getElementList()
     const startElement = elementList[leftIndex + 1]
     // 删除旧时间
-    this.draw.spliceElementList(
-      elementList,
-      leftIndex + 1,
-      rightIndex - leftIndex
-    )
+    this.draw.spliceElementList(elementList, leftIndex + 1, rightIndex - leftIndex)
     this.range.setRange(leftIndex, leftIndex)
     // 插入新时间
-    const dateElement: IElement = {
-      type: ElementType.DATE,
-      value: '',
-      dateFormat: startElement.dateFormat,
-      valueList: [
-        {
-          value: date
-        }
-      ]
+    if (startElement.type === ElementType.DATE) {
+      const dateElement: IElement = {
+        type: ElementType.DATE,
+        value: '',
+        dateFormat: startElement.dateFormat,
+        valueList: [
+          {
+            value: date,
+          },
+        ],
+      }
+      formatElementContext(elementList, [dateElement], leftIndex)
+      this.draw.insertElementList([dateElement])
+    } else if (startElement.control?.type === ControlType.DATE) {
+      const dateElement: IElement = {
+        type: ElementType.CONTROL,
+        value: '',
+        control: {
+          type: ControlType.DATE,
+          extension: startElement.control?.extension,
+          dateFormat: startElement.control?.dateFormat,
+          value: [
+            {
+              value: date,
+            },
+          ],
+        },
+      }
+      formatElementContext(elementList, [dateElement], leftIndex)
+      this.draw.insertElementList([dateElement])
     }
-    formatElementContext(elementList, [dateElement], leftIndex)
-    this.draw.insertElementList([dateElement])
   }
 
   public getDateElementRange(): [number, number] | null {
@@ -78,12 +94,22 @@ export class DateParticle {
     if (!~startIndex && !~endIndex) return null
     const elementList = this.draw.getElementList()
     const startElement = elementList[startIndex]
-    if (startElement.type !== ElementType.DATE) return null
+    if (
+      !(
+        startElement.type === ElementType.DATE ||
+        (startElement.type === ElementType.CONTROL &&
+          startElement.control?.type === ControlType.DATE)
+      )
+    )
+      return null
     // 向左查找
     let preIndex = startIndex
     while (preIndex > 0) {
       const preElement = elementList[preIndex]
-      if (preElement.dateId !== startElement.dateId) {
+      if (
+        preElement.dateId !== startElement.dateId ||
+        preElement.controlId !== startElement.controlId
+      ) {
         leftIndex = preIndex
         break
       }
@@ -93,7 +119,10 @@ export class DateParticle {
     let nextIndex = startIndex + 1
     while (nextIndex < elementList.length) {
       const nextElement = elementList[nextIndex]
-      if (nextElement.dateId !== startElement.dateId) {
+      if (
+        nextElement.dateId !== startElement.dateId ||
+        nextElement.controlId !== startElement.controlId
+      ) {
         rightIndex = nextIndex - 1
         break
       }
@@ -120,23 +149,18 @@ export class DateParticle {
     const value = range
       ? elementList
           .slice(range[0] + 1, range[1] + 1)
-          .map(el => el.value)
+          .map((el) => el.value)
           .join('')
       : ''
     this.datePicker.render({
       value,
       element,
       position,
-      startTop
+      startTop,
     })
   }
 
-  public render(
-    ctx: CanvasRenderingContext2D,
-    element: IRowElement,
-    x: number,
-    y: number
-  ) {
+  public render(ctx: CanvasRenderingContext2D, element: IRowElement, x: number, y: number) {
     ctx.save()
     ctx.font = element.style
     if (element.color) {
