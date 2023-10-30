@@ -1,7 +1,12 @@
 import { NAME_PLACEHOLDER } from '../../dataset/constant/ContextMenu'
 import { EDITOR_COMPONENT, EDITOR_PREFIX } from '../../dataset/constant/Editor'
 import { EditorComponent } from '../../dataset/enum/Editor'
-import { IContextMenuContext, IRegisterContextMenu } from '../../interface/contextmenu/ContextMenu'
+import { DeepRequired } from '../../interface/Common'
+import { IEditorOption } from '../../interface/Editor'
+import {
+  IContextMenuContext,
+  IRegisterContextMenu
+} from '../../interface/contextmenu/ContextMenu'
 import { findParent } from '../../utils'
 import { Command } from '../command/Command'
 import { Draw } from '../draw/Draw'
@@ -22,6 +27,7 @@ interface IRenderPayload {
 }
 
 export class ContextMenu {
+  private options: DeepRequired<IEditorOption>
   private draw: Draw
   private command: Command
   private range: RangeManager
@@ -34,6 +40,7 @@ export class ContextMenu {
   private context: IContextMenuContext | null
 
   constructor(draw: Draw, command: Command) {
+    this.options = draw.getOptions()
     this.draw = draw
     this.command = command
     this.range = draw.getRange()
@@ -47,11 +54,15 @@ export class ContextMenu {
       ...tableMenus,
       ...imageMenus,
       ...controlMenus,
-      ...hyperlinkMenus,
+      ...hyperlinkMenus
     ]
     this.contextMenuContainerList = []
     this.contextMenuRelationShip = new Map()
     this._addEvent()
+  }
+
+  public getContextMenuList(): IRegisterContextMenu[] {
+    return this.contextMenuList
   }
 
   private _addEvent() {
@@ -62,32 +73,47 @@ export class ContextMenu {
   }
 
   public removeEvent() {
-    this.container.removeEventListener('contextmenu', this._proxyContextMenuEvent)
+    this.container.removeEventListener(
+      'contextmenu',
+      this._proxyContextMenuEvent
+    )
     document.removeEventListener('mousedown', this._handleSideEffect)
+  }
+
+  private _filterMenuList(
+    menuList: IRegisterContextMenu[]
+  ): IRegisterContextMenu[] {
+    const { contextMenuDisableKeys } = this.options
+    const renderList: IRegisterContextMenu[] = []
+    for (let m = 0; m < menuList.length; m++) {
+      const menu = menuList[m]
+      if (
+        menu.disable ||
+        (menu.key && contextMenuDisableKeys.includes(menu.key))
+      ) {
+        continue
+      }
+      if (menu.isDivider) {
+        renderList.push(menu)
+      } else {
+        if (menu.when?.(this.context!)) {
+          renderList.push(menu)
+        }
+      }
+    }
+    return renderList
   }
 
   private _proxyContextMenuEvent = (evt: MouseEvent) => {
     this.context = this._getContext()
-    const renderList: IRegisterContextMenu[] = []
-    let isRegisterContextMenu = false
-    for (let c = 0; c < this.contextMenuList.length; c++) {
-      const menu = this.contextMenuList[c]
-      if (menu.isDivider) {
-        renderList.push(menu)
-      } else {
-        const isMatch = menu.when?.(this.context)
-        if (isMatch) {
-          renderList.push(menu)
-          isRegisterContextMenu = true
-        }
-      }
-    }
+    const renderList = this._filterMenuList(this.contextMenuList)
+    const isRegisterContextMenu = renderList.some(menu => !menu.isDivider)
     if (isRegisterContextMenu) {
       this.dispose()
       this._render({
         contextMenuList: renderList,
         left: evt.x,
-        top: evt.y,
+        top: evt.y
       })
     }
     evt.preventDefault()
@@ -103,7 +129,7 @@ export class ContextMenu {
           !!node &&
           node.nodeType === 1 &&
           node.getAttribute(EDITOR_COMPONENT) === EditorComponent.CONTEXTMENU,
-        true,
+        true
       )
       if (!contextMenuDom) {
         this.dispose()
@@ -114,7 +140,11 @@ export class ContextMenu {
   private _getContext(): IContextMenuContext {
     // 是否是只读模式
     const isReadonly = this.draw.isReadonly()
-    const { isCrossRowCol: crossRowCol, startIndex, endIndex } = this.range.getRange()
+    const {
+      isCrossRowCol: crossRowCol,
+      startIndex,
+      endIndex
+    } = this.range.getRange()
     // 是否存在焦点
     const editorTextFocus = !!(~startIndex || ~endIndex)
     // 是否存在选区
@@ -138,14 +168,17 @@ export class ContextMenu {
       editorTextFocus,
       isInTable,
       isCrossRowCol,
-      zone,
+      zone
     }
   }
 
   private _createContextMenuContainer(): HTMLDivElement {
     const contextMenuContainer = document.createElement('div')
     contextMenuContainer.classList.add(`${EDITOR_PREFIX}-contextmenu-container`)
-    contextMenuContainer.setAttribute(EDITOR_COMPONENT, EditorComponent.CONTEXTMENU)
+    contextMenuContainer.setAttribute(
+      EDITOR_COMPONENT,
+      EditorComponent.CONTEXTMENU
+    )
     this.container.append(contextMenuContainer)
     return contextMenuContainer
   }
@@ -159,13 +192,20 @@ export class ContextMenu {
     let childMenuContainer: HTMLDivElement | null = null
     // 父菜单添加子菜单映射关系
     if (parentMenuContainer) {
-      this.contextMenuRelationShip.set(parentMenuContainer, contextMenuContainer)
+      this.contextMenuRelationShip.set(
+        parentMenuContainer,
+        contextMenuContainer
+      )
     }
     for (let c = 0; c < contextMenuList.length; c++) {
       const menu = contextMenuList[c]
       if (menu.isDivider) {
-        // 首尾分隔符不渲染
-        if (c !== 0 && c !== contextMenuList.length - 1) {
+        // 分割线相邻 || 首尾分隔符时不渲染
+        if (
+          c !== 0 &&
+          c !== contextMenuList.length - 1 &&
+          !contextMenuList[c - 1]?.isDivider
+        ) {
           const divider = document.createElement('div')
           divider.classList.add(`${EDITOR_PREFIX}-contextmenu-divider`)
           contextMenuContent.append(divider)
@@ -175,25 +215,32 @@ export class ContextMenu {
         menuItem.classList.add(`${EDITOR_PREFIX}-contextmenu-item`)
         // 菜单事件
         if (menu.childMenus) {
-          menuItem.classList.add(`${EDITOR_PREFIX}-contextmenu-sub-item`)
-          menuItem.onmouseenter = () => {
-            this._setHoverStatus(menuItem, true)
-            this._removeSubMenu(contextMenuContainer)
-            // 子菜单
-            const subMenuRect = menuItem.getBoundingClientRect()
-            const left = subMenuRect.left + subMenuRect.width
-            const top = subMenuRect.top
-            childMenuContainer = this._render({
-              contextMenuList: menu.childMenus!,
-              left,
-              top,
-              parentMenuContainer: contextMenuContainer,
-            })
-          }
-          menuItem.onmouseleave = (evt) => {
-            // 移动到子菜单选项选中状态不变化
-            if (!childMenuContainer || !childMenuContainer.contains(evt.relatedTarget as Node)) {
-              this._setHoverStatus(menuItem, false)
+          const childMenus = this._filterMenuList(menu.childMenus)
+          const isRegisterContextMenu = childMenus.some(menu => !menu.isDivider)
+          if (isRegisterContextMenu) {
+            menuItem.classList.add(`${EDITOR_PREFIX}-contextmenu-sub-item`)
+            menuItem.onmouseenter = () => {
+              this._setHoverStatus(menuItem, true)
+              this._removeSubMenu(contextMenuContainer)
+              // 子菜单
+              const subMenuRect = menuItem.getBoundingClientRect()
+              const left = subMenuRect.left + subMenuRect.width
+              const top = subMenuRect.top
+              childMenuContainer = this._render({
+                contextMenuList: childMenus,
+                left,
+                top,
+                parentMenuContainer: contextMenuContainer
+              })
+            }
+            menuItem.onmouseleave = evt => {
+              // 移动到子菜单选项选中状态不变化
+              if (
+                !childMenuContainer ||
+                !childMenuContainer.contains(evt.relatedTarget as Node)
+              ) {
+                this._setHoverStatus(menuItem, false)
+              }
             }
           }
         } else {
@@ -240,12 +287,14 @@ export class ContextMenu {
     const innerWidth = window.innerWidth
     const contextmenuRect = contextMenuContainer.getBoundingClientRect()
     const contextMenuWidth = contextmenuRect.width
-    const adjustLeft = left + contextMenuWidth > innerWidth ? left - contextMenuWidth : left
+    const adjustLeft =
+      left + contextMenuWidth > innerWidth ? left - contextMenuWidth : left
     contextMenuContainer.style.left = `${adjustLeft}px`
     // 下侧空间不足时，以菜单底部作为起始点
     const innerHeight = window.innerHeight
     const contextMenuHeight = contextmenuRect.height
-    const adjustTop = top + contextMenuHeight > innerHeight ? top - contextMenuHeight : top
+    const adjustTop =
+      top + contextMenuHeight > innerHeight ? top - contextMenuHeight : top
     contextMenuContainer.style.top = `${adjustTop}px`
     this.contextMenuContainerList.push(contextMenuContainer)
     return contextMenuContainer
@@ -264,7 +313,7 @@ export class ContextMenu {
     if (status) {
       payload.parentNode
         ?.querySelectorAll(`${EDITOR_PREFIX}-contextmenu-item`)
-        .forEach((child) => child.classList.remove('hover'))
+        .forEach(child => child.classList.remove('hover'))
       payload.classList.add('hover')
     } else {
       payload.classList.remove('hover')
@@ -291,7 +340,7 @@ export class ContextMenu {
   }
 
   public dispose() {
-    this.contextMenuContainerList.forEach((child) => child.remove())
+    this.contextMenuContainerList.forEach(child => child.remove())
     this.contextMenuContainerList = []
     this.contextMenuRelationShip.clear()
   }

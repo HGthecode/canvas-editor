@@ -20,11 +20,14 @@ export interface IControlCheckbox {
   valueSets: IValueSet[]
   checkbox?: ICheckbox
 }
-
 export interface IControlDate {
   dateFormat?: string
   min?: number
   max?: number
+}
+
+export interface IControlRule {
+  deletable?: boolean
 }
 
 export interface IControlBasic {
@@ -40,8 +43,9 @@ export interface IControlBasic {
 }
 
 export type IControl = IControlBasic &
+  IControlRule &
   Partial<IControlSelect> &
-  Partial<IControlCheckbox> &
+  Partial<IControlCheckbox>&
   Partial<IControlDate>
 
 export interface IControlOption {
@@ -70,7 +74,7 @@ export interface IControlInstance {
 
   setValue(data: IElement[]): number
 
-  keydown(evt: KeyboardEvent): number
+  keydown(evt: KeyboardEvent): number | null
 
   cut(): number
 }

@@ -9,7 +9,7 @@ import {
   IGetControlValueOption,
   IGetControlValueResult,
   ISetControlExtensionOption,
-  ISetControlValueOption,
+  ISetControlValueOption
 } from '../../../interface/Control'
 import { IEditorData } from '../../../interface/Editor'
 import { IElement, IElementPosition } from '../../../interface/Element'
@@ -20,7 +20,7 @@ import {
   formatElementContext,
   formatElementList,
   pickElementAttr,
-  zipElementList,
+  zipElementList
 } from '../../../utils/element'
 import { EventBus } from '../../event/eventbus/EventBus'
 import { Listener } from '../../listener/Listener'
@@ -57,10 +57,12 @@ export class Control {
   }
 
   // 过滤控件辅助元素（前后缀、背景提示）
-  public filterAssistElement(payload: Required<IEditorData>): Required<IEditorData> {
+  public filterAssistElement(
+    payload: Required<IEditorData>
+  ): Required<IEditorData> {
     const editorDataKeys: (keyof IEditorData)[] = ['header', 'main', 'footer']
-    editorDataKeys.forEach((key) => {
-      payload[key] = payload[key].filter((element) => {
+    editorDataKeys.forEach(key => {
+      payload[key] = payload[key].filter(element => {
         if (element.type !== ElementType.CONTROL || element.control?.minWidth) {
           return true
         }
@@ -82,7 +84,8 @@ export class Control {
     const startElement = elementList[startIndex]
     const endElement = elementList[endIndex]
     if (
-      (startElement.type === ElementType.CONTROL || endElement.type === ElementType.CONTROL) &&
+      (startElement.type === ElementType.CONTROL ||
+        endElement.type === ElementType.CONTROL) &&
       startElement.controlId !== endElement.controlId
     ) {
       return true
@@ -108,7 +111,8 @@ export class Control {
     const startElement = elementList[startIndex]
     const endElement = elementList[endIndex]
     if (
-      (startElement.type === ElementType.CONTROL || endElement.type === ElementType.CONTROL) &&
+      (startElement.type === ElementType.CONTROL ||
+        endElement.type === ElementType.CONTROL) &&
       endElement.controlComponent !== ControlComponent.POSTFIX &&
       startElement.controlId === endElement.controlId
     ) {
@@ -177,12 +181,11 @@ export class Control {
     } else if (control.type === ControlType.CHECKBOX) {
       this.activeControl = new CheckboxControl(element, this)
     }
-    // console.log(control)
-
     // 激活控件回调
     nextTick(() => {
       const controlChangeListener = this.listener.controlChange
-      const isSubscribeControlChange = this.eventBus.isSubscribe('controlChange')
+      const isSubscribeControlChange =
+        this.eventBus.isSubscribe('controlChange')
       if (!controlChangeListener && !isSubscribeControlChange) return
       let payload: IControl
       const value = this.activeControl?.getValue()
@@ -209,7 +212,8 @@ export class Control {
       // 销毁控件回调
       nextTick(() => {
         const controlChangeListener = this.listener.controlChange
-        const isSubscribeControlChange = this.eventBus.isSubscribe('controlChange')
+        const isSubscribeControlChange =
+          this.eventBus.isSubscribe('controlChange')
         if (!controlChangeListener && !isSubscribeControlChange) return
         if (controlChangeListener) {
           controlChangeListener(null)
@@ -224,7 +228,7 @@ export class Control {
   public repaintControl(curIndex: number) {
     this.range.setRange(curIndex, curIndex)
     this.draw.render({
-      curIndex,
+      curIndex
     })
   }
 
@@ -243,7 +247,7 @@ export class Control {
       // VALUE-无需移动
       return {
         newIndex,
-        newElement: element,
+        newElement: element
       }
     } else if (element.controlComponent === ControlComponent.POSTFIX) {
       // POSTFIX-移动到最后一个后缀字符后
@@ -253,7 +257,7 @@ export class Control {
         if (nextElement.controlId !== element.controlId) {
           return {
             newIndex: startIndex - 1,
-            newElement: elementList[startIndex - 1],
+            newElement: elementList[startIndex - 1]
           }
         }
         startIndex++
@@ -269,7 +273,7 @@ export class Control {
         ) {
           return {
             newIndex: startIndex - 1,
-            newElement: elementList[startIndex - 1],
+            newElement: elementList[startIndex - 1]
           }
         }
         startIndex++
@@ -285,7 +289,7 @@ export class Control {
         ) {
           return {
             newIndex: startIndex,
-            newElement: elementList[startIndex],
+            newElement: elementList[startIndex]
           }
         }
         startIndex--
@@ -293,13 +297,18 @@ export class Control {
     }
     return {
       newIndex,
-      newElement: element,
+      newElement: element
     }
   }
 
-  public removeControl(startIndex: number): number {
-    const elementList = this.getElementList()
+  public removeControl(
+    startIndex: number,
+    context: IControlContext = {}
+  ): number | null {
+    const elementList = context.elementList || this.getElementList()
     const startElement = elementList[startIndex]
+    const { deletable = true } = startElement.control!
+    if (!deletable) return null
     let leftIndex = -1
     let rightIndex = -1
     // 向左查找
@@ -329,12 +338,16 @@ export class Control {
     if (!~leftIndex && !~rightIndex) return startIndex
     leftIndex = ~leftIndex ? leftIndex : 0
     // 删除元素
-    this.draw.spliceElementList(elementList, leftIndex + 1, rightIndex - leftIndex)
+    this.draw.spliceElementList(
+      elementList,
+      leftIndex + 1,
+      rightIndex - leftIndex
+    )
     return leftIndex
   }
 
-  public removePlaceholder(startIndex: number) {
-    const elementList = this.getElementList()
+  public removePlaceholder(startIndex: number, context: IControlContext = {}) {
+    const elementList = context.elementList || this.getElementList()
     const startElement = elementList[startIndex]
     const nextElement = elementList[startIndex + 1]
     if (
@@ -354,8 +367,8 @@ export class Control {
     }
   }
 
-  public addPlaceholder(startIndex: number) {
-    const elementList = this.getElementList()
+  public addPlaceholder(startIndex: number, context: IControlContext = {}) {
+    const elementList = context.elementList || this.getElementList()
     const startElement = elementList[startIndex]
     const control = startElement.control!
     if (!control.placeholder) return
@@ -368,10 +381,15 @@ export class Control {
         type: ElementType.CONTROL,
         control: startElement.control,
         controlComponent: ControlComponent.PLACEHOLDER,
-        color: this.options.placeholderColor,
+        color: this.options.placeholderColor
       }
       formatElementContext(elementList, [newElement], startIndex)
-      this.draw.spliceElementList(elementList, startIndex + p + 1, 0, newElement)
+      this.draw.spliceElementList(
+        elementList,
+        startIndex + p + 1,
+        0,
+        newElement
+      )
     }
   }
 
@@ -382,7 +400,7 @@ export class Control {
     return this.activeControl.setValue(data)
   }
 
-  public keydown(evt: KeyboardEvent): number {
+  public keydown(evt: KeyboardEvent): number | null {
     if (!this.activeControl) {
       throw new Error('active control is null')
     }
@@ -396,12 +414,14 @@ export class Control {
     return this.activeControl.cut()
   }
 
-  public getValueByConceptId(payload: IGetControlValueOption): IGetControlValueResult {
+  public getValueByConceptId(
+    payload: IGetControlValueOption
+  ): IGetControlValueResult {
     const { conceptId } = payload
     const elementList = [
       ...this.draw.getHeaderElementList(),
       ...this.draw.getOriginalMainElementList(),
-      ...this.draw.getFooterElementList(),
+      ...this.draw.getFooterElementList()
     ]
     const result: IGetControlValueResult = []
     let i = 0
@@ -415,7 +435,10 @@ export class Control {
       while (j < elementList.length) {
         const nextElement = elementList[j]
         if (nextElement.controlId !== element.controlId) break
-        if (type === ControlType.TEXT && nextElement.controlComponent === ControlComponent.VALUE) {
+        if (
+          type === ControlType.TEXT &&
+          nextElement.controlComponent === ControlComponent.VALUE
+        ) {
           textControlValue += nextElement.value
         }
         j++
@@ -424,18 +447,21 @@ export class Control {
         result.push({
           ...element.control,
           value: textControlValue || null,
-          innerText: textControlValue || null,
+          innerText: textControlValue || null
         })
       } else if (type === ControlType.SELECT || type === ControlType.CHECKBOX) {
         const innerText = code
           ?.split(',')
-          .map((selectCode) => valueSets?.find((valueSet) => valueSet.code === selectCode)?.value)
+          .map(
+            selectCode =>
+              valueSets?.find(valueSet => valueSet.code === selectCode)?.value
+          )
           .filter(Boolean)
           .join('')
         result.push({
           ...element.control,
           value: code || null,
-          innerText: innerText || null,
+          innerText: innerText || null
         })
       }
       i = j
@@ -448,16 +474,23 @@ export class Control {
     if (isReadonly) return
     let isExistSet = false
     const { conceptId, value } = payload
-    const data = [
-      this.draw.getHeaderElementList(),
-      this.draw.getOriginalMainElementList(),
-      this.draw.getFooterElementList(),
-    ]
-    for (const elementList of data) {
+    // 设置值
+    const setValue = (elementList: IElement[]) => {
       let i = 0
       while (i < elementList.length) {
         const element = elementList[i]
         i++
+        // 表格下钻处理
+        if (element.type === ElementType.TABLE) {
+          const trList = element.trList!
+          for (let r = 0; r < trList.length; r++) {
+            const tr = trList[r]
+            for (let d = 0; d < tr.tdList.length; d++) {
+              const td = tr.tdList[d]
+              setValue(td.value)
+            }
+          }
+        }
         if (element?.control?.conceptId !== conceptId) continue
         isExistSet = true
         const { type } = element.control!
@@ -471,17 +504,17 @@ export class Control {
         // 模拟光标选区上下文
         const fakeRange = {
           startIndex: i - 1,
-          endIndex: currentEndIndex - 2,
+          endIndex: currentEndIndex - 2
         }
         const controlContext: IControlContext = {
           range: fakeRange,
-          elementList,
+          elementList
         }
         if (type === ControlType.TEXT) {
           const formatValue = [{ value }]
           formatElementList(formatValue, {
             isHandleFirstElement: false,
-            editorOptions: this.draw.getOptions(),
+            editorOptions: this.draw.getOptions()
           })
           const text = new TextControl(element, this)
           if (value) {
@@ -500,7 +533,7 @@ export class Control {
           const checkbox = new CheckboxControl(element, this)
           const checkboxElementList = elementList.slice(
             fakeRange.startIndex + 1,
-            fakeRange.endIndex + 1,
+            fakeRange.endIndex + 1
           )
           const codes = value?.split(',') || []
           for (const checkElement of checkboxElementList) {
@@ -521,9 +554,18 @@ export class Control {
         i = newEndIndex
       }
     }
+    // 页眉、内容区、页脚同时处理
+    const data = [
+      this.draw.getHeaderElementList(),
+      this.draw.getOriginalMainElementList(),
+      this.draw.getFooterElementList()
+    ]
+    for (const elementList of data) {
+      setValue(elementList)
+    }
     if (isExistSet) {
       this.draw.render({
-        isSetCursor: false,
+        isSetCursor: false
       })
     }
   }
@@ -535,7 +577,7 @@ export class Control {
     const data = [
       this.draw.getHeaderElementList(),
       this.draw.getOriginalMainElementList(),
-      this.draw.getFooterElementList(),
+      this.draw.getFooterElementList()
     ]
     for (const elementList of data) {
       let i = 0
