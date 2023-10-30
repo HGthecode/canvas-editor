@@ -48,6 +48,9 @@
       "borderTdBottom": "下边框",
       "borderTdForward": "正斜线",
       "borderTdBack": "反斜线"
+    },
+    "formExtend":{
+      "attr":"属性"
     }
   },
   "datePicker": {

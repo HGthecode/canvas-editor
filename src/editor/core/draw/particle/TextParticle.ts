@@ -31,7 +31,7 @@ export class TextParticle {
   public measureWord(
     ctx: CanvasRenderingContext2D,
     elementList: IElement[],
-    curIndex: number
+    curIndex: number,
   ): IMeasureWordResult {
     const LETTER_REG = this.draw.getLetterReg()
     let width = 0
@@ -39,10 +39,7 @@ export class TextParticle {
     let i = curIndex
     while (i < elementList.length) {
       const element = elementList[i]
-      if (
-        (element.type && element.type !== ElementType.TEXT) ||
-        !LETTER_REG.test(element.value)
-      ) {
+      if ((element.type && element.type !== ElementType.TEXT) || !LETTER_REG.test(element.value)) {
         endElement = element
         break
       }
@@ -51,22 +48,16 @@ export class TextParticle {
     }
     return {
       width,
-      endElement
+      endElement,
     }
   }
 
-  public measurePunctuationWidth(
-    ctx: CanvasRenderingContext2D,
-    element: IElement
-  ): number {
+  public measurePunctuationWidth(ctx: CanvasRenderingContext2D, element: IElement): number {
     if (!element || !PUNCTUATION_LIST.includes(element.value)) return 0
     return this.measureText(ctx, element).width
   }
 
-  public measureText(
-    ctx: CanvasRenderingContext2D,
-    element: IElement
-  ): TextMetrics {
+  public measureText(ctx: CanvasRenderingContext2D, element: IElement): TextMetrics {
     // 优先使用自定义字宽设置
     if (element.width) {
       const textMetrics = ctx.measureText(element.value)
@@ -78,7 +69,7 @@ export class TextParticle {
         actualBoundingBoxLeft: textMetrics.actualBoundingBoxLeft,
         actualBoundingBoxRight: textMetrics.actualBoundingBoxRight,
         fontBoundingBoxAscent: textMetrics.fontBoundingBoxAscent,
-        fontBoundingBoxDescent: textMetrics.fontBoundingBoxDescent
+        fontBoundingBoxDescent: textMetrics.fontBoundingBoxDescent,
       }
     }
     const id = `${element.value}${ctx.font}`
@@ -96,22 +87,14 @@ export class TextParticle {
     this.text = ''
   }
 
-  public record(
-    ctx: CanvasRenderingContext2D,
-    element: IRowElement,
-    x: number,
-    y: number
-  ) {
+  public record(ctx: CanvasRenderingContext2D, element: IRowElement, x: number, y: number) {
     this.ctx = ctx
     // 主动完成的重设起始点
     if (!this.text) {
       this._setCurXY(x, y)
     }
     // 样式发生改变
-    if (
-      (this.curStyle && element.style !== this.curStyle) ||
-      element.color !== this.curColor
-    ) {
+    if ((this.curStyle && element.style !== this.curStyle) || element.color !== this.curColor) {
       this.complete()
       this._setCurXY(x, y)
     }
@@ -132,6 +115,11 @@ export class TextParticle {
     if (this.curColor) {
       this.ctx.fillStyle = this.curColor
     }
+
+    // const range = this.draw.getRange()
+    // const elementList = this.draw.getElementList()
+    // console.log(555, range, elementList)
+
     this.ctx.fillText(this.text, this.curX, this.curY)
     this.ctx.restore()
   }

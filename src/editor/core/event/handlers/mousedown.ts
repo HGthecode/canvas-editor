@@ -1,4 +1,4 @@
-import { ControlComponent, ControlType } from '../../../dataset/enum/Control'
+import {  ControlType } from '../../../dataset/enum/Control'
 import { ElementType } from '../../../dataset/enum/Element'
 import { MouseEventButton } from '../../../dataset/enum/Event'
 import { deepClone } from '../../../utils'
@@ -124,11 +124,9 @@ export function mousedown(evt: MouseEvent, host: CanvasEvent) {
   const dateParticle = draw.getDateParticle()
   dateParticle.clearDatePicker()
 
-  console.log(curElement)
-
   if (
     (curElement.type === ElementType.DATE || curElement.control?.type === ControlType.DATE) &&
-    curElement.value !== ControlComponent.POSTFIX &&
+    curElement.value !== '}' &&
     !isReadonly
   ) {
     dateParticle.renderDatePicker(curElement, positionList[curIndex])

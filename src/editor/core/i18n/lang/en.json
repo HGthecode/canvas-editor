@@ -48,6 +48,9 @@
       "borderTdBottom": "Bottom",
       "borderTdForward": "forward",
       "borderTdBack": "back"
+    },
+    "formExtend":{
+      "attr":"Attr"
     }
   },
   "datePicker": {
