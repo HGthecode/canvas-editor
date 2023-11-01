@@ -45,7 +45,7 @@ export interface IControlBasic {
 export type IControl = IControlBasic &
   IControlRule &
   Partial<IControlSelect> &
-  Partial<IControlCheckbox>&
+  Partial<IControlCheckbox> &
   Partial<IControlDate>
 
 export interface IControlOption {
