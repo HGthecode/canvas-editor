@@ -1,5 +1,7 @@
 import { ControlType } from '../dataset/enum/Control'
 import { ICheckbox } from './Checkbox'
+import { IRadio } from './Radio'
+
 import { IElement } from './Element'
 import { IRange } from './Range'
 
@@ -19,7 +21,17 @@ export interface IControlCheckbox {
   max?: number
   valueSets: IValueSet[]
   checkbox?: ICheckbox
+  radio?: IRadio
 }
+
+export interface IControlRadio {
+  code: string | null
+  min?: number
+  max?: number
+  valueSets: IValueSet[]
+  radio?: IRadio
+}
+
 export interface IControlDate {
   dateFormat?: string
   min?: number
@@ -46,6 +58,7 @@ export type IControl = IControlBasic &
   IControlRule &
   Partial<IControlSelect> &
   Partial<IControlCheckbox> &
+  Partial<IControlRadio> &
   Partial<IControlDate>
 
 export interface IControlOption {

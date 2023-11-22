@@ -177,7 +177,7 @@ export function formatElementList(elementList: IElement[], options: IFormatEleme
     } else if (el.type === ElementType.CONTROL) {
       const { prefix, postfix, value, placeholder, code, type, valueSets } = el.control!
       const {
-        editorOptions: { control: controlOption, checkbox: checkboxOption },
+        editorOptions: { control: controlOption, checkbox: checkboxOption, radio: radioOption },
       } = options
       const controlId = getUUID()
       // 移除父节点
@@ -205,11 +205,14 @@ export function formatElementList(elementList: IElement[], options: IFormatEleme
       if (
         (value && value.length) ||
         type === ControlType.CHECKBOX ||
+        type === ControlType.RADIO ||
         (type === ControlType.SELECT && code && (!value || !value.length))
       ) {
         let valueList: IElement[] = value || []
         if (type === ControlType.CHECKBOX) {
           const codeList = code ? code.split(',') : []
+          console.log(codeList)
+
           if (Array.isArray(valueSets) && valueSets.length) {
             // 拆分valueList优先使用其属性
             const valueStyleList = valueList.reduce(
@@ -243,6 +246,65 @@ export function formatElementList(elementList: IElement[], options: IFormatEleme
                   value,
                   type: el.type,
                   letterSpacing: isLastLetter ? checkboxOption.gap : 0,
+                  control: el.control,
+                  controlComponent: ControlComponent.VALUE,
+                })
+                valueStyleIndex++
+                i++
+              }
+            }
+          }
+        } else if (type === ControlType.RADIO) {
+          // elementList.splice(i, 0, {
+          //   controlId,
+          //   value: '',
+          //   type: el.type,
+          //   control: el.control,
+          //   controlComponent: ControlComponent.RADIO,
+          //   radio: {
+          //     // code: valueSet.code,
+          //     value: null,
+          //   },
+          // })
+          // i++
+
+          // TODO 处理code批量添加处理
+          const codeList = code ? code.split(',') : []
+          console.log(codeList)
+
+          if (Array.isArray(valueSets) && valueSets.length) {
+            // 拆分valueList优先使用其属性
+            const valueStyleList = valueList.reduce(
+              (pre, cur) => pre.concat(cur.value.split('').map((v) => ({ ...cur, value: v }))),
+              [] as IElement[],
+            )
+            let valueStyleIndex = 0
+            for (let v = 0; v < valueSets.length; v++) {
+              const valueSet = valueSets[v]
+              // radio组件
+              elementList.splice(i, 0, {
+                controlId,
+                value: '',
+                type: el.type,
+                control: el.control,
+                controlComponent: ControlComponent.RADIO,
+                radio: {
+                  code: valueSet.code,
+                  value: false,
+                },
+              })
+              i++
+              // 文本
+              const valueStrList = splitText(valueSet.value)
+              for (let e = 0; e < valueStrList.length; e++) {
+                const value = valueStrList[e]
+                const isLastLetter = e === valueStrList.length - 1
+                elementList.splice(i, 0, {
+                  ...valueStyleList[valueStyleIndex],
+                  controlId,
+                  value,
+                  type: el.type,
+                  letterSpacing: isLastLetter ? radioOption.gap : 0,
                   control: el.control,
                   controlComponent: ControlComponent.VALUE,
                 })
@@ -767,6 +829,23 @@ export function createDomFromElementList(
           checkbox.setAttribute('checked', 'true')
         }
         clipboardDom.append(checkbox)
+      } else if (element.type === ElementType.RADIO) {
+        const radioWraper = document.createElement('span')
+        if (element.radio?.options) {
+          const radioOptions = element.radio.options
+          for (let r = 0; r < radioOptions.length; r++) {
+            // const radioItem = radioOptions[r]
+            const radio = document.createElement('input')
+            radio.type = 'radio'
+            radio.name = element.radio.name ? element.radio.name : ''
+            if (element.radio?.value) {
+              radio.setAttribute('checked', 'true')
+            }
+            radioWraper.append(radio)
+          }
+        }
+
+        clipboardDom.append(radioWraper)
       } else if (element.type === ElementType.TAB) {
         const tab = document.createElement('span')
         tab.innerHTML = `${NON_BREAKING_SPACE}${NON_BREAKING_SPACE}`
@@ -1053,6 +1132,8 @@ export function getTextFromElementList(elementList: IElement[]) {
         })
       } else if (element.type === ElementType.CHECKBOX) {
         text += element.checkbox?.value ? `☑` : `□`
+      } else if (element.type === ElementType.RADIO) {
+        text += element.radio?.value ? `●` : `○`
       } else if (
         !element.type ||
         element.type === ElementType.LATEX ||

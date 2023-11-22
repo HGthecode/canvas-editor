@@ -1,12 +1,14 @@
 import { IElement } from '..'
 import { EditorZone } from '../dataset/enum/Editor'
 import { IElementPosition } from './Element'
+import { IRadioOptionItem } from './Radio'
 import { IRow } from './Row'
 import { ITd } from './table/Td'
 
 export interface ICurrentPosition {
   index: number
   isCheckbox?: boolean
+  isRadio?: boolean
   isControl?: boolean
   isImage?: boolean
   isTable?: boolean
@@ -19,6 +21,8 @@ export interface ICurrentPosition {
   tableId?: string
   zone?: EditorZone
   hitLineStartIndex?: number
+  itemIndex?: number
+  itemData?: IRadioOptionItem
 }
 
 export interface IGetPositionByXYPayload {
@@ -34,6 +38,7 @@ export interface IGetPositionByXYPayload {
 export interface IPositionContext {
   isTable: boolean
   isCheckbox?: boolean
+  isRadio?: boolean
   isControl?: boolean
   index?: number
   trIndex?: number

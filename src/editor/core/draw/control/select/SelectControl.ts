@@ -1,15 +1,9 @@
-import {
-  EDITOR_COMPONENT,
-  EDITOR_PREFIX
-} from '../../../../dataset/constant/Editor'
+import { EDITOR_COMPONENT, EDITOR_PREFIX } from '../../../../dataset/constant/Editor'
 import { EDITOR_ELEMENT_STYLE_ATTR } from '../../../../dataset/constant/Element'
 import { ControlComponent } from '../../../../dataset/enum/Control'
 import { EditorComponent } from '../../../../dataset/enum/Editor'
 import { KeyMap } from '../../../../dataset/enum/KeyMap'
-import {
-  IControlContext,
-  IControlInstance
-} from '../../../../interface/Control'
+import { IControlContext, IControlInstance } from '../../../../interface/Control'
 import { IElement } from '../../../../interface/Element'
 import { omitObject, pickObject, splitText } from '../../../../utils'
 import { formatElementContext } from '../../../../utils/element'
@@ -185,22 +179,16 @@ export class SelectControl implements IControlInstance {
     const valueSets = control.valueSets
     if (!Array.isArray(valueSets) || !valueSets.length) return
     // 转换code
-    const valueSet = valueSets.find(v => v.code === code)
+    const valueSet = valueSets.find((v) => v.code === code)
     if (!valueSet) return
     const elementList = context.elementList || this.control.getElementList()
     // 样式赋值元素-默认值的第一个字符样式
-    const styleElement = pickObject(
-      this.getValue(context)[0],
-      EDITOR_ELEMENT_STYLE_ATTR
-    )
+    const styleElement = pickObject(this.getValue(context)[0], EDITOR_ELEMENT_STYLE_ATTR)
     // 清空选项
     const prefixIndex = this.clearSelect(context)
     this.control.removePlaceholder(prefixIndex, context)
     // 属性赋值元素-默认为前缀属性
-    const propertyElement = omitObject(
-      elementList[prefixIndex],
-      EDITOR_ELEMENT_STYLE_ATTR
-    )
+    const propertyElement = omitObject(elementList[prefixIndex], EDITOR_ELEMENT_STYLE_ATTR)
     const start = prefixIndex + 1
     const data = splitText(valueSet.value)
     const draw = this.control.getDraw()
@@ -209,7 +197,7 @@ export class SelectControl implements IControlInstance {
         ...styleElement,
         ...propertyElement,
         value: data[i],
-        controlComponent: ControlComponent.VALUE
+        controlComponent: ControlComponent.VALUE,
       }
       formatElementContext(elementList, [newElement], prefixIndex)
       draw.spliceElementList(elementList, start + i, 0, newElement)
@@ -252,9 +240,9 @@ export class SelectControl implements IControlInstance {
     // 定位
     const {
       coordinate: {
-        leftTop: [left, top]
+        leftTop: [left, top],
       },
-      lineHeight
+      lineHeight,
     } = position
     const preY = this.control.getPreY()
     selectPopupContainer.style.left = `${left}px`

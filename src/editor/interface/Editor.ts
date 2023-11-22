@@ -1,11 +1,7 @@
 import { IElement } from '..'
-import {
-  EditorMode,
-  PageMode,
-  PaperDirection,
-  WordBreak
-} from '../dataset/enum/Editor'
+import { EditorMode, PageMode, PaperDirection, WordBreak } from '../dataset/enum/Editor'
 import { ICheckboxOption } from './Checkbox'
+import { IRadioOption } from './Radio'
 import { IPadding } from './Common'
 import { IControlOption } from './Control'
 import { ICursorOption } from './Cursor'
@@ -73,6 +69,7 @@ export interface IEditorOption {
   watermark?: IWatermark
   control?: IControlOption
   checkbox?: ICheckboxOption
+  radio?: IRadioOption
   cursor?: ICursorOption
   title?: ITitleOption
   placeholder?: IPlaceholder

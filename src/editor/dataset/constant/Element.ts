@@ -10,7 +10,7 @@ export const EDITOR_ELEMENT_STYLE_ATTR: Array<keyof IElement> = [
   'size',
   'italic',
   'underline',
-  'strikeout'
+  'strikeout',
 ]
 
 export const EDITOR_ELEMENT_COPY_ATTR: Array<keyof IElement> = [
@@ -28,7 +28,7 @@ export const EDITOR_ELEMENT_COPY_ATTR: Array<keyof IElement> = [
   'hyperlinkId',
   'dateId',
   'dateFormat',
-  'groupIds'
+  'groupIds',
 ]
 
 export const EDITOR_ELEMENT_ZIP_ATTR: Array<keyof IElement> = [
@@ -53,39 +53,32 @@ export const EDITOR_ELEMENT_ZIP_ATTR: Array<keyof IElement> = [
   'valueList',
   'control',
   'checkbox',
+  'radio',
   'dateFormat',
   'block',
   'level',
   'listType',
   'listStyle',
   'listWrap',
-  'groupIds'
+  'groupIds',
 ]
 
 export const TABLE_TD_ZIP_ATTR: Array<keyof ITd> = [
   'verticalAlign',
   'backgroundColor',
-  'borderType'
+  'borderType',
 ]
 
-export const TABLE_CONTEXT_ATTR: Array<keyof IElement> = [
-  'tdId',
-  'trId',
-  'tableId'
-]
+export const TABLE_CONTEXT_ATTR: Array<keyof IElement> = ['tdId', 'trId', 'tableId']
 
 export const TITLE_CONTEXT_ATTR: Array<keyof IElement> = ['level', 'titleId']
 
-export const LIST_CONTEXT_ATTR: Array<keyof IElement> = [
-  'listId',
-  'listType',
-  'listStyle'
-]
+export const LIST_CONTEXT_ATTR: Array<keyof IElement> = ['listId', 'listType', 'listStyle']
 
 export const EDITOR_ELEMENT_CONTEXT_ATTR: Array<keyof IElement> = [
   ...TABLE_CONTEXT_ATTR,
   ...TITLE_CONTEXT_ATTR,
-  ...LIST_CONTEXT_ATTR
+  ...LIST_CONTEXT_ATTR,
 ]
 
 export const TEXTLIKE_ELEMENT_TYPE: ElementType[] = [
@@ -94,19 +87,16 @@ export const TEXTLIKE_ELEMENT_TYPE: ElementType[] = [
   ElementType.SUBSCRIPT,
   ElementType.SUPERSCRIPT,
   ElementType.CONTROL,
-  ElementType.DATE
+  ElementType.DATE,
 ]
 
 export const INLINE_ELEMENT_TYPE: ElementType[] = [
   ElementType.BLOCK,
   ElementType.PAGE_BREAK,
   ElementType.SEPARATOR,
-  ElementType.TABLE
+  ElementType.TABLE,
 ]
 
 export const INLINE_NODE_NAME: string[] = ['HR', 'TABLE', 'UL', 'OL']
 
-export const VIRTUAL_ELEMENT_TYPE: ElementType[] = [
-  ElementType.TITLE,
-  ElementType.LIST
-]
+export const VIRTUAL_ELEMENT_TYPE: ElementType[] = [ElementType.TITLE, ElementType.LIST]

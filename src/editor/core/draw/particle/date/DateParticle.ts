@@ -138,18 +138,6 @@ export class DateParticle {
 
   public clearDatePicker() {
     this.datePicker.dispose()
-    // TODO 待完成 删除所有内容时显示Placeholder
-    // const { startIndex, endIndex } = this.range.getRange()
-    // if (!~startIndex && !~endIndex) return null
-    // const elementList = this.draw.getElementList()
-    // const startElement = elementList[startIndex]
-
-    // // const range = this.getDateElementRange()
-    // if (startElement) {
-    //   // 删除了控件中所有内容
-    //   this.control.addPlaceholder(preIndex, context)
-    // }
-    // console.log(6666, range)
   }
 
   public renderDatePicker(element: IElement, position: IElementPosition) {

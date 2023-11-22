@@ -54,6 +54,8 @@ import {
 import { Control } from './control/Control'
 import { zipElementList } from '../../utils/element'
 import { CheckboxParticle } from './particle/CheckboxParticle'
+import { RadioParticle } from './particle/RadioParticle'
+
 import { DeepRequired, IPadding } from '../../interface/Common'
 import { ControlComponent, ImageDisplay } from '../../dataset/enum/Control'
 import { formatElementList } from '../../utils/element'
@@ -123,6 +125,7 @@ export class Draw {
   private superscriptParticle: SuperscriptParticle
   private subscriptParticle: SubscriptParticle
   private checkboxParticle: CheckboxParticle
+  private radioParticle: RadioParticle
   private blockParticle: BlockParticle
   private listParticle: ListParticle
   private control: Control
@@ -196,6 +199,7 @@ export class Draw {
     this.superscriptParticle = new SuperscriptParticle()
     this.subscriptParticle = new SubscriptParticle()
     this.checkboxParticle = new CheckboxParticle(this)
+    this.radioParticle = new RadioParticle(this)
     this.blockParticle = new BlockParticle(this)
     this.listParticle = new ListParticle(this)
     this.control = new Control(this)
@@ -1206,7 +1210,38 @@ export class Draw {
         element.width = elementWidth
         metrics.width = elementWidth
         metrics.height = height * scale
-      } else if (element.type === ElementType.TAB) {
+      } else if (
+        element.type === ElementType.RADIO ||
+        element.controlComponent === ControlComponent.RADIO
+      ) {
+        const { width, height, gap } = this.options.radio
+        const radioWidth = width || 14
+        const elementWidth = (radioWidth + gap * 2) * scale
+        element.width = elementWidth
+        metrics.width = elementWidth
+        metrics.height = height * scale
+      }
+      //  else if (
+      //   element.type === ElementType.RADIO ||
+      //   element.controlComponent === ControlComponent.RADIO
+      // ) {
+      //   // 根据选项自适应宽度
+      //   const { height, fontWidth, itemMarginRight, radius } = this.options.radio
+      //   let raidoWidth = 0
+      //   const roundWidth = radius * 2 + 2
+      //   if (element.radio?.options) {
+      //     const options = element.radio?.options
+      //     for (let o = 0; o < options.length; o++) {
+      //       const radioItem = options[o]
+      //       const radioItemWidth = roundWidth + radioItem.label.length * fontWidth + itemMarginRight
+      //       raidoWidth = raidoWidth + radioItemWidth
+      //     }
+      //   }
+      //   element.width = raidoWidth
+      //   metrics.width = raidoWidth
+      //   metrics.height = height * scale
+      // }
+      else if (element.type === ElementType.TAB) {
         metrics.width = defaultTabWidth * scale
         metrics.height = defaultSize * scale
         metrics.boundingBoxDescent = 0
@@ -1329,6 +1364,7 @@ export class Draw {
             const el = curRow.elementList[e]
             el.metrics.width += gap
           }
+
           curRow.width = availableWidth
         }
         const row: IRow = {
@@ -1480,6 +1516,12 @@ export class Draw {
         ) {
           this._drawRichText(ctx)
           this.checkboxParticle.render(ctx, element, x, y + offsetY)
+        } else if (
+          element.type === ElementType.RADIO ||
+          element.controlComponent === ControlComponent.RADIO
+        ) {
+          this._drawRichText(ctx)
+          this.radioParticle.render(ctx, element, x, y + offsetY)
         } else if (element.type === ElementType.TAB) {
           this._drawRichText(ctx)
         } else if (element.rowFlex === RowFlex.ALIGNMENT) {

@@ -48,8 +48,7 @@ export class Search {
     } else {
       let index = this.searchNavigateIndex - 1
       let isExistPre = false
-      const searchNavigateId =
-        this.searchMatchList[this.searchNavigateIndex].groupId
+      const searchNavigateId = this.searchMatchList[this.searchNavigateIndex].groupId
       while (index >= 0) {
         const match = this.searchMatchList[index]
         if (searchNavigateId !== match.groupId) {
@@ -60,11 +59,9 @@ export class Search {
         index--
       }
       if (!isExistPre) {
-        const lastSearchMatch =
-          this.searchMatchList[this.searchMatchList.length - 1]
+        const lastSearchMatch = this.searchMatchList[this.searchMatchList.length - 1]
         if (lastSearchMatch.groupId === searchNavigateId) return null
-        this.searchNavigateIndex =
-          this.searchMatchList.length - 1 - (this.searchKeyword.length - 1)
+        this.searchNavigateIndex = this.searchMatchList.length - 1 - (this.searchKeyword.length - 1)
       }
     }
     return this.searchNavigateIndex
@@ -77,8 +74,7 @@ export class Search {
     } else {
       let index = this.searchNavigateIndex + 1
       let isExistNext = false
-      const searchNavigateId =
-        this.searchMatchList[this.searchNavigateIndex].groupId
+      const searchNavigateId = this.searchMatchList[this.searchNavigateIndex].groupId
       while (index < this.searchMatchList.length) {
         const match = this.searchMatchList[index]
         if (searchNavigateId !== match.groupId) {
@@ -100,7 +96,7 @@ export class Search {
   public searchNavigateScrollIntoView(position: IElementPosition) {
     const {
       coordinate: { leftTop, leftBottom, rightTop },
-      pageNo
+      pageNo,
     } = position
     const height = this.draw.getHeight()
     const pageGap = this.draw.getPageGap()
@@ -111,9 +107,7 @@ export class Search {
     // 扩大搜索词尺寸，使可视范围更广
     const ANCHOR_OVERFLOW_SIZE = 50
     anchor.style.width = `${rightTop[0] - leftTop[0] + ANCHOR_OVERFLOW_SIZE}px`
-    anchor.style.height = `${
-      leftBottom[1] - leftTop[1] + ANCHOR_OVERFLOW_SIZE
-    }px`
+    anchor.style.height = `${leftBottom[1] - leftTop[1] + ANCHOR_OVERFLOW_SIZE}px`
     anchor.style.left = `${leftTop[0]}px`
     anchor.style.top = `${leftTop[1] + preY}px`
     this.draw.getContainer().append(anchor)
@@ -149,7 +143,7 @@ export class Search {
     }
     return {
       index,
-      count
+      count,
     }
   }
 
@@ -175,15 +169,13 @@ export class Search {
     let i = 0
     let elementIndex = 0
     while (elementIndex < originalElementListLength - 1) {
-      const endIndex = tableIndexList.length
-        ? tableIndexList[i]
-        : originalElementListLength
+      const endIndex = tableIndexList.length ? tableIndexList[i] : originalElementListLength
       const pageElement = originalElementList.slice(elementIndex, endIndex)
       if (pageElement.length) {
         elementListGroup.push({
           index: elementIndex,
           type: EditorContext.PAGE,
-          elementList: pageElement
+          elementList: pageElement,
         })
       }
       const tableElement = originalElementList[endIndex]
@@ -191,7 +183,7 @@ export class Search {
         elementListGroup.push({
           index: endIndex,
           type: EditorContext.TABLE,
-          elementList: [tableElement]
+          elementList: [tableElement],
         })
       }
       elementIndex = endIndex + 1
@@ -202,16 +194,17 @@ export class Search {
       payload: string | null,
       type: EditorContext,
       elementList: IElement[],
-      restArgs?: ISearchResultRestArgs
+      restArgs?: ISearchResultRestArgs,
     ) {
       if (!payload) return
       const text = elementList
-        .map(e =>
+        .map((e) =>
           !e.type ||
           (TEXTLIKE_ELEMENT_TYPE.includes(e.type) &&
-            e.controlComponent !== ControlComponent.CHECKBOX)
+            e.controlComponent !== ControlComponent.CHECKBOX &&
+            e.controlComponent !== ControlComponent.RADIO)
             ? e.value
-            : ZERO
+            : ZERO,
         )
         .filter(Boolean)
         .join('')
@@ -231,7 +224,7 @@ export class Search {
             type,
             index,
             groupId,
-            ...restArgs
+            ...restArgs,
           })
         }
       }
@@ -248,14 +241,14 @@ export class Search {
               tableIndex: group.index,
               trIndex: t,
               tdIndex: d,
-              tdId: td.id
+              tdId: td.id,
             }
             searchClosure(keyword, group.type, td.value, restArgs)
           }
         }
       } else {
         searchClosure(keyword, group.type, group.elementList, {
-          startIndex: group.index
+          startIndex: group.index,
         })
       }
     }
@@ -263,15 +256,10 @@ export class Search {
   }
 
   public render(ctx: CanvasRenderingContext2D, pageIndex: number) {
-    if (
-      !this.searchMatchList ||
-      !this.searchMatchList.length ||
-      !this.searchKeyword
-    ) {
+    if (!this.searchMatchList || !this.searchMatchList.length || !this.searchKeyword) {
       return
     }
-    const { searchMatchAlpha, searchMatchColor, searchNavigateMatchColor } =
-      this.options
+    const { searchMatchAlpha, searchMatchColor, searchNavigateMatchColor } = this.options
     const positionList = this.position.getOriginalPositionList()
     const elementList = this.draw.getOriginalElementList()
     ctx.save()
@@ -282,15 +270,14 @@ export class Search {
       if (searchMatch.type === EditorContext.TABLE) {
         const { tableIndex, trIndex, tdIndex, index } = searchMatch
         position =
-          elementList[tableIndex!]?.trList![trIndex!].tdList[tdIndex!]
-            ?.positionList![index]
+          elementList[tableIndex!]?.trList![trIndex!].tdList[tdIndex!]?.positionList![index]
       } else {
         position = positionList[searchMatch.index]
       }
       if (!position) continue
       const {
         coordinate: { leftTop, leftBottom, rightTop },
-        pageNo
+        pageNo,
       } = position
       if (pageNo !== pageIndex) continue
       // 高亮并定位当前搜索词

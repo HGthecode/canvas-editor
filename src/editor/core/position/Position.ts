@@ -3,14 +3,14 @@ import { ZERO } from '../../dataset/constant/Common'
 import { ControlComponent, ImageDisplay } from '../../dataset/enum/Control'
 import {
   IComputePageRowPositionPayload,
-  IComputePageRowPositionResult
+  IComputePageRowPositionResult,
 } from '../../interface/Position'
 import { IEditorOption } from '../../interface/Editor'
 import { IElement, IElementPosition } from '../../interface/Element'
 import {
   ICurrentPosition,
   IGetPositionByXYPayload,
-  IPositionContext
+  IPositionContext,
 } from '../../interface/Position'
 import { Draw } from '../draw/Draw'
 import { EditorMode, EditorZone } from '../../dataset/enum/Editor'
@@ -28,21 +28,16 @@ export class Position {
     this.cursorPosition = null
     this.positionContext = {
       isTable: false,
-      isControl: false
+      isControl: false,
     }
 
     this.draw = draw
     this.options = draw.getOptions()
   }
 
-  public getTablePositionList(
-    sourceElementList: IElement[]
-  ): IElementPosition[] {
+  public getTablePositionList(sourceElementList: IElement[]): IElementPosition[] {
     const { index, trIndex, tdIndex } = this.positionContext
-    return (
-      sourceElementList[index!].trList![trIndex!].tdList[tdIndex!]
-        .positionList || []
-    )
+    return sourceElementList[index!].trList![trIndex!].tdList[tdIndex!].positionList || []
   }
 
   public getPositionList(): IElementPosition[] {
@@ -86,18 +81,10 @@ export class Position {
   }
 
   public computePageRowPosition(
-    payload: IComputePageRowPositionPayload
+    payload: IComputePageRowPositionPayload,
   ): IComputePageRowPositionResult {
-    const {
-      positionList,
-      rowList,
-      pageNo,
-      startX,
-      startY,
-      startRowIndex,
-      startIndex,
-      innerWidth
-    } = payload
+    const { positionList, rowList, pageNo, startX, startY, startRowIndex, startIndex, innerWidth } =
+      payload
     const { scale, tdPadding } = this.options
     let x = startX
     let y = startY
@@ -121,8 +108,7 @@ export class Position {
         const element = curRow.elementList[j]
         const metrics = element.metrics
         const offsetY =
-          (element.imgDisplay !== ImageDisplay.INLINE &&
-            element.type === ElementType.IMAGE) ||
+          (element.imgDisplay !== ImageDisplay.INLINE && element.type === ElementType.IMAGE) ||
           element.type === ElementType.LATEX
             ? curRow.ascent - metrics.height
             : curRow.ascent
@@ -146,8 +132,8 @@ export class Position {
             leftTop: [x, y],
             leftBottom: [x, y + curRow.height],
             rightTop: [x + metrics.width, y],
-            rightBottom: [x + metrics.width, y + curRow.height]
-          }
+            rightBottom: [x + metrics.width, y + curRow.height],
+          },
         }
         positionList.push(positionItem)
         index++
@@ -170,27 +156,21 @@ export class Position {
                 startIndex: 0,
                 startX: (td.x! + tdPadding[3]) * scale + tablePreX,
                 startY: (td.y! + tdPadding[0]) * scale + tablePreY,
-                innerWidth: (td.width! - tdPaddingWidth) * scale
+                innerWidth: (td.width! - tdPaddingWidth) * scale,
               })
               // 垂直对齐方式
               if (
                 td.verticalAlign === VerticalAlign.MIDDLE ||
                 td.verticalAlign === VerticalAlign.BOTTOM
               ) {
-                const rowsHeight = rowList.reduce(
-                  (pre, cur) => pre + cur.height,
-                  0
-                )
-                const blankHeight =
-                  (td.height! - tdPaddingHeight) * scale - rowsHeight
+                const rowsHeight = rowList.reduce((pre, cur) => pre + cur.height, 0)
+                const blankHeight = (td.height! - tdPaddingHeight) * scale - rowsHeight
                 const offsetHeight =
-                  td.verticalAlign === VerticalAlign.MIDDLE
-                    ? blankHeight / 2
-                    : blankHeight
+                  td.verticalAlign === VerticalAlign.MIDDLE ? blankHeight / 2 : blankHeight
                 if (Math.floor(offsetHeight) > 0) {
-                  td.positionList.forEach(tdPosition => {
+                  td.positionList.forEach((tdPosition) => {
                     const {
-                      coordinate: { leftTop, leftBottom, rightBottom, rightTop }
+                      coordinate: { leftTop, leftBottom, rightBottom, rightTop },
                     } = tdPosition
                     leftTop[1] += offsetHeight
                     leftBottom[1] += offsetHeight
@@ -238,7 +218,7 @@ export class Position {
         startIndex,
         startX,
         startY,
-        innerWidth
+        innerWidth,
       })
       startRowIndex += rowList.length
     }
@@ -279,16 +259,11 @@ export class Position {
         pageNo,
         left,
         isFirstLetter,
-        coordinate: { leftTop, rightTop, leftBottom }
+        coordinate: { leftTop, rightTop, leftBottom },
       } = positionList[j]
       if (positionNo !== pageNo) continue
       // 命中元素
-      if (
-        leftTop[0] - left <= x &&
-        rightTop[0] >= x &&
-        leftTop[1] <= y &&
-        leftBottom[1] >= y
-      ) {
+      if (leftTop[0] - left <= x && rightTop[0] >= x && leftTop[1] <= y && leftBottom[1] >= y) {
         let curPositionIndex = j
         const element = elementList[j]
         // 表格被命中
@@ -304,7 +279,7 @@ export class Position {
                 tablePosition: positionList[j],
                 isTable: true,
                 elementList: td.value,
-                positionList: td.positionList
+                positionList: td.positionList,
               })
               if (~tablePosition.index) {
                 const { index: tdValueIndex, hitLineStartIndex } = tablePosition
@@ -313,8 +288,10 @@ export class Position {
                   index,
                   isCheckbox:
                     tdValueElement.type === ElementType.CHECKBOX ||
-                    tdValueElement.controlComponent ===
-                      ControlComponent.CHECKBOX,
+                    tdValueElement.controlComponent === ControlComponent.CHECKBOX,
+                  isRadio:
+                    tdValueElement.type === ElementType.RADIO ||
+                    tdValueElement.controlComponent === ControlComponent.RADIO,
                   isControl: tdValueElement.type === ElementType.CONTROL,
                   isImage: tablePosition.isImage,
                   isDirectHit: tablePosition.isDirectHit,
@@ -325,21 +302,18 @@ export class Position {
                   tdId: td.id,
                   trId: tr.id,
                   tableId: element.id,
-                  hitLineStartIndex
+                  hitLineStartIndex,
                 }
               }
             }
           }
         }
         // 图片区域均为命中
-        if (
-          element.type === ElementType.IMAGE ||
-          element.type === ElementType.LATEX
-        ) {
+        if (element.type === ElementType.IMAGE || element.type === ElementType.LATEX) {
           return {
             index: curPositionIndex,
             isDirectHit: true,
-            isImage: true
+            isImage: true,
           }
         }
         if (
@@ -349,9 +323,52 @@ export class Position {
           return {
             index: curPositionIndex,
             isDirectHit: true,
-            isCheckbox: true
+            isCheckbox: true,
           }
         }
+        if (
+          element.type === ElementType.RADIO ||
+          element.controlComponent === ControlComponent.RADIO
+        ) {
+          return {
+            index: curPositionIndex,
+            isDirectHit: true,
+            isRadio: true,
+          }
+        }
+        // if (
+        //   element.type === ElementType.RADIO ||
+        //   element.controlComponent === ControlComponent.RADIO
+        // ) {
+        //   // 判断命中的选项
+        //   if (element.radio?.options) {
+        //     const radioOption = this.options.radio
+
+        //     let roundWidth = 7 * 2 + 2
+        //     if (radioOption.radius) {
+        //       roundWidth = radioOption.radius * 2 + 2
+        //     }
+        //     for (let r = 0; r < element.radio.options.length; r++) {
+        //       const radioItem = element.radio.options[r]
+        //       const fontWidth = radioOption.fontWidth ? radioOption.fontWidth : 0
+        //       const itemMarginRight = radioOption.itemMarginRight ? radioOption.itemMarginRight : 0
+        //       const radioItemWidth =
+        //         roundWidth + radioItem.label.length * fontWidth + itemMarginRight
+        //       const itemLeftTop = leftTop[0] + radioItemWidth * r
+        //       const itemRightTop = itemLeftTop + radioItemWidth
+        //       // 定位选中项
+        //       if (x >= itemLeftTop && x < itemRightTop && leftTop[1] <= y && leftBottom[1] >= y) {
+        //         return {
+        //           index: curPositionIndex,
+        //           isDirectHit: true,
+        //           isRadio: true,
+        //           itemIndex: r,
+        //           itemData: radioItem,
+        //         }
+        //       }
+        //     }
+        //   }
+        // }
         let hitLineStartIndex: number | undefined
         // 判断是否在文字中间前后
         if (elementList[index].value !== ZERO) {
@@ -366,7 +383,7 @@ export class Position {
         return {
           hitLineStartIndex,
           index: curPositionIndex,
-          isControl: element.type === ElementType.CONTROL
+          isControl: element.type === ElementType.CONTROL,
         }
       }
     }
@@ -386,20 +403,18 @@ export class Position {
         const tdHeight = td.height! * scale
         if (!(tdX < x && x < tdX + tdWidth && tdY < y && y < tdY + tdHeight)) {
           return {
-            index: curPositionIndex
+            index: curPositionIndex,
           }
         }
       }
     }
     // 判断所属行是否存在元素
-    const lastLetterList = positionList.filter(
-      p => p.isLastLetter && p.pageNo === positionNo
-    )
+    const lastLetterList = positionList.filter((p) => p.isLastLetter && p.pageNo === positionNo)
     for (let j = 0; j < lastLetterList.length; j++) {
       const {
         index,
         pageNo,
-        coordinate: { leftTop, leftBottom }
+        coordinate: { leftTop, leftBottom },
       } = lastLetterList[j]
       if (positionNo !== pageNo) continue
       if (y > leftTop[1] && y <= leftBottom[1]) {
@@ -407,7 +422,7 @@ export class Position {
         // 是否在头部
         if (isHead) {
           const headIndex = positionList.findIndex(
-            p => p.pageNo === positionNo && p.rowNo === lastLetterList[j].rowNo
+            (p) => p.pageNo === positionNo && p.rowNo === lastLetterList[j].rowNo,
           )
           // 头部元素为空元素时无需选中
           if (~headIndex) {
@@ -434,22 +449,21 @@ export class Position {
       // 页脚上部距离页面顶部距离
       const footer = this.draw.getFooter()
       const pageHeight = this.draw.getHeight()
-      const footerTopY =
-        pageHeight - (footer.getFooterBottom() + footer.getHeight())
+      const footerTopY = pageHeight - (footer.getFooterBottom() + footer.getHeight())
       // 判断所属位置是否属于页眉页脚区域
       if (isMainActive) {
         // 页眉：当前位置小于页眉底部位置
         if (y < headerBottomY) {
           return {
             index: -1,
-            zone: EditorZone.HEADER
+            zone: EditorZone.HEADER,
           }
         }
         // 页脚：当前位置大于页脚顶部位置
         if (y > footerTopY) {
           return {
             index: -1,
-            zone: EditorZone.FOOTER
+            zone: EditorZone.FOOTER,
           }
         }
       } else {
@@ -457,34 +471,27 @@ export class Position {
         if (y <= footerTopY && y >= headerBottomY) {
           return {
             index: -1,
-            zone: EditorZone.MAIN
+            zone: EditorZone.MAIN,
           }
         }
       }
       // 当前页最后一行
       return {
-        index:
-          lastLetterList[lastLetterList.length - 1]?.index ||
-          positionList.length - 1
+        index: lastLetterList[lastLetterList.length - 1]?.index || positionList.length - 1,
       }
     }
     return {
       hitLineStartIndex,
       index: curPositionIndex,
-      isControl: elementList[curPositionIndex]?.type === ElementType.CONTROL
+      isControl: elementList[curPositionIndex]?.type === ElementType.CONTROL,
     }
   }
 
-  public adjustPositionContext(
-    payload: IGetPositionByXYPayload
-  ): ICurrentPosition | null {
+  public adjustPositionContext(payload: IGetPositionByXYPayload): ICurrentPosition | null {
     const positionResult = this.getPositionByXY(payload)
     if (!~positionResult.index) return null
     // 移动控件内光标
-    if (
-      positionResult.isControl &&
-      this.draw.getMode() !== EditorMode.READONLY
-    ) {
+    if (positionResult.isControl && this.draw.getMode() !== EditorMode.READONLY) {
       const { index, isTable, trIndex, tdIndex, tdValueIndex } = positionResult
       const control = this.draw.getControl()
       const { newIndex } = control.moveCursor({
@@ -492,7 +499,7 @@ export class Position {
         isTable,
         trIndex,
         tdIndex,
-        tdValueIndex
+        tdValueIndex,
       })
       if (isTable) {
         positionResult.tdValueIndex = newIndex
@@ -503,25 +510,27 @@ export class Position {
     const {
       index,
       isCheckbox,
+      isRadio,
       isControl,
       isTable,
       trIndex,
       tdIndex,
       tdId,
       trId,
-      tableId
+      tableId,
     } = positionResult
     // 设置位置上下文
     this.setPositionContext({
       isTable: isTable || false,
       isCheckbox: isCheckbox || false,
+      isRadio: isRadio || false,
       isControl: isControl || false,
       index,
       trIndex,
       tdIndex,
       tdId,
       trId,
-      tableId
+      tableId,
     })
     return positionResult
   }

@@ -10,17 +10,14 @@ import { ElementType } from './dataset/enum/Element'
 import { formatElementList } from './utils/element'
 import { Register } from './core/register/Register'
 import { ContextMenu } from './core/contextmenu/ContextMenu'
-import {
-  IContextMenuContext,
-  IRegisterContextMenu
-} from './interface/contextmenu/ContextMenu'
+import { IContextMenuContext, IRegisterContextMenu } from './interface/contextmenu/ContextMenu'
 import {
   EditorComponent,
   EditorZone,
   EditorMode,
   PageMode,
   PaperDirection,
-  WordBreak
+  WordBreak,
 } from './dataset/enum/Editor'
 import { EDITOR_COMPONENT } from './dataset/constant/Editor'
 import { IHeader } from './interface/Header'
@@ -32,6 +29,8 @@ import { defaultControlOption } from './dataset/constant/Control'
 import { IControlOption } from './interface/Control'
 import { ICheckboxOption } from './interface/Checkbox'
 import { defaultCheckboxOption } from './dataset/constant/Checkbox'
+import { IRadioOption } from './interface/Radio'
+import { defaultRadioOption } from './dataset/constant/Radio'
 import { DeepRequired } from './interface/Common'
 import { INavigateInfo } from './core/draw/interactive/Search'
 import { Shortcut } from './core/shortcut/Shortcut'
@@ -80,51 +79,55 @@ export default class Editor {
   constructor(
     container: HTMLDivElement,
     data: IEditorData | IElement[],
-    options: IEditorOption = {}
+    options: IEditorOption = {},
   ) {
     const headerOptions: Required<IHeader> = {
       ...defaultHeaderOption,
-      ...options.header
+      ...options.header,
     }
     const footerOptions: Required<IFooter> = {
       ...defaultFooterOption,
-      ...options.footer
+      ...options.footer,
     }
     const pageNumberOptions: Required<IPageNumber> = {
       ...defaultPageNumberOption,
-      ...options.pageNumber
+      ...options.pageNumber,
     }
     const waterMarkOptions: Required<IWatermark> = {
       ...defaultWatermarkOption,
-      ...options.watermark
+      ...options.watermark,
     }
     const controlOptions: Required<IControlOption> = {
       ...defaultControlOption,
-      ...options.control
+      ...options.control,
     }
     const checkboxOptions: Required<ICheckboxOption> = {
       ...defaultCheckboxOption,
-      ...options.checkbox
+      ...options.checkbox,
+    }
+    const radioOptions: Required<IRadioOption> = {
+      ...defaultRadioOption,
+      ...options.radio,
     }
     const cursorOptions: Required<ICursorOption> = {
       ...defaultCursorOption,
-      ...options.cursor
+      ...options.cursor,
     }
     const titleOptions: Required<ITitleOption> = {
       ...defaultTitleOption,
-      ...options.title
+      ...options.title,
     }
     const placeholderOptions: Required<IPlaceholder> = {
       ...defaultPlaceholderOption,
-      ...options.placeholder
+      ...options.placeholder,
     }
     const groupOptions: Required<IGroup> = {
       ...defaultGroupOption,
-      ...options.group
+      ...options.group,
     }
     const pageBreakOptions: Required<IPageBreak> = {
       ...defaultPageBreakOption,
-      ...options.pageBreak
+      ...options.pageBreak,
     }
 
     const editorOptions: DeepRequired<IEditorOption> = {
@@ -176,11 +179,12 @@ export default class Editor {
       watermark: waterMarkOptions,
       control: controlOptions,
       checkbox: checkboxOptions,
+      radio: radioOptions,
       cursor: cursorOptions,
       title: titleOptions,
       placeholder: placeholderOptions,
       group: groupOptions,
-      pageBreak: pageBreakOptions
+      pageBreak: pageBreakOptions,
     }
     // 数据处理
     let headerElementList: IElement[] = []
@@ -193,14 +197,10 @@ export default class Editor {
       mainElementList = data.main
       footerElementList = data.footer || []
     }
-    const pageComponentData = [
-      headerElementList,
-      mainElementList,
-      footerElementList
-    ]
-    pageComponentData.forEach(elementList => {
+    const pageComponentData = [headerElementList, mainElementList, footerElementList]
+    pageComponentData.forEach((elementList) => {
       formatElementList(elementList, {
-        editorOptions
+        editorOptions,
       })
     })
     // 监听
@@ -216,11 +216,11 @@ export default class Editor {
       {
         header: headerElementList,
         main: mainElementList,
-        footer: footerElementList
+        footer: footerElementList,
       },
       this.listener,
       this.eventBus,
-      this.override
+      this.override,
     )
     // 命令
     this.command = new Command(new CommandAdapt(draw))
@@ -232,7 +232,7 @@ export default class Editor {
     this.register = new Register({
       contextMenu,
       shortcut,
-      i18n: draw.getI18n()
+      i18n: draw.getI18n(),
     })
     // 注册销毁方法
     this.destroy = () => {
@@ -273,7 +273,7 @@ export {
   TitleLevel,
   ListType,
   ListStyle,
-  WordBreak
+  WordBreak,
 }
 
 // 对外类型
@@ -290,5 +290,5 @@ export type {
   ILang,
   ICatalog,
   ICatalogItem,
-  IRangeStyle
+  IRangeStyle,
 }

@@ -1,9 +1,11 @@
-import {  ControlType } from '../../../dataset/enum/Control'
+import { ControlType } from '../../../dataset/enum/Control'
 import { ElementType } from '../../../dataset/enum/Element'
 import { MouseEventButton } from '../../../dataset/enum/Event'
 import { deepClone } from '../../../utils'
 import { isMod } from '../../../utils/hotkey'
 import { CheckboxControl } from '../../draw/control/checkbox/CheckboxControl'
+import { RadioControl } from '../../draw/control/radio/RadioControl'
+
 import { CanvasEvent } from '../CanvasEvent'
 
 export function mousedown(evt: MouseEvent, host: CanvasEvent) {
@@ -38,8 +40,16 @@ export function mousedown(evt: MouseEvent, host: CanvasEvent) {
     y: evt.offsetY,
   })
   if (!positionResult) return
-  const { index, isDirectHit, isCheckbox, isImage, isTable, tdValueIndex, hitLineStartIndex } =
-    positionResult
+  const {
+    index,
+    isDirectHit,
+    isCheckbox,
+    isImage,
+    isTable,
+    tdValueIndex,
+    hitLineStartIndex,
+    isRadio,
+  } = positionResult
   // 记录选区开始位置
   host.mouseDownStartPosition = {
     ...positionResult,
@@ -52,6 +62,7 @@ export function mousedown(evt: MouseEvent, host: CanvasEvent) {
   // 绘制
   const isDirectHitImage = !!(isDirectHit && isImage)
   const isDirectHitCheckbox = !!(isDirectHit && isCheckbox)
+  const isDirectHitRadio = !!(isDirectHit && isRadio)
   if (~index) {
     rangeManager.setRange(curIndex, curIndex)
     position.setCursorPosition(positionList[curIndex])
@@ -69,6 +80,37 @@ export function mousedown(evt: MouseEvent, host: CanvasEvent) {
       const control = draw.getControl()
       const activeControl = control.getActiveControl()
       if (activeControl instanceof CheckboxControl) {
+        activeControl.setSelect()
+      }
+    }
+
+    // 单选框
+    const isSetRadio = isDirectHitRadio && !isReadonly
+    if (isSetRadio) {
+      const { radio } = curElement
+      for (let i = 0; i < elementList.length; i++) {
+        const item = elementList[i]
+        if (item.controlId === curElement.controlId && item.radio?.code !== radio?.code) {
+          if (item.radio) {
+            item.radio.value = false
+          } else {
+            item.radio = {
+              value: false,
+            }
+          }
+        }
+      }
+
+      if (radio) {
+        radio.value = !radio.value
+      } else {
+        curElement.radio = {
+          value: true,
+        }
+      }
+      const control = draw.getControl()
+      const activeControl = control.getActiveControl()
+      if (activeControl instanceof RadioControl) {
         activeControl.setSelect()
       }
     }
