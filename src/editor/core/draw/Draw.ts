@@ -253,7 +253,15 @@ export class Draw {
         main: this.elementList,
         footer: this.footer.getElementList(),
       }
-      this.setEditorData(this.control.filterAssistElement(deepClone(this.printModeData)))
+      // 过滤控件辅助元素
+      const clonePrintModeData = deepClone(this.printModeData)
+      const editorDataKeys: (keyof IEditorData)[] = ['header', 'main', 'footer']
+      editorDataKeys.forEach(key => {
+        clonePrintModeData[key] = this.control.filterAssistElement(
+          clonePrintModeData[key]
+        )
+      })
+      this.setEditorData(clonePrintModeData)
     }
     // 取消打印模式
     if (this.mode === EditorMode.PRINT && this.printModeData) {
@@ -494,7 +502,9 @@ export class Draw {
   public getTableElementList(sourceElementList: IElement[]): IElement[] {
     const positionContext = this.position.getPositionContext()
     const { index, trIndex, tdIndex } = positionContext
-    return sourceElementList[index!].trList![trIndex!].tdList[tdIndex!].value
+    return (
+      sourceElementList[index!].trList?.[trIndex!].tdList[tdIndex!].value || []
+    )
   }
 
   public getElementList(): IElement[] {
@@ -611,6 +621,10 @@ export class Draw {
 
   public getCanvasEvent(): CanvasEvent {
     return this.canvasEvent
+  }
+
+  public getGlobalEvent(): GlobalEvent {
+    return this.globalEvent
   }
 
   public getListener(): Listener {
@@ -798,6 +812,9 @@ export class Draw {
     })
     if (this.listener.pageScaleChange) {
       this.listener.pageScaleChange(payload)
+    }
+    if (this.eventBus.isSubscribe('pageScaleChange')) {
+      this.eventBus.emit('pageScaleChange', payload)
     }
   }
 
@@ -1084,7 +1101,7 @@ export class Draw {
             let curTdRealHeight = 0
             let i = 0
             while (i < td.rowspan) {
-              const curTr = trList[i + t]
+              const curTr = trList[i + t] || trList[t]
               curTdMinHeight += curTr.minHeight!
               curTdRealHeight += curTr.height!
               i++
@@ -1124,8 +1141,8 @@ export class Draw {
         // 需要重新计算表格内值
         this.tableParticle.computeRowColInfo(element)
         // 计算出表格高度
-        const tableHeight = trList.reduce((pre, cur) => pre + cur.height, 0)
-        const tableWidth = element.colgroup!.reduce((pre, cur) => pre + cur.width, 0)
+        const tableHeight = this.tableParticle.getTableHeight(element)
+        const tableWidth = this.tableParticle.getTableWidth(element)
         element.width = tableWidth
         element.height = tableHeight
         const elementWidth = tableWidth * scale

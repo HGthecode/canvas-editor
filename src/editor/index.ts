@@ -172,6 +172,7 @@ export default class Editor {
       maskMargin: [0, 0, 0, 0],
       letterClass: [LETTER_CLASS.ENGLISH],
       contextMenuDisableKeys: [],
+      scrollContainerSelector: '',
       ...options,
       header: headerOptions,
       footer: footerOptions,

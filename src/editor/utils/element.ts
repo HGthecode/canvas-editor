@@ -568,7 +568,7 @@ export function zipElementList(payload: IElement[]): IElement[] {
       }
       dateElement.valueList = zipElementList(valueList)
       element = dateElement
-    } else if (element.type === ElementType.CONTROL) {
+    } else if (element.controlId) {
       // 控件处理
       const controlId = element.controlId
       const control = element.control!
@@ -585,8 +585,8 @@ export function zipElementList(payload: IElement[]): IElement[] {
           break
         }
         if (controlE.controlComponent === ControlComponent.VALUE) {
-          delete controlE.type
           delete controlE.control
+          delete controlE.controlId
           valueList.push(controlE)
         }
         e++
@@ -856,8 +856,14 @@ export function createDomFromElementList(
         TEXTLIKE_ELEMENT_TYPE.includes(element.type)
       ) {
         let text = ''
-        if (element.type === ElementType.CONTROL) {
-          text = element.control!.value?.[0]?.value || ''
+        if (element.controlId) {
+          text =
+            element
+              .control!.value?.filter(
+                v => !v.type || TEXTLIKE_ELEMENT_TYPE.includes(v.type)
+              )
+              .map(v => v.value)
+              .join('') || ''
         } else if (element.type === ElementType.DATE) {
           text = element.valueList?.map((v) => v.value).join('') || ''
         } else {

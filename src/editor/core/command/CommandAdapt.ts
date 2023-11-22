@@ -35,6 +35,7 @@ import {
   IEditorText,
 } from '../../interface/Editor'
 import { IElement, IElementStyle } from '../../interface/Element'
+import { IPasteOption } from '../../interface/Event'
 import { IMargin } from '../../interface/Margin'
 import { RangeContext, RangeRect } from '../../interface/Range'
 import { IColgroup } from '../../interface/table/Colgroup'
@@ -58,6 +59,7 @@ import { Draw } from '../draw/Draw'
 import { INavigateInfo, Search } from '../draw/interactive/Search'
 import { TableTool } from '../draw/particle/table/TableTool'
 import { CanvasEvent } from '../event/CanvasEvent'
+import { pasteByApi } from '../event/handlers/paste'
 import { HistoryManager } from '../history/HistoryManager'
 import { I18n } from '../i18n/I18n'
 import { Position } from '../position/Position'
@@ -105,13 +107,10 @@ export class CommandAdapt {
     this.canvasEvent.copy()
   }
 
-  public async paste() {
+  public paste(payload?: IPasteOption) {
     const isReadonly = this.draw.isReadonly()
     if (isReadonly) return
-    const text = await navigator.clipboard.readText()
-    if (text) {
-      this.canvasEvent.input(text)
-    }
+    pasteByApi(this.canvasEvent, payload)
   }
 
   public selectAll() {
@@ -350,8 +349,6 @@ export class CommandAdapt {
   public superscript() {
     const isReadonly = this.draw.isReadonly()
     if (isReadonly) return
-    const activeControl = this.control.getActiveControl()
-    if (activeControl) return
     const selection = this.range.getSelectionElementList()
     if (!selection) return
     const superscriptIndex = selection.findIndex((s) => s.type === ElementType.SUPERSCRIPT)
@@ -375,8 +372,6 @@ export class CommandAdapt {
   public subscript() {
     const isReadonly = this.draw.isReadonly()
     if (isReadonly) return
-    const activeControl = this.control.getActiveControl()
-    if (activeControl) return
     const selection = this.range.getSelectionElementList()
     if (!selection) return
     const subscriptIndex = selection.findIndex((s) => s.type === ElementType.SUBSCRIPT)
@@ -847,49 +842,57 @@ export class CommandAdapt {
     if (isReadonly) return
     const positionContext = this.position.getPositionContext()
     if (!positionContext.isTable) return
-    const { index, trIndex } = positionContext
+    const { index, trIndex, tdIndex } = positionContext
     const originalElementList = this.draw.getOriginalElementList()
     const element = originalElementList[index!]
-    const curTrList = element.trList!
-    const curTr = curTrList[trIndex!]
+    const trList = element.trList!
+    const curTr = trList[trIndex!]
+    const curTdRowIndex = curTr.tdList[tdIndex!].rowIndex!
     // 如果是最后一行，直接删除整个表格
-    if (curTrList.length <= 1) {
+    if (trList.length <= 1) {
       this.deleteTable()
       return
+    }
+    // 之前行缩小rowspan
+    for (let r = 0; r < curTdRowIndex; r++) {
+      const tr = trList[r]
+      const tdList = tr.tdList
+      for (let d = 0; d < tdList.length; d++) {
+        const td = tdList[d]
+        if (td.rowIndex! + td.rowspan > curTdRowIndex) {
+          td.rowspan--
+        }
+      }
     }
     // 补跨行
     for (let d = 0; d < curTr.tdList.length; d++) {
       const td = curTr.tdList[d]
       if (td.rowspan > 1) {
-        let start = trIndex! + 1
-        while (start < trIndex! + td.rowspan) {
-          const tdId = getUUID()
-          const tr = curTrList[start]
-          tr.tdList.splice(d, 0, {
-            id: tdId,
-            rowspan: 1,
-            colspan: 1,
-            value: [
-              {
-                value: ZERO,
-                size: 16,
-                tableId: element.id,
-                trId: tr.id,
-                tdId,
-              },
-            ],
-          })
-          start += 1
-        }
+        const tdId = getUUID()
+        const nextTr = trList[trIndex! + 1]
+        nextTr.tdList.splice(d, 0, {
+          id: tdId,
+          rowspan: td.rowspan - 1,
+          colspan: td.colspan,
+          value: [
+            {
+              value: ZERO,
+              size: 16,
+              tableId: element.id,
+              trId: nextTr.id,
+              tdId
+            }
+          ]
+        })
       }
     }
     // 删除当前行
-    curTrList.splice(trIndex!, 1)
+    trList.splice(trIndex!, 1)
     // 重新设置上下文
     this.position.setPositionContext({
       isTable: false,
     })
-    this.range.setRange(0, 0)
+    this.range.clearRange()
     // 重新渲染
     this.draw.render({
       curIndex: positionContext.index,
@@ -1760,10 +1763,10 @@ export class CommandAdapt {
     const endPageNo = positionList[endIndex].pageNo
     // 坐标信息（相对编辑器书写区）
     const rangeRects: RangeRect[] = []
+    const height = this.draw.getOriginalHeight()
+    const pageGap = this.draw.getOriginalPageGap()
     const selectionPositionList = this.position.getSelectionPositionList()
     if (selectionPositionList) {
-      const height = this.draw.getOriginalHeight()
-      const pageGap = this.draw.getOriginalPageGap()
       // 起始信息及x坐标
       let currentRowNo: number | null = null
       let currentX = 0
@@ -1796,6 +1799,20 @@ export class CommandAdapt {
           rangeRects.push(rangeRect)
         }
       }
+    } else {
+      const positionList = this.position.getPositionList()
+      const position = positionList[endIndex]
+      const {
+        coordinate: { rightTop },
+        pageNo,
+        lineHeight
+      } = position
+      rangeRects.push({
+        x: rightTop[0],
+        y: rightTop[1] + pageNo * (height + pageGap),
+        width: 0,
+        height: lineHeight
+      })
     }
     return deepClone({
       isCollapsed,
@@ -1864,18 +1881,19 @@ export class CommandAdapt {
     if (!payload.length) return
     const isReadonly = this.draw.isReadonly()
     if (isReadonly) return
+    const cloneElementList = deepClone(payload)
     // 格式化上下文信息
     const { startIndex } = this.range.getRange()
     const elementList = this.draw.getElementList()
-    formatElementContext(elementList, payload, startIndex)
-    this.draw.insertElementList(payload)
+    formatElementContext(elementList, cloneElementList, startIndex)
+    this.draw.insertElementList(cloneElementList)
   }
 
   public appendElementList(elementList: IElement[], options?: IAppendElementListOption) {
     if (!elementList.length) return
     const isReadonly = this.draw.isReadonly()
     if (isReadonly) return
-    this.draw.appendElementList(elementList, options)
+    this.draw.appendElementList(deepClone(elementList), options)
   }
 
   public setValue(payload: Partial<IEditorData>) {
@@ -1887,7 +1905,7 @@ export class CommandAdapt {
     if (startIndex !== endIndex) return
     const elementList = this.draw.getElementList()
     const element = elementList[startIndex]
-    if (element.type !== ElementType.CONTROL) return
+    if (!element.controlId) return
     // 删除控件
     const control = this.draw.getControl()
     const newIndex = control.removeControl(startIndex)

@@ -1,3 +1,55 @@
+## [0.9.56](https://github.com/Hufe921/canvas-editor/compare/v0.9.55...v0.9.56) (2023-11-14)
+
+
+### Bug Fixes
+
+* compute table row and col info boundary error #324 ([455b397](https://github.com/Hufe921/canvas-editor/commit/455b397fbc5de18ffe5a22bc9f9f68e23f9874eb)), closes [#324](https://github.com/Hufe921/canvas-editor/issues/324)
+* get and set control property in table #323 ([17cd6cc](https://github.com/Hufe921/canvas-editor/commit/17cd6ccd09e7c368e2ef98c0be2b8de526e8a4c3)), closes [#323](https://github.com/Hufe921/canvas-editor/issues/323)
+
+
+
+## [0.9.55](https://github.com/Hufe921/canvas-editor/compare/v0.9.54...v0.9.55) (2023-11-10)
+
+
+### Bug Fixes
+
+*  break after pasting HTML #318 ([80f6531](https://github.com/Hufe921/canvas-editor/commit/80f6531b96e22b434cd10b4441dba86c8944f99b)), closes [#318](https://github.com/Hufe921/canvas-editor/issues/318)
+* delete table row boundary error #313 ([8f8bc04](https://github.com/Hufe921/canvas-editor/commit/8f8bc046db60a7c66c3b17e61b1f9f5a5c731f58)), closes [#313](https://github.com/Hufe921/canvas-editor/issues/313)
+* reset event ability after delete element #314 ([c6483a4](https://github.com/Hufe921/canvas-editor/commit/c6483a4da68881490cc25c52cafcf96386d9a0a6)), closes [#314](https://github.com/Hufe921/canvas-editor/issues/314)
+* shrink control range boundary error #305 ([a9fc226](https://github.com/Hufe921/canvas-editor/commit/a9fc226a39c3ef78d217fe7435b4b463c5879eac)), closes [#305](https://github.com/Hufe921/canvas-editor/issues/305)
+
+
+### Features
+
+* add pageScaleChange eventbus #321 ([c697586](https://github.com/Hufe921/canvas-editor/commit/c69758686de22328ac84138ed2c2aa9a0668ed78)), closes [#321](https://github.com/Hufe921/canvas-editor/issues/321)
+* add scrollContainerSelection option #320 ([192113e](https://github.com/Hufe921/canvas-editor/commit/192113e271b02cf3e4a462343a7b3d5604b90b23)), closes [#320](https://github.com/Hufe921/canvas-editor/issues/320)
+* collapsed selection rect information ([7c32f95](https://github.com/Hufe921/canvas-editor/commit/7c32f9572f4d29fbf2f5d6d3f775c5dbe2d0ba8b))
+* support for paste richtext data in contextmenu ([8989831](https://github.com/Hufe921/canvas-editor/commit/8989831474f637fe52133abc85d1ed2dc41f6354))
+
+
+
+## [0.9.54](https://github.com/Hufe921/canvas-editor/compare/v0.9.53...v0.9.54) (2023-11-03)
+
+
+### Bug Fixes
+
+* clone payload data when call add element api #308 ([aeefca3](https://github.com/Hufe921/canvas-editor/commit/aeefca34caa86f9f52fb742e3f7555cd0364baa4)), closes [#308](https://github.com/Hufe921/canvas-editor/issues/308)
+* print error of control assistant components in table #311 ([7fb0150](https://github.com/Hufe921/canvas-editor/commit/7fb0150635f80d62c2c27d2e2c976a3f0fa1deff)), closes [#311](https://github.com/Hufe921/canvas-editor/issues/311)
+* set control value error in table #302 ([7fba458](https://github.com/Hufe921/canvas-editor/commit/7fba458d523ae06678557add90dc9d19a3cb02cb)), closes [#302](https://github.com/Hufe921/canvas-editor/issues/302)
+
+
+### Chores
+
+* update hyperlink spell ([1bde309](https://github.com/Hufe921/canvas-editor/commit/1bde309cb5bcf797416a019f1a1507fd155dbed6))
+
+
+### Features
+
+* add copy table cell content option to contextmenu #307 ([a94328f](https://github.com/Hufe921/canvas-editor/commit/a94328fa956c5164111c27773f557b9761cd775e)), closes [#307](https://github.com/Hufe921/canvas-editor/issues/307)
+* support for insert more elements into control #306 ([d2d649b](https://github.com/Hufe921/canvas-editor/commit/d2d649b01123a13962b5ba45c2982f80cc701306)), closes [#306](https://github.com/Hufe921/canvas-editor/issues/306)
+
+
+
 ## [0.9.53](https://github.com/Hufe921/canvas-editor/compare/v0.9.52...v0.9.53) (2023-10-26)
 
 
