@@ -1,4 +1,5 @@
-import { ControlType } from '../dataset/enum/Control'
+import { ControlType, ControlIndentation } from '../dataset/enum/Control'
+import { EditorZone } from '../dataset/enum/Editor'
 import { ICheckbox } from './Checkbox'
 import { IRadio } from './Radio'
 
@@ -38,8 +39,20 @@ export interface IControlDate {
   max?: number
 }
 
+export interface IControlHighlightRule {
+  keyword: string
+  alpha?: number
+  backgroundColor?: string
+}
+
+export interface IControlHighlight {
+  ruleList: IControlHighlightRule[]
+  conceptId: string
+}
+
 export interface IControlRule {
   deletable?: boolean
+  disabled?: boolean
 }
 
 export interface IControlBasic {
@@ -52,6 +65,7 @@ export interface IControlBasic {
   minWidth?: number
   underline?: boolean
   extension?: unknown
+  indentation?: ControlIndentation
 }
 
 export type IControl = IControlBasic &
@@ -85,7 +99,11 @@ export interface IControlInstance {
 
   getValue(): IElement[]
 
-  setValue(data: IElement[]): number
+  setValue(
+    data: IElement[],
+    context?: IControlContext,
+    options?: IControlRuleOption
+  ): number
 
   keydown(evt: KeyboardEvent): number | null
 
@@ -97,6 +115,10 @@ export interface IControlContext {
   elementList?: IElement[]
 }
 
+export interface IControlRuleOption {
+  isIgnoreDisabledRule?: boolean // 忽略禁用校验规则
+}
+
 export interface IGetControlValueOption {
   conceptId: string
 }
@@ -104,6 +126,7 @@ export interface IGetControlValueOption {
 export type IGetControlValueResult = (Omit<IControl, 'value'> & {
   value: string | null
   innerText: string | null
+  zone: EditorZone
 })[]
 
 export interface ISetControlValueOption {
@@ -115,3 +138,5 @@ export interface ISetControlExtensionOption {
   conceptId: string
   extension: unknown
 }
+
+export type ISetControlHighlightOption = IControlHighlight[]

@@ -1,7 +1,11 @@
 import { TEXTLIKE_ELEMENT_TYPE } from '../../../../dataset/constant/Element'
 import { ControlComponent } from '../../../../dataset/enum/Control'
 import { KeyMap } from '../../../../dataset/enum/KeyMap'
-import { IControlContext, IControlInstance } from '../../../../interface/Control'
+import {
+  IControlContext,
+  IControlInstance,
+  IControlRuleOption
+} from '../../../../interface/Control'
 import { IElement } from '../../../../interface/Element'
 import { omitObject, pickObject } from '../../../../utils'
 import { formatElementContext } from '../../../../utils/element'
@@ -58,7 +62,15 @@ export class TextControl implements IControlInstance {
     return data
   }
 
-  public setValue(data: IElement[], context: IControlContext = {}): number {
+  public setValue(
+    data: IElement[],
+    context: IControlContext = {},
+    options: IControlRuleOption = {}
+  ): number {
+    // 校验是否可以设置
+    if (!options.isIgnoreDisabledRule && this.control.isDisabledControl()) {
+      return -1
+    }
     const elementList = context.elementList || this.control.getElementList()
     const range = context.range || this.control.getRange()
     // 收缩边界到Value内
@@ -95,7 +107,14 @@ export class TextControl implements IControlInstance {
     return start + data.length - 1
   }
 
-  public clearValue(context: IControlContext = {}): number {
+  public clearValue(
+    context: IControlContext = {},
+    options: IControlRuleOption = {}
+  ): number {
+    // 校验是否可以设置
+    if (!options.isIgnoreDisabledRule && this.control.isDisabledControl()) {
+      return -1
+    }
     const elementList = context.elementList || this.control.getElementList()
     const range = context.range || this.control.getRange()
     const { startIndex, endIndex } = range
@@ -108,6 +127,9 @@ export class TextControl implements IControlInstance {
   }
 
   public keydown(evt: KeyboardEvent): number | null {
+    if (this.control.isDisabledControl()) {
+      return null
+    }
     const elementList = this.control.getElementList()
     const range = this.control.getRange()
     // 收缩边界到Value内
@@ -178,6 +200,9 @@ export class TextControl implements IControlInstance {
   }
 
   public cut(): number {
+    if (this.control.isDisabledControl()) {
+      return -1
+    }
     this.control.shrinkBoundary()
     const { startIndex, endIndex } = this.control.getRange()
     if (startIndex === endIndex) {

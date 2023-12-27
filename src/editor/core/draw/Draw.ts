@@ -57,7 +57,11 @@ import { CheckboxParticle } from './particle/CheckboxParticle'
 import { RadioParticle } from './particle/RadioParticle'
 
 import { DeepRequired, IPadding } from '../../interface/Common'
-import { ControlComponent, ImageDisplay } from '../../dataset/enum/Control'
+import {
+  ControlComponent,
+  ControlIndentation,
+  ImageDisplay
+} from '../../dataset/enum/Control'
 import { formatElementList } from '../../utils/element'
 import { WorkerManager } from '../worker/WorkerManager'
 import { Previewer } from './particle/previewer/Previewer'
@@ -194,7 +198,7 @@ export class Draw {
     this.footer = new Footer(this, data.footer)
     this.hyperlinkParticle = new HyperlinkParticle(this)
     this.dateParticle = new DateParticle(this)
-    this.separatorParticle = new SeparatorParticle()
+    this.separatorParticle = new SeparatorParticle(this)
     this.pageBreakParticle = new PageBreakParticle(this)
     this.superscriptParticle = new SuperscriptParticle()
     this.subscriptParticle = new SubscriptParticle()
@@ -551,7 +555,9 @@ export class Draw {
     // 判断是否在控件内
     const activeControl = this.control.getActiveControl()
     if (activeControl && !this.control.isRangInPostfix()) {
-      curIndex = activeControl.setValue(payload)
+      curIndex = activeControl.setValue(payload, undefined, {
+        isIgnoreDisabledRule: true
+      })
     } else {
       const elementList = this.getElementList()
       const isCollapsed = startIndex === endIndex
@@ -920,7 +926,7 @@ export class Draw {
   }
 
   public setValue(payload: Partial<IEditorData>) {
-    const { header, main, footer } = payload
+    const { header, main, footer } = deepClone(payload)
     if (!header && !main && !footer) return
     const pageComponentData = [header, main, footer]
     pageComponentData.forEach((data) => {
@@ -1048,7 +1054,10 @@ export class Draw {
         boundingBoxDescent: 0,
       }
       // 实际可用宽度
-      const offsetX = element.listId ? listStyleMap.get(element.listId) || 0 : 0
+      const offsetX =
+        curRow.offsetX ||
+        (element.listId && listStyleMap.get(element.listId)) ||
+        0
       const availableWidth = innerWidth - offsetX
       if (element.type === ElementType.IMAGE || element.type === ElementType.LATEX) {
         const elementWidth = element.width! * scale
@@ -1086,7 +1095,7 @@ export class Draw {
             const rowHeight = rowList.reduce((pre, cur) => pre + cur.height, 0)
             td.rowList = rowList
             // 移除缩放导致的行高变化-渲染时会进行缩放调整
-            const curTdHeight = (rowHeight + tdPaddingHeight) / scale
+            const curTdHeight = rowHeight / scale + tdPaddingHeight
             // 内容高度大于当前单元格高度需增加
             if (td.height! < curTdHeight) {
               const extraHeight = curTdHeight - td.height!
@@ -1150,7 +1159,7 @@ export class Draw {
         metrics.width = elementWidth
         metrics.height = elementHeight
         metrics.boundingBoxDescent = elementHeight
-        metrics.boundingBoxAscent = 0
+        metrics.boundingBoxAscent = -rowMargin
         // 表格分页处理(拆分表格)
         const height = this.getHeight()
         const marginHeight = this.getMainOuterHeight()
@@ -1370,7 +1379,7 @@ export class Draw {
         if (
           curRow.startIndex === 0 &&
           curRow.elementList.length === 1 &&
-          (INLINE_ELEMENT_TYPE.includes(element.type!) || element.listId)
+          INLINE_ELEMENT_TYPE.includes(element.type!)
         ) {
           curRow.height = defaultBasicRowMarginHeight
         }
@@ -1393,6 +1402,29 @@ export class Draw {
           rowFlex: elementList[i + 1]?.rowFlex,
           isPageBreak: element.type === ElementType.PAGE_BREAK,
         }
+        // 控件缩进
+        if (
+          rowElement.controlComponent !== ControlComponent.PREFIX &&
+          rowElement.control?.indentation === ControlIndentation.VALUE_START
+        ) {
+          // 查找到非前缀的第一个元素位置
+          const preStartIndex = curRow.elementList.findIndex(
+            el =>
+              el.controlId === rowElement.controlId &&
+              el.controlComponent !== ControlComponent.PREFIX
+          )
+          if (~preStartIndex) {
+            const preRowPositionList = this.position.computeRowPosition({
+              row: curRow,
+              innerWidth: this.getInnerWidth()
+            })
+            const valueStartPosition = preRowPositionList[preStartIndex]
+            if (valueStartPosition) {
+              row.offsetX = valueStartPosition.coordinate.leftTop[0]
+            }
+          }
+        }
+        // 列表缩进
         if (element.listId) {
           row.isList = true
           row.offsetX = listStyleMap.get(element.listId!)
@@ -1558,18 +1590,37 @@ export class Draw {
         }
         // 下划线记录
         if (element.underline || element.control?.underline) {
+          // 上下标元素下划线单独绘制
+          if (
+            (preElement?.type === ElementType.SUPERSCRIPT &&
+              element.type !== ElementType.SUPERSCRIPT) ||
+            (preElement?.type === ElementType.SUBSCRIPT &&
+              element.type !== ElementType.SUBSCRIPT)
+          ) {
+            this.underline.render(ctx)
+          }
+          // 行间距
           const rowMargin =
-            defaultBasicRowMarginHeight * (element.rowMargin || defaultRowMargin) * scale
-          // 元素偏移量
-          const left = element.left || 0
+            defaultBasicRowMarginHeight *
+            (element.rowMargin || defaultRowMargin) *
+            scale
+          // 元素向左偏移量
+          const offsetX = element.left || 0
+          // 上下标元素y轴偏移值
+          let offsetY = 0
+          if (element.type === ElementType.SUBSCRIPT) {
+            offsetY = this.subscriptParticle.getOffsetY(element)
+          } else if (element.type === ElementType.SUPERSCRIPT) {
+            offsetY = this.superscriptParticle.getOffsetY(element)
+          }
           // 占位符不参与颜色计算
           const color =
             element.controlComponent === ControlComponent.PLACEHOLDER ? undefined : element.color
           this.underline.recordFillInfo(
             ctx,
-            x - left,
-            y + curRow.height - rowMargin,
-            metrics.width + left,
+            x - offsetX,
+            y + curRow.height - rowMargin + offsetY,
+            metrics.width + offsetX,
             0,
             color,
           )
@@ -1690,7 +1741,11 @@ export class Draw {
     // 绘制背景
     this.background.render(ctx, pageNo)
     // 绘制页边距
-    this.margin.render(ctx, pageNo)
+    if (this.mode !== EditorMode.PRINT) {
+      this.margin.render(ctx, pageNo)
+    }
+    // 控件高亮
+    this.control.renderHighlightList(ctx, pageNo)
     // 渲染元素
     const index = rowList[0].startIndex
     this.drawRow(ctx, {
@@ -1725,7 +1780,7 @@ export class Draw {
       this.waterMark.render(ctx)
     }
     // 绘制空白占位符
-    if (this.elementList.length <= 1) {
+    if (this.elementList.length <= 1 && !this.elementList[0]?.listId) {
       this.placeholder.render(ctx)
     }
   }
@@ -1805,6 +1860,8 @@ export class Draw {
       if (searchKeyword) {
         this.search.compute(searchKeyword)
       }
+      // 控件关键词高亮
+      this.control.computeHighlightList()
     }
     // 清除光标等副作用
     this.imageObserver.clearAll()

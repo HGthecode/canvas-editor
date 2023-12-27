@@ -44,7 +44,12 @@ export function formatElementList(elementList: IElement[], options: IFormatEleme
     ...options,
   }
   const startElement = elementList[0]
-  if (isHandleFirstElement && startElement?.value !== ZERO && startElement?.value !== '\n') {
+  // 非首字符零宽节点文本元素则补偿
+  if (
+    isHandleFirstElement &&
+    ((startElement?.type && startElement.type !== ElementType.TEXT) ||
+      (startElement?.value !== ZERO && startElement?.value !== '\n'))
+  ) {
     elementList.unshift({
       value: ZERO,
     })
@@ -243,8 +248,7 @@ export function formatElementList(elementList: IElement[], options: IFormatEleme
                 elementList.splice(i, 0, {
                   ...valueStyleList[valueStyleIndex],
                   controlId,
-                  value,
-                  type: el.type,
+                  value: value === '\n' ? ZERO : value,
                   letterSpacing: isLastLetter ? checkboxOption.gap : 0,
                   control: el.control,
                   controlComponent: ControlComponent.VALUE,
@@ -334,8 +338,8 @@ export function formatElementList(elementList: IElement[], options: IFormatEleme
               elementList.splice(i, 0, {
                 ...element,
                 controlId,
-                value,
-                type: el.type,
+                value: value === '\n' ? ZERO : value,
+                type: element.type || ElementType.TEXT,
                 control: el.control,
                 controlComponent: ControlComponent.VALUE,
               })
@@ -354,7 +358,7 @@ export function formatElementList(elementList: IElement[], options: IFormatEleme
           const value = placeholderStrList[p]
           elementList.splice(i, 0, {
             controlId,
-            value,
+            value: value === '\n' ? ZERO : value,
             type: el.type,
             control: el.control,
             controlComponent: ControlComponent.PLACEHOLDER,
@@ -850,22 +854,19 @@ export function createDomFromElementList(
         const tab = document.createElement('span')
         tab.innerHTML = `${NON_BREAKING_SPACE}${NON_BREAKING_SPACE}`
         clipboardDom.append(tab)
+      } else if (element.type === ElementType.CONTROL) {
+        const controlElement = document.createElement('span')
+        const childDom = buildDom(zipElementList(element.control?.value || []))
+        controlElement.innerHTML = childDom.innerHTML
+        clipboardDom.append(controlElement)
       } else if (
         !element.type ||
         element.type === ElementType.LATEX ||
         TEXTLIKE_ELEMENT_TYPE.includes(element.type)
       ) {
         let text = ''
-        if (element.controlId) {
-          text =
-            element
-              .control!.value?.filter(
-                v => !v.type || TEXTLIKE_ELEMENT_TYPE.includes(v.type)
-              )
-              .map(v => v.value)
-              .join('') || ''
-        } else if (element.type === ElementType.DATE) {
-          text = element.valueList?.map((v) => v.value).join('') || ''
+        if (element.type === ElementType.DATE) {
+          text = element.valueList?.map(v => v.value).join('') || ''
         } else {
           text = element.value
         }

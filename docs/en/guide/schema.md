@@ -44,6 +44,7 @@ interface IElement {
   // groupIds
   groupIds?: string[];
   // table
+  conceptId?: string;
   colgroup?: {
     width: number;
   }[];
@@ -81,7 +82,9 @@ interface IElement {
     minWidth?: number;
     underline?: boolean;
     extension?: unknown;
+    indentation?: ControlIndentation;
     deletable?: boolean;
+    disabled?: boolean;
     code: string | null;
     min?: number;
     max?: number;

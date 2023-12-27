@@ -1,3 +1,94 @@
+## [0.9.60](https://github.com/Hufe921/canvas-editor/compare/v0.9.59...v0.9.60) (2023-12-23)
+
+
+### Bug Fixes
+
+* clone the values set to the editor #369 (#371) ([f73759f](https://github.com/Hufe921/canvas-editor/commit/f73759fdd75119fdff113d4ec914d5cc20de6dae)), closes [#369](https://github.com/Hufe921/canvas-editor/issues/369) [#371](https://github.com/Hufe921/canvas-editor/issues/371)
+* format element list boundary error #367 ([7a6f656](https://github.com/Hufe921/canvas-editor/commit/7a6f6566994245da16d3e3f31186565d99bdcf89)), closes [#367](https://github.com/Hufe921/canvas-editor/issues/367)
+
+
+### Chores
+
+* insert hyperlink with default value #368 ([d83fc0f](https://github.com/Hufe921/canvas-editor/commit/d83fc0f37a368cb14b631ff10a4618789562d570)), closes [#368](https://github.com/Hufe921/canvas-editor/issues/368)
+
+
+### Features
+
+* add conceptId attribute to table element ([b55471b](https://github.com/Hufe921/canvas-editor/commit/b55471b13446959e6ac1802d086ab10140a8435d))
+* add zone attribute to getRangeContext api ([57fdcb8](https://github.com/Hufe921/canvas-editor/commit/57fdcb8b81079c1fa0836b9092596df986863382))
+* add zone tooltip #367 ([095414f](https://github.com/Hufe921/canvas-editor/commit/095414fbe68bdf8c714dea36d7159a16d6ee9349)), closes [#367](https://github.com/Hufe921/canvas-editor/issues/367)
+
+
+### Performance Improvements
+
+* compute zone tooltip performance ([28ef4af](https://github.com/Hufe921/canvas-editor/commit/28ef4af15e2a873fac021364449725f78c89348f))
+
+
+
+## [0.9.59](https://github.com/Hufe921/canvas-editor/compare/v0.9.58...v0.9.59) (2023-12-17)
+
+
+### Chores
+
+* update default font #360 ([8ace079](https://github.com/Hufe921/canvas-editor/commit/8ace07962da4f7e373c361776233330fdd8e4139)), closes [#360](https://github.com/Hufe921/canvas-editor/issues/360)
+
+
+### Features
+
+* add  zone attribute to getControlValue api ([285aeec](https://github.com/Hufe921/canvas-editor/commit/285aeec2f6eeba676361b109e595744c2f1e4641))
+* add resizer size Indicator ([61c110d](https://github.com/Hufe921/canvas-editor/commit/61c110d5eed09197fb2187e6ecec2ee9a10d0d27))
+* set control highlight rule #332 ([b6fe212](https://github.com/Hufe921/canvas-editor/commit/b6fe21230b34afa6ac53eee146e1c291a22da04e)), closes [#332](https://github.com/Hufe921/canvas-editor/issues/332)
+
+
+
+## [0.9.58](https://github.com/Hufe921/canvas-editor/compare/v0.9.57...v0.9.58) (2023-12-08)
+
+
+### Bug Fixes
+
+* empty list don't render placeholder ([910f756](https://github.com/Hufe921/canvas-editor/commit/910f75662f62dc38f068a71feb4cd68150b83341))
+* multiple empty lists render error in first row ([1487033](https://github.com/Hufe921/canvas-editor/commit/1487033d75e7c94c2fdf748217f79642181eaaf1))
+* not render margin indicator in print mode #354 ([3f1babe](https://github.com/Hufe921/canvas-editor/commit/3f1babec68b5d22babade28214ca9a7212d3cf8a)), closes [#354](https://github.com/Hufe921/canvas-editor/issues/354)
+* repeated input in firefox browser #357 ([6de3ad8](https://github.com/Hufe921/canvas-editor/commit/6de3ad8b21b557ddc9e218d22b283348dcbd9211)), closes [#357](https://github.com/Hufe921/canvas-editor/issues/357)
+
+
+### Chores
+
+* export splitText function ([bcbd879](https://github.com/Hufe921/canvas-editor/commit/bcbd879e0f44443f0bcac71402330b37def434b2))
+* update eslint fixAll option ([bba0b09](https://github.com/Hufe921/canvas-editor/commit/bba0b090f33e4f3e391a14e22c2b579f132b5348))
+
+
+### Features
+
+* add control indentation option #345 ([5f1cf3a](https://github.com/Hufe921/canvas-editor/commit/5f1cf3ab37aa22180eee45c02486b478dfbc6b99)), closes [#345](https://github.com/Hufe921/canvas-editor/issues/345)
+
+
+
+## [0.9.57](https://github.com/Hufe921/canvas-editor/compare/v0.9.56...v0.9.57) (2023-12-03)
+
+
+### Bug Fixes
+
+* disable focus in readonly mode #326 ([f0823d7](https://github.com/Hufe921/canvas-editor/commit/f0823d7a6b5e975b60affeea5aae626e14162dc7)), closes [#326](https://github.com/Hufe921/canvas-editor/issues/326)
+* scaling table and separator elements error #326 ([b3354ac](https://github.com/Hufe921/canvas-editor/commit/b3354ac35ff34031b3dcbeab293b69b7686afdf2)), closes [#326](https://github.com/Hufe921/canvas-editor/issues/326)
+* unable to copy elements in control #347 ([6ca1919](https://github.com/Hufe921/canvas-editor/commit/6ca1919498328d3154865469943bde06deb5e465)), closes [#347](https://github.com/Hufe921/canvas-editor/issues/347)
+* underline position of superscript and subscript elements is error #268 ([90efe10](https://github.com/Hufe921/canvas-editor/commit/90efe1020fa801c64849b68b15580aa3b505d1cf)), closes [#268](https://github.com/Hufe921/canvas-editor/issues/268)
+
+
+### Chores
+
+* upgrade cypress version ([ecd4ae9](https://github.com/Hufe921/canvas-editor/commit/ecd4ae9652a9e819bc2a02f2f735d5b5bde9bc71))
+
+
+### Features
+
+* add control disabled rule ([1455a2a](https://github.com/Hufe921/canvas-editor/commit/1455a2afb2949b7db10a3cfa30258e0f03bcbf31))
+* add range and position context api ([8acce15](https://github.com/Hufe921/canvas-editor/commit/8acce15e767aa14a80dfe88e596986f3cba9ad63))
+* add set active zone api ([6b30e3c](https://github.com/Hufe921/canvas-editor/commit/6b30e3ca9d48cb45cfe082b55dcf11c8287c36ee))
+* limit the max cursor offsetHeight #348 ([2666bc4](https://github.com/Hufe921/canvas-editor/commit/2666bc43c3e6eca26f51e6317afcb2b02805dad4)), closes [#348](https://github.com/Hufe921/canvas-editor/issues/348)
+
+
+
 ## [0.9.56](https://github.com/Hufe921/canvas-editor/compare/v0.9.55...v0.9.56) (2023-11-14)
 
 

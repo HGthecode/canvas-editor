@@ -24,7 +24,11 @@ import { IHeader } from './interface/Header'
 import { IWatermark } from './interface/Watermark'
 import { defaultHeaderOption } from './dataset/constant/Header'
 import { defaultWatermarkOption } from './dataset/constant/Watermark'
-import { ControlType, ImageDisplay } from './dataset/enum/Control'
+import {
+  ControlIndentation,
+  ControlType,
+  ImageDisplay
+} from './dataset/enum/Control'
 import { defaultControlOption } from './dataset/constant/Control'
 import { IControlOption } from './interface/Control'
 import { ICheckboxOption } from './interface/Checkbox'
@@ -66,6 +70,10 @@ import { defaultPageBreakOption } from './dataset/constant/PageBreak'
 import { IPageBreak } from './interface/PageBreak'
 import { LETTER_CLASS } from './dataset/constant/Common'
 import { INTERNAL_CONTEXT_MENU_KEY } from './dataset/constant/ContextMenu'
+import { IRange } from './interface/Range'
+import { deepClone, splitText } from './utils'
+import { IZoneOption } from './interface/Zone'
+import { defaultZoneOption } from './dataset/constant/Zone'
 
 export default class Editor {
   public command: Command
@@ -129,11 +137,15 @@ export default class Editor {
       ...defaultPageBreakOption,
       ...options.pageBreak,
     }
+    const zoneOptions: Required<IZoneOption> = {
+      ...defaultZoneOption,
+      ...options.zone
+    }
 
     const editorOptions: DeepRequired<IEditorOption> = {
       mode: EditorMode.EDIT,
       defaultType: 'TEXT',
-      defaultFont: 'Yahei',
+      defaultFont: 'Microsoft YaHei',
       defaultSize: 16,
       minSize: 5,
       maxSize: 72,
@@ -186,8 +198,10 @@ export default class Editor {
       placeholder: placeholderOptions,
       group: groupOptions,
       pageBreak: pageBreakOptions,
+      zone: zoneOptions
     }
     // 数据处理
+    data = deepClone(data)
     let headerElementList: IElement[] = []
     let mainElementList: IElement[] = []
     let footerElementList: IElement[] = []
@@ -247,11 +261,14 @@ export default class Editor {
   }
 }
 
-// 对外对象
+// 对外方法
+export { splitText }
+
+// 对外常量
+export { EDITOR_COMPONENT, LETTER_CLASS, INTERNAL_CONTEXT_MENU_KEY }
+
+// 对外枚举
 export {
-  EDITOR_COMPONENT,
-  LETTER_CLASS,
-  INTERNAL_CONTEXT_MENU_KEY,
   Editor,
   RowFlex,
   VerticalAlign,
@@ -275,6 +292,7 @@ export {
   ListType,
   ListStyle,
   WordBreak,
+  ControlIndentation
 }
 
 // 对外类型
@@ -291,5 +309,6 @@ export type {
   ILang,
   ICatalog,
   ICatalogItem,
-  IRangeStyle,
+  IRange,
+  IRangeStyle
 }

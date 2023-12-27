@@ -44,6 +44,7 @@ interface IElement {
   // 组信息-可用于批注等其他成组使用场景
   groupIds?: string[];
   // 表格
+  conceptId?: string;
   colgroup?: {
     width: number;
   }[];
@@ -81,7 +82,9 @@ interface IElement {
     minWidth?: number;
     underline?: boolean;
     extension?: unknown;
+    indentation?: ControlIndentation;
     deletable?: boolean;
+    disabled?: boolean;
     code: string | null;
     min?: number;
     max?: number;

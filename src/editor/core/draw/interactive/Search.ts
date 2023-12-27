@@ -147,7 +147,10 @@ export class Search {
     }
   }
 
-  public compute(payload: string) {
+  public getMatchList(
+    payload: string,
+    originalElementList: IElement[]
+  ): ISearchResult[] {
     const keyword = payload.toLocaleLowerCase()
     const searchMatchList: ISearchResult[] = []
     // 分组
@@ -156,7 +159,6 @@ export class Search {
       elementList: IElement[]
       index: number
     }[] = []
-    const originalElementList = this.draw.getOriginalElementList()
     const originalElementListLength = originalElementList.length
     // 查找表格所在位置
     const tableIndexList = []
@@ -238,6 +240,7 @@ export class Search {
           for (let d = 0; d < tr.tdList.length; d++) {
             const td = tr.tdList[d]
             const restArgs: ISearchResultRestArgs = {
+              tableId: tableElement.id,
               tableIndex: group.index,
               trIndex: t,
               tdIndex: d,
@@ -252,7 +255,14 @@ export class Search {
         })
       }
     }
-    this.searchMatchList = searchMatchList
+    return searchMatchList
+  }
+
+  public compute(payload: string) {
+    this.searchMatchList = this.getMatchList(
+      payload,
+      this.draw.getOriginalElementList()
+    )
   }
 
   public render(ctx: CanvasRenderingContext2D, pageIndex: number) {

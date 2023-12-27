@@ -71,12 +71,40 @@ instance.command.executeBackspace()
 
 ## executeSetRange
 
-Feature: Set selection
+Feature: Set range
 
 Usage:
 
 ```javascript
-instance.command.executeSetRange(startIndex: number , endIndex: number)
+instance.command.executeSetRange(
+  startIndex: number,
+  endIndex: number,
+  tableId?: string,
+  startTdIndex?: number,
+  endTdIndex?: number,
+  startTrIndex?: number,
+  endTrIndex?: number
+)
+```
+
+## executeReplaceRange
+
+Feature: Replace range
+
+Usage:
+
+```javascript
+instance.command.executeReplaceRange(range: IRange)
+```
+
+## executeSetPositionContext
+
+Feature: Set position context
+
+Usage:
+
+```javascript
+instance.command.executeSetPositionContext(range: IRange)
 ```
 
 ## executeForceUpdate
@@ -834,6 +862,16 @@ Usage:
 instance.command.executeLocationGroup(groupId: string)
 ```
 
+## executeSetZone
+
+Feature: Set active zone (header, main, footer)
+
+Usage:
+
+```javascript
+instance.command.executeSetZone(zone: EditorZone)
+```
+
 ## executeSetControlValue
 
 Feature: Set control value
@@ -852,4 +890,14 @@ Usage:
 
 ```javascript
 instance.command.executeSetControlExtension(payload: ISetControlExtensionOption)
+```
+
+## executeSetControlHighlight
+
+Feature: Set control highlight (by keyword)
+
+Usage:
+
+```javascript
+instance.command.executeSetControlHighlight(payload: ISetControlHighlightOption)
 ```

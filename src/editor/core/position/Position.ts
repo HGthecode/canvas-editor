@@ -4,6 +4,7 @@ import { ControlComponent, ImageDisplay } from '../../dataset/enum/Control'
 import {
   IComputePageRowPositionPayload,
   IComputePageRowPositionResult,
+  IComputeRowPositionPayload
 } from '../../interface/Position'
 import { IEditorOption } from '../../interface/Editor'
 import { IElement, IElementPosition } from '../../interface/Element'
@@ -14,6 +15,7 @@ import {
 } from '../../interface/Position'
 import { Draw } from '../draw/Draw'
 import { EditorMode, EditorZone } from '../../dataset/enum/Editor'
+import { deepClone } from '../../utils'
 
 export class Position {
   private cursorPosition: IElementPosition | null
@@ -97,10 +99,8 @@ export class Position {
       } else if (curRow.rowFlex === RowFlex.RIGHT) {
         x += innerWidth - curRow.width
       }
-      // 列表向右移动-留出列表样式位置
-      if (curRow.isList) {
-        x += curRow.offsetX || 0
-      }
+      // 当前行X轴偏移量
+      x += curRow.offsetX || 0
       // 当前td所在位置
       const tablePreX = x
       const tablePreY = y
@@ -224,6 +224,24 @@ export class Position {
     }
   }
 
+  public computeRowPosition(
+    payload: IComputeRowPositionPayload
+  ): IElementPosition[] {
+    const { row, innerWidth } = payload
+    const positionList: IElementPosition[] = []
+    this.computePageRowPosition({
+      positionList,
+      innerWidth,
+      rowList: [deepClone(row)],
+      pageNo: 0,
+      startX: 0,
+      startY: 0,
+      startIndex: 0,
+      startRowIndex: 0
+    })
+    return positionList
+  }
+
   public setCursorPosition(position: IElementPosition | null) {
     this.cursorPosition = position
   }
@@ -250,7 +268,7 @@ export class Position {
       positionList = this.getOriginalPositionList()
     }
     const zoneManager = this.draw.getZone()
-    const curPageNo = this.draw.getPageNo()
+    const curPageNo = payload.pageNo ?? this.draw.getPageNo()
     const isMainActive = zoneManager.isMainActive()
     const positionNo = isMainActive ? curPageNo : 0
     for (let j = 0; j < positionList.length; j++) {

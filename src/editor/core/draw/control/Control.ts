@@ -1,16 +1,21 @@
 import { ControlComponent, ControlType } from '../../../dataset/enum/Control'
+import { EditorZone } from '../../../dataset/enum/Editor'
 import { ElementType } from '../../../dataset/enum/Element'
+import { DeepRequired } from '../../../interface/Common'
 import {
   IControl,
   IControlContext,
+  IControlHighlight,
   IControlInitOption,
   IControlInstance,
   IControlOption,
+  IControlRuleOption,
   IGetControlValueOption,
   IGetControlValueResult,
   ISetControlExtensionOption,
   ISetControlValueOption,
 } from '../../../interface/Control'
+import { IEditorOption } from '../../../interface/Editor'
 import { IElement, IElementPosition } from '../../../interface/Element'
 import { EventBusMap } from '../../../interface/EventBus'
 import { IRange } from '../../../interface/Range'
@@ -29,6 +34,7 @@ import { CheckboxControl } from './checkbox/CheckboxControl'
 import { RadioControl } from './radio/RadioControl'
 import { DateControl } from './date/DateControl'
 
+import { ControlSearch } from './interactive/ControlSearch'
 import { SelectControl } from './select/SelectControl'
 import { TextControl } from './text/TextControl'
 
@@ -41,7 +47,9 @@ export class Control {
   private range: RangeManager
   private listener: Listener
   private eventBus: EventBus<EventBusMap>
-  private options: IControlOption
+  private controlSearch: ControlSearch
+  private options: DeepRequired<IEditorOption>
+  private controlOptions: IControlOption
   private activeControl: IControlInstance | null
 
   constructor(draw: Draw) {
@@ -49,9 +57,30 @@ export class Control {
     this.range = draw.getRange()
     this.listener = draw.getListener()
     this.eventBus = draw.getEventBus()
+    this.controlSearch = new ControlSearch(this)
 
-    this.options = draw.getOptions().control
+    this.options = draw.getOptions()
+    this.controlOptions = this.options.control
     this.activeControl = null
+  }
+
+  // 搜索高亮匹配
+  public setHighlightList(payload: IControlHighlight[]) {
+    this.controlSearch.setHighlightList(payload)
+  }
+
+  public computeHighlightList() {
+    const highlightList = this.controlSearch.getHighlightList()
+    if (highlightList.length) {
+      this.controlSearch.computeHighlightList()
+    }
+  }
+
+  public renderHighlightList(ctx: CanvasRenderingContext2D, pageNo: number) {
+    const highlightMatchResult = this.controlSearch.getHighlightMatchResult()
+    if (highlightMatchResult.length) {
+      this.controlSearch.renderHighlightList(ctx, pageNo)
+    }
   }
 
   public getDraw(): Draw {
@@ -123,6 +152,10 @@ export class Control {
       return true
     }
     return false
+  }
+
+  public isDisabledControl(): boolean {
+    return !!this.activeControl?.getElement().control?.disabled
   }
 
   public getContainer(): HTMLDivElement {
@@ -233,11 +266,18 @@ export class Control {
     }
   }
 
-  public repaintControl(curIndex: number) {
-    this.range.setRange(curIndex, curIndex)
-    this.draw.render({
-      curIndex,
-    })
+  public repaintControl(curIndex?: number) {
+    if (curIndex === undefined) {
+      this.range.clearRange()
+      this.draw.render({
+        isSetCursor: false
+      })
+    } else {
+      this.range.setRange(curIndex, curIndex)
+      this.draw.render({
+        curIndex
+      })
+    }
   }
 
   public moveCursor(position: IControlInitOption): IMoveCursorResult {
@@ -382,7 +422,7 @@ export class Control {
         type: ElementType.CONTROL,
         control: startElement.control,
         controlComponent: ControlComponent.PLACEHOLDER,
-        color: this.options.placeholderColor,
+        color: this.controlOptions.placeholderColor
       }
       formatElementContext(elementList, [newElement], startIndex)
       this.draw.spliceElementList(elementList, startIndex + p + 1, 0, newElement)
@@ -413,7 +453,7 @@ export class Control {
   public getValueByConceptId(payload: IGetControlValueOption): IGetControlValueResult {
     const { conceptId } = payload
     const result: IGetControlValueResult = []
-    const getValue = (elementList: IElement[]) => {
+    const getValue = (elementList: IElement[], zone: EditorZone) => {
       let i = 0
       while (i < elementList.length) {
         const element = elementList[i]
@@ -425,7 +465,7 @@ export class Control {
             const tr = trList[r]
             for (let d = 0; d < tr.tdList.length; d++) {
               const td = tr.tdList[d]
-              getValue(td.value)
+              getValue(td.value, zone)
             }
           }
         }
@@ -447,6 +487,7 @@ export class Control {
         if (type === ControlType.TEXT) {
           result.push({
             ...element.control,
+            zone,
             value: textControlValue || null,
             innerText: textControlValue || null
           })
@@ -465,6 +506,7 @@ export class Control {
             .join('')
           result.push({
             ...element.control,
+            zone,
             value: code || null,
             innerText: innerText || null
           })
@@ -472,12 +514,23 @@ export class Control {
         i = j
       }
     }
-    const elementList = [
-      ...this.draw.getHeaderElementList(),
-      ...this.draw.getOriginalMainElementList(),
-      ...this.draw.getFooterElementList()
+    const data = [
+      {
+        zone: EditorZone.HEADER,
+        elementList: this.draw.getHeaderElementList()
+      },
+      {
+        zone: EditorZone.MAIN,
+        elementList: this.draw.getOriginalMainElementList()
+      },
+      {
+        zone: EditorZone.FOOTER,
+        elementList: this.draw.getFooterElementList()
+      }
     ]
-    getValue(elementList)
+    for (const { zone, elementList } of data) {
+      getValue(elementList, zone)
+    }
     return result
   }
 
@@ -522,24 +575,27 @@ export class Control {
           range: fakeRange,
           elementList,
         }
+        const controlRule: IControlRuleOption = {
+          isIgnoreDisabledRule: true
+        }
         if (type === ControlType.TEXT) {
           const formatValue = [{ value }]
           formatElementList(formatValue, {
             isHandleFirstElement: false,
-            editorOptions: this.draw.getOptions(),
+            editorOptions: this.options
           })
           const text = new TextControl(element, this)
           if (value) {
-            text.setValue(formatValue, controlContext)
+            text.setValue(formatValue, controlContext, controlRule)
           } else {
-            text.clearValue(controlContext)
+            text.clearValue(controlContext, controlRule)
           }
         } else if (type === ControlType.SELECT) {
           const select = new SelectControl(element, this)
           if (value) {
-            select.setSelect(value, controlContext)
+            select.setSelect(value, controlContext, controlRule)
           } else {
-            select.clearSelect(controlContext)
+            select.clearSelect(controlContext, controlRule)
           }
         } else if (type === ControlType.CHECKBOX) {
           const checkbox = new CheckboxControl(element, this)
@@ -554,7 +610,7 @@ export class Control {
               checkboxItem.value = codes.includes(checkboxItem.code!)
             }
           }
-          checkbox.setSelect(controlContext)
+          checkbox.setSelect(codes, controlContext, controlRule)
         } else if (type === ControlType.RADIO) {
           const radio = new RadioControl(element, this)
           // const radioElementList = elementList.slice(
@@ -569,6 +625,7 @@ export class Control {
           //   }
           // }
           radio.setSelect(controlContext)
+          
         }
         // 修改后控件结束索引
         let newEndIndex = i
