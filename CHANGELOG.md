@@ -1,3 +1,61 @@
+## [0.9.63](https://github.com/Hufe921/canvas-editor/compare/v0.9.62...v0.9.63) (2024-01-19)
+
+
+### Bug Fixes
+
+* copy row properties on input #415 ([55a43e6](https://github.com/Hufe921/canvas-editor/commit/55a43e61bf6aded9f50644e86d3a1c276ee7a53a)), closes [#415](https://github.com/Hufe921/canvas-editor/issues/415)
+* format list element boundary error ([094af57](https://github.com/Hufe921/canvas-editor/commit/094af57302a7db0c83cb3dd8a5eb9bbe5581b8f8))
+* image render error within the control #406 ([d175f92](https://github.com/Hufe921/canvas-editor/commit/d175f920e8887cc3b1f5132e8ac7443b0d556204)), closes [#406](https://github.com/Hufe921/canvas-editor/issues/406)
+
+
+### Features
+
+* keep aspect ratio when drag image #414 ([e8684da](https://github.com/Hufe921/canvas-editor/commit/e8684daffd40a8efda0342809846451afa0027a2)), closes [#414](https://github.com/Hufe921/canvas-editor/issues/414)
+
+
+
+## [0.9.62](https://github.com/Hufe921/canvas-editor/compare/v0.9.61...v0.9.62) (2024-01-12)
+
+
+### Bug Fixes
+
+* control minimum width rendering boundary error #401 ([5272c85](https://github.com/Hufe921/canvas-editor/commit/5272c85bbe9a723886506363e3ff4f51c2c6a941)), closes [#401](https://github.com/Hufe921/canvas-editor/issues/401)
+* disable zone tips when header and footer disabled #386 ([531750b](https://github.com/Hufe921/canvas-editor/commit/531750bb44844c31f2ea140078e68964a7c50923)), closes [#386](https://github.com/Hufe921/canvas-editor/issues/386)
+
+
+### Features
+
+* add background image option ([eadf7f6](https://github.com/Hufe921/canvas-editor/commit/eadf7f6e49df4534a49f3e7c263c2caca96b3c3a))
+* add defaultColor option #405 ([a324ecc](https://github.com/Hufe921/canvas-editor/commit/a324ecc417fd2993ecdc22fc6d4299178d27de60)), closes [#405](https://github.com/Hufe921/canvas-editor/issues/405)
+* add table cell border type #389 ([3253f37](https://github.com/Hufe921/canvas-editor/commit/3253f3708e50220828cd26dc129ba6bd448a2ad0)), closes [#389](https://github.com/Hufe921/canvas-editor/issues/389)
+* copy style information when wrapping #384 ([981e458](https://github.com/Hufe921/canvas-editor/commit/981e4582f91b87a23afde67c0e401ff71dc42b21)), closes [#384](https://github.com/Hufe921/canvas-editor/issues/384)
+* support drop images #398 (#402) ([a96d239](https://github.com/Hufe921/canvas-editor/commit/a96d2390365c6fe058e15b654bf5589373214109)), closes [#398](https://github.com/Hufe921/canvas-editor/issues/398) [#402](https://github.com/Hufe921/canvas-editor/issues/402)
+
+
+### Tests
+
+* update format test case ([f9edf73](https://github.com/Hufe921/canvas-editor/commit/f9edf731a2a4a4a421636a512dfe41071d86b9ba))
+
+
+
+## [0.9.61](https://github.com/Hufe921/canvas-editor/compare/v0.9.60...v0.9.61) (2023-12-29)
+
+
+### Bug Fixes
+
+* checkbox cannot be selected #382 ([3fb8435](https://github.com/Hufe921/canvas-editor/commit/3fb843570680d1607834b47c5ad86781ea4f5f14)), closes [#382](https://github.com/Hufe921/canvas-editor/issues/382)
+* double-click to expand selection boundary error ([0bd4c5c](https://github.com/Hufe921/canvas-editor/commit/0bd4c5cc51eb400e985d77911c37fd02bf574f07))
+* elements in the table cannot be selected #378 ([1477bd0](https://github.com/Hufe921/canvas-editor/commit/1477bd0e3f2685753ec66f868d5664ce5c4c85c2)), closes [#378](https://github.com/Hufe921/canvas-editor/issues/378)
+* line break error before separator element #379 ([bdb981d](https://github.com/Hufe921/canvas-editor/commit/bdb981d242821d80d3d45f8569badaaa6f3a8a1d)), closes [#379](https://github.com/Hufe921/canvas-editor/issues/379)
+* three click selection paragraph boundary error ([56ea7d8](https://github.com/Hufe921/canvas-editor/commit/56ea7d8bb13d6f57e24e15550a81f6e2c947f653))
+
+
+### Features
+
+* enter to delete list #376 ([f542739](https://github.com/Hufe921/canvas-editor/commit/f542739d3eb1be273e1f77c3a908dab329f8c619)), closes [#376](https://github.com/Hufe921/canvas-editor/issues/376)
+
+
+
 ## [0.9.60](https://github.com/Hufe921/canvas-editor/compare/v0.9.59...v0.9.60) (2023-12-23)
 
 

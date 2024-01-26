@@ -105,6 +105,7 @@ export function formatElementList(elementList: IElement[], options: IFormatEleme
       const valueList = el.valueList || []
       formatElementList(valueList, {
         ...options,
+        isHandleFirstElement: true
       })
       // 追加节点
       if (valueList.length) {
@@ -187,8 +188,15 @@ export function formatElementList(elementList: IElement[], options: IFormatEleme
       }
       i--
     } else if (el.type === ElementType.CONTROL) {
+     
+      // 兼容控件内容类型错误
+      if (!el.control) {
+        i++
+        continue
+      }
       const value = el.control?.value
-      const { prefix, postfix, placeholder, code, type, valueSets, extension } = el.control!
+      const { prefix, postfix, placeholder, code, type, valueSets,extension } =
+        el.control
       const {
         editorOptions: { control: controlOption, checkbox: checkboxOption, radio: radioOption },
       } = options
@@ -409,24 +417,40 @@ export function formatElementList(elementList: IElement[], options: IFormatEleme
               }
             }
           }
+          formatElementList(valueList, {
+            ...options,
+            isHandleFirstElement: false
+          })
           for (let v = 0; v < valueList.length; v++) {
             const element = valueList[v]
-            const valueStrList = splitText(element.value)
-            for (let e = 0; e < valueStrList.length; e++) {
-              const value = valueStrList[e]
+            // const valueStrList = splitText(element.value)
+            // for (let e = 0; e < valueStrList.length; e++) {
+            //   const value = valueStrList[e]
 
-              elementList.splice(i, 0, {
-                ...element,
-                controlId,
-                value: value === '\n' ? ZERO : value,
-                type: element.type || ElementType.TEXT,
-                control: el.control,
-                controlComponent: ControlComponent.VALUE,
-                backgroundColor: theBackgroundColor,
-                color: extension.textColor ? extension.textColor : undefined,
-              })
-              i++
-            }
+            //   elementList.splice(i, 0, {
+            //     ...element,
+            //     controlId,
+            //     value: value === '\n' ? ZERO : value,
+            //     type: element.type || ElementType.TEXT,
+            //     control: el.control,
+            //     controlComponent: ControlComponent.VALUE,
+            //     backgroundColor: theBackgroundColor,
+            //     color: extension.textColor ? extension.textColor : undefined,
+            //   })
+            //   i++
+            // }
+            const value = element.value
+            elementList.splice(i, 0, {
+              ...element,
+              controlId,
+              value: value === '\n' ? ZERO : value,
+              type: element.type || ElementType.TEXT,
+              control: el.control,
+              controlComponent: ControlComponent.VALUE,
+              backgroundColor: theBackgroundColor,
+              color: extension.textColor ? extension.textColor : undefined,
+            })
+            i++
           }
         }
       } else if (placeholder) {
@@ -774,14 +798,25 @@ export function formatElementContext(
   const copyElement = getAnchorElement(sourceElementList, anchorIndex)
   if (!copyElement) return
   const { isBreakWhenWrap = false } = options || {}
+  // 是否已经换行
+  let isBreakWarped = false
   for (let e = 0; e < formatElementList.length; e++) {
     const targetElement = formatElementList[e]
-    if (isBreakWhenWrap && !copyElement.listId && /^\n/.test(targetElement.value)) {
-      break
+    if (
+      isBreakWhenWrap &&
+      !copyElement.listId &&
+      /^\n/.test(targetElement.value)
+    ) {
+      isBreakWarped = true
     }
-    // 定位元素非列表，无需处理粘贴列表的上下文
-    if (!copyElement.listId && targetElement.type === ElementType.LIST) {
-      targetElement.valueList?.forEach((valueItem) => {
+    // 1. 即使换行停止也要处理表格上下文信息
+    // 2. 定位元素非列表，无需处理粘贴列表的上下文，仅处理表格上下文信息
+    if (
+      isBreakWarped ||
+      (!copyElement.listId && targetElement.type === ElementType.LIST)
+    ) {
+      cloneProperty<IElement>(TABLE_CONTEXT_ATTR, copyElement, targetElement)
+      targetElement.valueList?.forEach(valueItem => {
         cloneProperty<IElement>(TABLE_CONTEXT_ATTR, copyElement, valueItem)
       })
       continue

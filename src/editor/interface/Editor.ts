@@ -1,5 +1,11 @@
 import { IElement } from '..'
-import { EditorMode, PageMode, PaperDirection, WordBreak } from '../dataset/enum/Editor'
+import {
+  EditorMode,
+  PageMode,
+  PaperDirection,
+  WordBreak
+} from '../dataset/enum/Editor'
+import { IBackgroundOption } from './Background'
 import { ICheckboxOption } from './Checkbox'
 import { IRadioOption } from './Radio'
 import { IPadding } from './Common'
@@ -25,6 +31,7 @@ export interface IEditorData {
 export interface IEditorOption {
   mode?: EditorMode
   defaultType?: string
+  defaultColor?: string
   defaultFont?: string
   defaultSize?: number
   minSize?: number
@@ -36,7 +43,6 @@ export interface IEditorOption {
   height?: number
   scale?: number
   pageGap?: number
-  backgroundColor?: string
   underlineColor?: string
   strikeoutColor?: string
   rangeColor?: string
@@ -78,6 +84,7 @@ export interface IEditorOption {
   group?: IGroup
   pageBreak?: IPageBreak
   zone?: IZoneOption
+  background?: IBackgroundOption
 }
 
 export interface IEditorResult {

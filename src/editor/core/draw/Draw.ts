@@ -540,8 +540,8 @@ export class Draw {
 
   public insertElementList(payload: IElement[]) {
     if (!payload.length) return
-    const isPartRangeInControlOutside = this.control.isPartRangeInControlOutside()
-    if (isPartRangeInControlOutside) return
+    const isRangeCanInput = this.control.isRangeCanInput()
+    if (!isRangeCanInput) return
     const { startIndex, endIndex } = this.range.getRange()
     if (!~startIndex && !~endIndex) return
     formatElementList(payload, {
@@ -551,7 +551,12 @@ export class Draw {
     })
     let curIndex = -1
     // 判断是否在控件内
-    const activeControl = this.control.getActiveControl()
+    let activeControl = this.control.getActiveControl()
+    // 光标在控件内如果当前没有被激活，需要手动激活
+    if (!activeControl && this.control.isRangeWithinControl()) {
+      this.control.initControl()
+      activeControl = this.control.getActiveControl()
+    }
     if (activeControl && !this.control.isRangInPostfix()) {
       curIndex = activeControl.setValue(payload, undefined, {
         isIgnoreDisabledRule: true,
@@ -682,6 +687,10 @@ export class Draw {
 
   public getListParticle(): ListParticle {
     return this.listParticle
+  }
+
+  public getCheckboxParticle(): CheckboxParticle {
+    return this.checkboxParticle
   }
 
   public getControl(): Control {
@@ -1043,7 +1052,7 @@ export class Draw {
         ascent: 0,
         elementList: [],
         startIndex: 0,
-        rowFlex: elementList?.[1]?.rowFlex,
+        rowFlex: elementList?.[0]?.rowFlex || elementList?.[1]?.rowFlex
       })
     }
     // 列表位置
@@ -1302,8 +1311,11 @@ export class Draw {
           metrics.width += element.letterSpacing * scale
         }
         metrics.boundingBoxAscent =
-          (element.value === ZERO ? defaultSize : fontMetrics.actualBoundingBoxAscent) * scale
-        metrics.boundingBoxDescent = fontMetrics.actualBoundingBoxDescent * scale
+          (element.value === ZERO
+            ? element.size || defaultSize
+            : fontMetrics.actualBoundingBoxAscent) * scale
+        metrics.boundingBoxDescent =
+          fontMetrics.actualBoundingBoxDescent * scale
         if (element.type === ElementType.SUPERSCRIPT) {
           metrics.boundingBoxAscent += metrics.height / 2
         } else if (element.type === ElementType.SUBSCRIPT) {
@@ -1373,6 +1385,7 @@ export class Draw {
       }
       listId = element.listId
       if (
+        element.type === ElementType.SEPARATOR ||
         element.type === ElementType.TABLE ||
         preElement?.type === ElementType.TABLE ||
         preElement?.type === ElementType.BLOCK ||
@@ -1407,8 +1420,8 @@ export class Draw {
           startIndex: i,
           elementList: [rowElement],
           ascent,
-          rowFlex: elementList[i + 1]?.rowFlex,
-          isPageBreak: element.type === ElementType.PAGE_BREAK,
+          rowFlex: elementList[i]?.rowFlex || elementList[i + 1]?.rowFlex,
+          isPageBreak: element.type === ElementType.PAGE_BREAK
         }
         // 控件缩进
         if (
@@ -1640,6 +1653,10 @@ export class Draw {
           this._drawRichText(ctx)
           this.textParticle.record(ctx, element, x, y + offsetY)
         } else {
+          // 如果当前元素设置左偏移，则上一元素立即绘制
+          if (element.left) {
+            this.textParticle.complete()
+          }
           this.textParticle.record(ctx, element, x, y + offsetY)
           // 如果设置字宽、字间距需单独绘制
           if (element.width || element.letterSpacing) {
@@ -1802,7 +1819,7 @@ export class Draw {
     // 控件高亮
     this.control.renderHighlightList(ctx, pageNo)
     // 渲染元素
-    const index = rowList[0].startIndex
+    const index = rowList[0]?.startIndex
     this.drawRow(ctx, {
       elementList,
       positionList,

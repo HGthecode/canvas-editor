@@ -45,12 +45,12 @@
       "borderEmpty": "Empty",
       "borderExternal": "External",
       "borderTd": "Table cell border",
+      "borderTdTop": "Top",
+      "borderTdRight": "Right",
       "borderTdBottom": "Bottom",
-      "borderTdForward": "forward",
-      "borderTdBack": "back"
-    },
-    "formExtend":{
-      "attr":"Attr"
+      "borderTdLeft": "Left",
+      "borderTdForward": "Forward",
+      "borderTdBack": "Back"
     }
   },
   "datePicker": {

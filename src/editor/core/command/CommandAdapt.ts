@@ -29,6 +29,7 @@ import {
 import {
   IAppendElementListOption,
   IDrawImagePayload,
+  IDrawOption,
   IForceUpdateOption,
   IGetImageOption,
   IGetValueOption,
@@ -266,27 +267,52 @@ export class CommandAdapt {
     const isDisabled = this.draw.isReadonly() || this.control.isDisabledControl()
     if (isDisabled) return
     const selection = this.range.getSelectionElementList()
-    if (!selection) return
-    selection.forEach((el) => {
-      el.font = ''
-      el.color = ''
-      el.bold = false
-      el.italic = false
-      el.underline = false
-      el.strikeout = false
+    // 选区设置或设置换行处样式
+    let renderOption: IDrawOption = {}
+    let changeElementList: IElement[] = []
+    if (selection?.length) {
+      changeElementList = selection
+      renderOption = { isSetCursor: false }
+    } else {
+      const { endIndex } = this.range.getRange()
+      const elementList = this.draw.getElementList()
+      const enterElement = elementList[endIndex]
+      if (enterElement?.value === ZERO) {
+        changeElementList.push(enterElement)
+        renderOption = { curIndex: endIndex }
+      }
+    }
+    if (!changeElementList.length) return
+    changeElementList.forEach(el => {
+      delete el.size
+      delete el.font
+      delete el.color
+      delete el.bold
+      delete el.italic
+      delete el.underline
+      delete el.strikeout
     })
-    this.draw.render({ isSetCursor: false })
+    this.draw.render(renderOption)
   }
 
   public font(payload: string) {
     const isDisabled = this.draw.isReadonly() || this.control.isDisabledControl()
     if (isDisabled) return
     const selection = this.range.getSelectionElementList()
-    if (!selection) return
-    selection.forEach((el) => {
-      el.font = payload
-    })
-    this.draw.render({ isSetCursor: false })
+    if (selection?.length) {
+      selection.forEach(el => {
+        el.font = payload
+      })
+      this.draw.render({ isSetCursor: false })
+    } else {
+      const { endIndex } = this.range.getRange()
+      const elementList = this.draw.getElementList()
+      const enterElement = elementList[endIndex]
+      if (enterElement?.value === ZERO) {
+        enterElement.font = payload
+        this.draw.render({ curIndex: endIndex, isCompute: false })
+      }
+    }
   }
 
   public size(payload: number) {
@@ -294,18 +320,36 @@ export class CommandAdapt {
     if (payload < minSize || payload > maxSize) return
     const isDisabled = this.draw.isReadonly() || this.control.isDisabledControl()
     if (isDisabled) return
+    // 选区设置或设置换行处样式
+    let renderOption: IDrawOption = {}
+    let changeElementList: IElement[] = []
     const selection = this.range.getTextLikeSelectionElementList()
-    if (!selection || !selection.length) return
+    if (selection?.length) {
+      changeElementList = selection
+      renderOption = { isSetCursor: false }
+    } else {
+      const { endIndex } = this.range.getRange()
+      const elementList = this.draw.getElementList()
+      const enterElement = elementList[endIndex]
+      if (enterElement?.value === ZERO) {
+        changeElementList.push(enterElement)
+        renderOption = { curIndex: endIndex }
+      }
+    }
+    if (!changeElementList.length) return
     let isExistUpdate = false
-    selection.forEach((el) => {
-      if ((!el.size && payload === defaultSize) || (el.size && el.size === payload)) {
+    changeElementList.forEach(el => {
+      if (
+        (!el.size && payload === defaultSize) ||
+        (el.size && el.size === payload)
+      ) {
         return
       }
       el.size = payload
       isExistUpdate = true
     })
     if (isExistUpdate) {
-      this.draw.render({ isSetCursor: false })
+      this.draw.render(renderOption)
     }
   }
 
@@ -313,10 +357,25 @@ export class CommandAdapt {
     const isDisabled = this.draw.isReadonly() || this.control.isDisabledControl()
     if (isDisabled) return
     const selection = this.range.getTextLikeSelectionElementList()
-    if (!selection || !selection.length) return
+    // 选区设置或设置换行处样式
+    let renderOption: IDrawOption = {}
+    let changeElementList: IElement[] = []
+    if (selection?.length) {
+      changeElementList = selection
+      renderOption = { isSetCursor: false }
+    } else {
+      const { endIndex } = this.range.getRange()
+      const elementList = this.draw.getElementList()
+      const enterElement = elementList[endIndex]
+      if (enterElement?.value === ZERO) {
+        changeElementList.push(enterElement)
+        renderOption = { curIndex: endIndex }
+      }
+    }
+    if (!changeElementList.length) return
     const { defaultSize, maxSize } = this.options
     let isExistUpdate = false
-    selection.forEach((el) => {
+    changeElementList.forEach(el => {
       if (!el.size) {
         el.size = defaultSize
       }
@@ -329,7 +388,7 @@ export class CommandAdapt {
       isExistUpdate = true
     })
     if (isExistUpdate) {
-      this.draw.render({ isSetCursor: false })
+      this.draw.render(renderOption)
     }
   }
 
@@ -337,10 +396,25 @@ export class CommandAdapt {
     const isDisabled = this.draw.isReadonly() || this.control.isDisabledControl()
     if (isDisabled) return
     const selection = this.range.getTextLikeSelectionElementList()
-    if (!selection || !selection.length) return
+    // 选区设置或设置换行处样式
+    let renderOption: IDrawOption = {}
+    let changeElementList: IElement[] = []
+    if (selection?.length) {
+      changeElementList = selection
+      renderOption = { isSetCursor: false }
+    } else {
+      const { endIndex } = this.range.getRange()
+      const elementList = this.draw.getElementList()
+      const enterElement = elementList[endIndex]
+      if (enterElement?.value === ZERO) {
+        changeElementList.push(enterElement)
+        renderOption = { curIndex: endIndex }
+      }
+    }
+    if (!changeElementList.length) return
     const { defaultSize, minSize } = this.options
     let isExistUpdate = false
-    selection.forEach((el) => {
+    changeElementList.forEach(el => {
       if (!el.size) {
         el.size = defaultSize
       }
@@ -353,7 +427,7 @@ export class CommandAdapt {
       isExistUpdate = true
     })
     if (isExistUpdate) {
-      this.draw.render({ isSetCursor: false })
+      this.draw.render(renderOption)
     }
   }
 
@@ -361,54 +435,90 @@ export class CommandAdapt {
     const isDisabled = this.draw.isReadonly() || this.control.isDisabledControl()
     if (isDisabled) return
     const selection = this.range.getSelectionElementList()
-    if (!selection) return
-    const noBoldIndex = selection.findIndex((s) => !s.bold)
-    selection.forEach((el) => {
-      el.bold = !!~noBoldIndex
-    })
-    this.draw.render({ isSetCursor: false })
+    if (selection?.length) {
+      const noBoldIndex = selection.findIndex(s => !s.bold)
+      selection.forEach(el => {
+        el.bold = !!~noBoldIndex
+      })
+      this.draw.render({ isSetCursor: false })
+    } else {
+      const { endIndex } = this.range.getRange()
+      const elementList = this.draw.getElementList()
+      const enterElement = elementList[endIndex]
+      if (enterElement?.value === ZERO) {
+        enterElement.bold = !enterElement.bold
+        this.draw.render({ curIndex: endIndex, isCompute: false })
+      }
+    }
   }
 
   public italic() {
     const isDisabled = this.draw.isReadonly() || this.control.isDisabledControl()
     if (isDisabled) return
     const selection = this.range.getSelectionElementList()
-    if (!selection) return
-    const noItalicIndex = selection.findIndex((s) => !s.italic)
-    selection.forEach((el) => {
-      el.italic = !!~noItalicIndex
-    })
-    this.draw.render({ isSetCursor: false })
+    if (selection?.length) {
+      const noItalicIndex = selection.findIndex(s => !s.italic)
+      selection.forEach(el => {
+        el.italic = !!~noItalicIndex
+      })
+      this.draw.render({ isSetCursor: false })
+    } else {
+      const { endIndex } = this.range.getRange()
+      const elementList = this.draw.getElementList()
+      const enterElement = elementList[endIndex]
+      if (enterElement?.value === ZERO) {
+        enterElement.italic = !enterElement.italic
+        this.draw.render({ curIndex: endIndex, isCompute: false })
+      }
+    }
   }
 
   public underline() {
     const isDisabled = this.draw.isReadonly() || this.control.isDisabledControl()
     if (isDisabled) return
     const selection = this.range.getSelectionElementList()
-    if (!selection) return
-    const noUnderlineIndex = selection.findIndex((s) => !s.underline)
-    selection.forEach((el) => {
-      el.underline = !!~noUnderlineIndex
-    })
-    this.draw.render({
-      isSetCursor: false,
-      isCompute: false,
-    })
+    if (selection?.length) {
+      const noUnderlineIndex = selection.findIndex(s => !s.underline)
+      selection.forEach(el => {
+        el.underline = !!~noUnderlineIndex
+      })
+      this.draw.render({
+        isSetCursor: false,
+        isCompute: false
+      })
+    } else {
+      const { endIndex } = this.range.getRange()
+      const elementList = this.draw.getElementList()
+      const enterElement = elementList[endIndex]
+      if (enterElement?.value === ZERO) {
+        enterElement.underline = !enterElement.underline
+        this.draw.render({ curIndex: endIndex, isCompute: false })
+      }
+    }
   }
 
   public strikeout() {
     const isDisabled = this.draw.isReadonly() || this.control.isDisabledControl()
     if (isDisabled) return
     const selection = this.range.getSelectionElementList()
-    if (!selection) return
-    const noStrikeoutIndex = selection.findIndex((s) => !s.strikeout)
-    selection.forEach((el) => {
-      el.strikeout = !!~noStrikeoutIndex
-    })
-    this.draw.render({
-      isSetCursor: false,
-      isCompute: false,
-    })
+    if (selection?.length) {
+      const noStrikeoutIndex = selection.findIndex(s => !s.strikeout)
+      selection.forEach(el => {
+        el.strikeout = !!~noStrikeoutIndex
+      })
+      this.draw.render({
+        isSetCursor: false,
+        isCompute: false
+      })
+    } else {
+      const { endIndex } = this.range.getRange()
+      const elementList = this.draw.getElementList()
+      const enterElement = elementList[endIndex]
+      if (enterElement?.value === ZERO) {
+        enterElement.strikeout = !enterElement.strikeout
+        this.draw.render({ curIndex: endIndex, isCompute: false })
+      }
+    }
   }
 
   public superscript() {
@@ -461,28 +571,46 @@ export class CommandAdapt {
     const isDisabled = this.draw.isReadonly() || this.control.isDisabledControl()
     if (isDisabled) return
     const selection = this.range.getSelectionElementList()
-    if (!selection) return
-    selection.forEach((el) => {
-      el.color = payload
-    })
-    this.draw.render({
-      isSetCursor: false,
-      isCompute: false,
-    })
+    if (selection?.length) {
+      selection.forEach(el => {
+        el.color = payload
+      })
+      this.draw.render({
+        isSetCursor: false,
+        isCompute: false
+      })
+    } else {
+      const { endIndex } = this.range.getRange()
+      const elementList = this.draw.getElementList()
+      const enterElement = elementList[endIndex]
+      if (enterElement?.value === ZERO) {
+        enterElement.color = payload
+        this.draw.render({ curIndex: endIndex, isCompute: false })
+      }
+    }
   }
 
   public highlight(payload: string) {
     const isDisabled = this.draw.isReadonly() || this.control.isDisabledControl()
     if (isDisabled) return
     const selection = this.range.getSelectionElementList()
-    if (!selection) return
-    selection.forEach((el) => {
-      el.highlight = payload
-    })
-    this.draw.render({
-      isSetCursor: false,
-      isCompute: false,
-    })
+    if (selection?.length) {
+      selection.forEach(el => {
+        el.highlight = payload
+      })
+      this.draw.render({
+        isSetCursor: false,
+        isCompute: false
+      })
+    } else {
+      const { endIndex } = this.range.getRange()
+      const elementList = this.draw.getElementList()
+      const enterElement = elementList[endIndex]
+      if (enterElement?.value === ZERO) {
+        enterElement.highlight = payload
+        this.draw.render({ curIndex: endIndex, isCompute: false })
+      }
+    }
   }
 
   public title(payload: TitleLevel | null) {
@@ -527,34 +655,7 @@ export class CommandAdapt {
   public list(listType: ListType | null, listStyle?: ListStyle) {
     const isReadonly = this.draw.isReadonly()
     if (isReadonly) return
-    const { startIndex, endIndex } = this.range.getRange()
-    if (!~startIndex && !~endIndex) return
-    // 需要改变的元素列表
-    const changeElementList = this.range.getRangeParagraphElementList()
-    if (!changeElementList || !changeElementList.length) return
-    // 如果包含列表则设置为取消列表
-    const isUnsetList = changeElementList.find(
-      (el) => el.listType === listType && el.listStyle === listStyle,
-    )
-    // 设置值
-    const listId = getUUID()
-    changeElementList.forEach((el) => {
-      if (!isUnsetList && listType) {
-        el.listId = listId
-        el.listType = listType
-        el.listStyle = listStyle
-      } else {
-        if (el.listId) {
-          delete el.listId
-          delete el.listType
-          delete el.listStyle
-        }
-      }
-    })
-    // 光标定位
-    const isSetCursor = startIndex === endIndex
-    const curIndex = isSetCursor ? endIndex : startIndex
-    this.draw.render({ curIndex, isSetCursor })
+    this.draw.getListParticle().setList(listType, listStyle)
   }
 
   public rowFlex(payload: RowFlex) {
@@ -1563,29 +1664,18 @@ export class CommandAdapt {
   public image(payload: IDrawImagePayload) {
     const isDisabled = this.draw.isReadonly() || this.control.isDisabledControl()
     if (isDisabled) return
-    const activeControl = this.control.getActiveControl()
-    if (activeControl) return
     const { startIndex, endIndex } = this.range.getRange()
     if (!~startIndex && !~endIndex) return
-    const elementList = this.draw.getElementList()
     const { value, width, height } = payload
-    const element: IElement = {
-      value,
-      width,
-      height,
-      id: getUUID(),
-      type: ElementType.IMAGE,
-    }
-    const curIndex = startIndex + 1
-    formatElementContext(elementList, [element], startIndex)
-    this.draw.spliceElementList(
-      elementList,
-      curIndex,
-      startIndex === endIndex ? 0 : endIndex - startIndex,
-      element,
-    )
-    this.range.setRange(curIndex, curIndex)
-    this.draw.render({ curIndex })
+    this.draw.insertElementList([
+      {
+        value,
+        width,
+        height,
+        id: getUUID(),
+        type: ElementType.IMAGE
+      }
+    ])
   }
 
   public search(payload: string | null) {

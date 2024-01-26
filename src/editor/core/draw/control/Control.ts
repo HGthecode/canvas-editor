@@ -103,11 +103,39 @@ export class Control {
     return this.draw
   }
 
+  // // 过滤控件辅助元素（前后缀、背景提示）
+  // public filterAssistElement(elementList: IElement[]): IElement[] {
+  //   const list: IElement[] = []
+  //   for (let i = 0; i < elementList.length; i++) {
+  //     const element = elementList[i]
+  //     if (element.type === ElementType.TABLE) {
+  //       const trList = element.trList!
+  //       for (let r = 0; r < trList.length; r++) {
+  //         const tr = trList[r]
+  //         for (let d = 0; d < tr.tdList.length; d++) {
+  //           const td = tr.tdList[d]
+  //           td.value = this.filterAssistElement(td.value)
+  //         }
+  //       }
+  //     }
+  //     if (!element.controlId || element.control?.minWidth) {
+  //       list.push(element)
+  //     } else if (
+  //       element.controlComponent !== ControlComponent.PREFIX &&
+  //       element.controlComponent !== ControlComponent.POSTFIX &&
+  //       element.controlComponent !== ControlComponent.PLACEHOLDER
+  //     ) {
+  //       element.backgroundColor = undefined
+  //       list.push(element)
+  //     }
+  //   }
+  //   return list
+  // }
+
+
   // 过滤控件辅助元素（前后缀、背景提示）
   public filterAssistElement(elementList: IElement[]): IElement[] {
-    const list: IElement[] = []
-    for (let i = 0; i < elementList.length; i++) {
-      const element = elementList[i]
+    return elementList.filter(element => {
       if (element.type === ElementType.TABLE) {
         const trList = element.trList!
         for (let r = 0; r < trList.length; r++) {
@@ -118,18 +146,22 @@ export class Control {
           }
         }
       }
-      if (!element.controlId || element.control?.minWidth) {
-        list.push(element)
-      } else if (
+      if (!element.controlId) return true
+      if (element.control?.minWidth) {
+        if (
+          element.controlComponent === ControlComponent.PREFIX ||
+          element.controlComponent === ControlComponent.POSTFIX
+        ) {
+          element.value = ''
+          return true
+        }
+      }
+      return (
         element.controlComponent !== ControlComponent.PREFIX &&
         element.controlComponent !== ControlComponent.POSTFIX &&
         element.controlComponent !== ControlComponent.PLACEHOLDER
-      ) {
-        element.backgroundColor = undefined
-        list.push(element)
-      }
-    }
-    return list
+      )
+    })
   }
 
   // 判断选区部分在控件边界外
@@ -172,6 +204,26 @@ export class Control {
       return true
     }
     return false
+  }
+
+  // 判断是否在控件可输入的地方
+  public isRangeCanInput(): boolean {
+    const { startIndex, endIndex } = this.getRange()
+    if (!~startIndex && !~endIndex) return false
+    if (startIndex === endIndex) return true
+    const elementList = this.getElementList()
+    const startElement = elementList[startIndex]
+    const endElement = elementList[endIndex]
+    // 选区前后不是控件 || 选区前不在控件内&&选区后是后缀 || 选区前是控件&&选区后在控件内
+    return (
+      (!startElement.controlId && !endElement.controlId) ||
+      ((!startElement.controlId ||
+        startElement.controlComponent === ControlComponent.POSTFIX) &&
+        endElement.controlComponent === ControlComponent.POSTFIX) ||
+      (!!startElement.controlId &&
+        endElement.controlId === startElement.controlId &&
+        endElement.controlComponent !== ControlComponent.POSTFIX)
+    )
   }
 
   public isDisabledControl(): boolean {
