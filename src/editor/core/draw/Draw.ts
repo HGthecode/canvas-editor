@@ -57,11 +57,7 @@ import { CheckboxParticle } from './particle/CheckboxParticle'
 import { RadioParticle } from './particle/RadioParticle'
 
 import { DeepRequired, IPadding } from '../../interface/Common'
-import {
-  ControlComponent,
-  ControlIndentation,
-  ImageDisplay
-} from '../../dataset/enum/Control'
+import { ControlComponent, ControlIndentation, ImageDisplay } from '../../dataset/enum/Control'
 import { formatElementList } from '../../utils/element'
 import { WorkerManager } from '../worker/WorkerManager'
 import { Previewer } from './particle/previewer/Previewer'
@@ -70,6 +66,8 @@ import { IMargin } from '../../interface/Margin'
 import { BlockParticle } from './particle/block/BlockParticle'
 import { EDITOR_COMPONENT, EDITOR_PREFIX } from '../../dataset/constant/Editor'
 import { I18n } from '../i18n/I18n'
+import { DataSource } from '../dataSource/DataSource'
+
 import { ImageObserver } from '../observer/ImageObserver'
 import { Zone } from '../zone/Zone'
 import { Footer } from './frame/Footer'
@@ -80,6 +78,7 @@ import { EventBus } from '../event/eventbus/EventBus'
 import { EventBusMap } from '../../interface/EventBus'
 import { Group } from './interactive/Group'
 import { Override } from '../override/Override'
+// import { IGetControlList, IVerifyControlErrorResult } from '../../interface/Control'
 
 const version = '1.0.0'
 export class Draw {
@@ -99,6 +98,7 @@ export class Draw {
   private override: Override
 
   private i18n: I18n
+  private dataSource: DataSource
   private canvasEvent: CanvasEvent
   private globalEvent: GlobalEvent
   private cursor: Cursor
@@ -174,6 +174,7 @@ export class Draw {
     this._createPage(0)
 
     this.i18n = new I18n()
+    this.dataSource = new DataSource()
     this.historyManager = new HistoryManager(this)
     this.position = new Position(this)
     this.zone = new Zone(this)
@@ -260,10 +261,8 @@ export class Draw {
       // 过滤控件辅助元素
       const clonePrintModeData = deepClone(this.printModeData)
       const editorDataKeys: (keyof IEditorData)[] = ['header', 'main', 'footer']
-      editorDataKeys.forEach(key => {
-        clonePrintModeData[key] = this.control.filterAssistElement(
-          clonePrintModeData[key]
-        )
+      editorDataKeys.forEach((key) => {
+        clonePrintModeData[key] = this.control.filterAssistElement(clonePrintModeData[key])
       })
       this.setEditorData(clonePrintModeData)
     }
@@ -506,9 +505,7 @@ export class Draw {
   public getTableElementList(sourceElementList: IElement[]): IElement[] {
     const positionContext = this.position.getPositionContext()
     const { index, trIndex, tdIndex } = positionContext
-    return (
-      sourceElementList[index!].trList?.[trIndex!].tdList[tdIndex!].value || []
-    )
+    return sourceElementList[index!].trList?.[trIndex!].tdList[tdIndex!].value || []
   }
 
   public getElementList(): IElement[] {
@@ -550,13 +547,14 @@ export class Draw {
     formatElementList(payload, {
       isHandleFirstElement: false,
       editorOptions: this.options,
+      dataSource: this.getDataSource(),
     })
     let curIndex = -1
     // 判断是否在控件内
     const activeControl = this.control.getActiveControl()
     if (activeControl && !this.control.isRangInPostfix()) {
       curIndex = activeControl.setValue(payload, undefined, {
-        isIgnoreDisabledRule: true
+        isIgnoreDisabledRule: true,
       })
     } else {
       const elementList = this.getElementList()
@@ -581,6 +579,7 @@ export class Draw {
     formatElementList(elementList, {
       isHandleFirstElement: false,
       editorOptions: this.options,
+      dataSource: this.getDataSource(),
     })
     let curIndex: number
     const { isPrepend } = options
@@ -689,6 +688,10 @@ export class Draw {
     return this.control
   }
 
+  public verifyControlValues() {
+    return this.control.verifyControlValues()
+  }
+
   public getWorkerManager(): WorkerManager {
     return this.workerManager
   }
@@ -699,6 +702,10 @@ export class Draw {
 
   public getI18n(): I18n {
     return this.i18n
+  }
+
+  public getDataSource(): DataSource {
+    return this.dataSource
   }
 
   public getRowCount(): number {
@@ -933,6 +940,7 @@ export class Draw {
       if (!data) return
       formatElementList(data, {
         editorOptions: this.options,
+        dataSource: this.getDataSource(),
       })
     })
     this.setEditorData({
@@ -1043,6 +1051,7 @@ export class Draw {
     let listIndex = 0
     // 控件最小宽度
     let controlRealWidth = 0
+
     for (let i = 0; i < elementList.length; i++) {
       const curRow: IRow = rowList[rowList.length - 1]
       const element = elementList[i]
@@ -1054,10 +1063,7 @@ export class Draw {
         boundingBoxDescent: 0,
       }
       // 实际可用宽度
-      const offsetX =
-        curRow.offsetX ||
-        (element.listId && listStyleMap.get(element.listId)) ||
-        0
+      const offsetX = curRow.offsetX || (element.listId && listStyleMap.get(element.listId)) || 0
       const availableWidth = innerWidth - offsetX
       if (element.type === ElementType.IMAGE || element.type === ElementType.LATEX) {
         const elementWidth = element.width! * scale
@@ -1327,6 +1333,8 @@ export class Draw {
             const rowRemainingWidth = availableWidth - curRow.width - metrics.width
             const left = Math.min(rowRemainingWidth, extraWidth) * scale
             rowElement.left = left
+
+            // rowElement.metrics.width = left
             curRow.width += left
           } else {
             rowElement.left = 0
@@ -1409,14 +1417,14 @@ export class Draw {
         ) {
           // 查找到非前缀的第一个元素位置
           const preStartIndex = curRow.elementList.findIndex(
-            el =>
+            (el) =>
               el.controlId === rowElement.controlId &&
-              el.controlComponent !== ControlComponent.PREFIX
+              el.controlComponent !== ControlComponent.PREFIX,
           )
           if (~preStartIndex) {
             const preRowPositionList = this.position.computeRowPosition({
               row: curRow,
-              innerWidth: this.getInnerWidth()
+              innerWidth: this.getInnerWidth(),
             })
             const valueStartPosition = preRowPositionList[preStartIndex]
             if (valueStartPosition) {
@@ -1494,6 +1502,8 @@ export class Draw {
     const isPrintMode = this.mode === EditorMode.PRINT
     const { scale, tdPadding, defaultBasicRowMarginHeight, defaultRowMargin, group } = this.options
     const { isCrossRowCol, tableId } = this.range.getRange()
+    const controlVisibleExpressionResult = this.control.getVisibleExpressionResult()
+
     let index = startIndex
     for (let i = 0; i < rowList.length; i++) {
       const curRow = rowList[i]
@@ -1517,6 +1527,35 @@ export class Draw {
         } = positionList[curRow.startIndex + j]
         const preElement = curRow.elementList[j - 1]
         // 元素高亮记录
+
+        // 处理可见表达式及打印可见表达式
+        if (
+          element.controlId &&
+          element.control &&
+          element.control.extension &&
+          element.control.extension.authData &&
+          controlVisibleExpressionResult
+        ) {
+          const controlId = element.controlId as string
+          const { authData } = element.control.extension
+          if (
+            authData.visibleExpression &&
+            controlVisibleExpressionResult[controlId] &&
+            controlVisibleExpressionResult[controlId].visible === false
+          ) {
+            // 可见表达式
+            continue
+          } else if (
+            this.mode === EditorMode.PRINT &&
+            authData.printVisibleExpression &&
+            controlVisibleExpressionResult[controlId] &&
+            controlVisibleExpressionResult[controlId].printVisible === false
+          ) {
+            // 打印模式下，打印可见表达式过滤
+            continue
+          }
+        }
+
         if (element.highlight) {
           // 高亮元素相连需立即绘制，并记录下一元素坐标
           if (preElement && preElement.highlight && preElement.highlight !== element.highlight) {
@@ -1525,8 +1564,25 @@ export class Draw {
           this.highlight.recordFillInfo(ctx, x, y, metrics.width, curRow.height, element.highlight)
         } else if (preElement?.highlight) {
           this.highlight.render(ctx)
+        } else if (element.backgroundColor) {
+          if (
+            preElement &&
+            preElement.backgroundColor &&
+            preElement.backgroundColor !== element.backgroundColor
+          ) {
+            this.highlight.render(ctx)
+          }
+          this.highlight.recordFillInfo(
+            ctx,
+            x,
+            y,
+            metrics.width,
+            curRow.height,
+            element.backgroundColor,
+          )
+        } else if (preElement?.backgroundColor) {
+          this.highlight.render(ctx)
         }
-
         // 元素绘制
         if (element.type === ElementType.IMAGE) {
           this._drawRichText(ctx)
@@ -1580,10 +1636,12 @@ export class Draw {
         } else if (element.type === ElementType.BLOCK) {
           this._drawRichText(ctx)
           this.blockParticle.render(pageNo, element, x, y)
+        } else if (element.type === ElementType.CONTROL) {
+          this._drawRichText(ctx)
+          this.textParticle.record(ctx, element, x, y + offsetY)
         } else {
           this.textParticle.record(ctx, element, x, y + offsetY)
           // 如果设置字宽、字间距需单独绘制
-
           if (element.width || element.letterSpacing) {
             this.textParticle.complete()
           }
@@ -1594,16 +1652,13 @@ export class Draw {
           if (
             (preElement?.type === ElementType.SUPERSCRIPT &&
               element.type !== ElementType.SUPERSCRIPT) ||
-            (preElement?.type === ElementType.SUBSCRIPT &&
-              element.type !== ElementType.SUBSCRIPT)
+            (preElement?.type === ElementType.SUBSCRIPT && element.type !== ElementType.SUBSCRIPT)
           ) {
             this.underline.render(ctx)
           }
           // 行间距
           const rowMargin =
-            defaultBasicRowMarginHeight *
-            (element.rowMargin || defaultRowMargin) *
-            scale
+            defaultBasicRowMarginHeight * (element.rowMargin || defaultRowMargin) * scale
           // 元素向左偏移量
           const offsetX = element.left || 0
           // 上下标元素y轴偏移值
@@ -1837,6 +1892,7 @@ export class Draw {
     let { curIndex } = payload || {}
     const innerWidth = this.getInnerWidth()
     const isPagingMode = this.getIsPagingMode()
+
     // 计算文档信息
     if (isCompute) {
       if (isPagingMode) {
@@ -1849,6 +1905,25 @@ export class Draw {
           this.footer.compute()
         }
       }
+
+      // 处理计算表达式
+      const activeControl = this.control.getActiveControl()
+      console.log('activeControl', activeControl)
+
+      if (activeControl) {
+        const activeControlElement = activeControl.getElement()
+        if (
+          activeControlElement &&
+          activeControlElement.control &&
+          activeControlElement.control.extension &&
+          activeControlElement.control.extension.field
+        ) {
+          const field = activeControlElement.control.extension.field
+          const { formData, controlList } = this.control.handleControlExpression(field)
+          this.control.computeControlExpressionResult(formData, controlList)
+        }
+      }
+
       // 行信息
       this.rowList = this.computeRowList(innerWidth, this.elementList)
       // 页面信息

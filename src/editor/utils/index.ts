@@ -37,9 +37,9 @@ export function deepClone<T>(obj: T): T {
   }
   let newObj: any = {}
   if (Array.isArray(obj)) {
-    newObj = obj.map(item => deepClone(item))
+    newObj = obj.map((item) => deepClone(item))
   } else {
-    Object.keys(obj as any).forEach(key => {
+    Object.keys(obj as any).forEach((key) => {
       // @ts-ignore
       return (newObj[key] = deepClone(obj[key]))
     })
@@ -51,11 +51,7 @@ export function isBody(node: Element): boolean {
   return node && node.nodeType === 1 && node.tagName.toLowerCase() === 'body'
 }
 
-export function findParent(
-  node: Element,
-  filterFn: Function,
-  includeSelf: boolean
-) {
+export function findParent(node: Element, filterFn: Function, includeSelf: boolean) {
   if (node && !isBody(node)) {
     node = includeSelf ? node : (node.parentNode as Element)
     while (node) {
@@ -72,20 +68,7 @@ export function getUUID(): string {
   function S4(): string {
     return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1)
   }
-  return (
-    S4() +
-    S4() +
-    '-' +
-    S4() +
-    '-' +
-    S4() +
-    '-' +
-    S4() +
-    '-' +
-    S4() +
-    S4() +
-    S4()
-  )
+  return S4() + S4() + '-' + S4() + '-' + S4() + '-' + S4() + '-' + S4() + S4() + S4()
 }
 
 export function splitText(text: string): string[] {
@@ -119,11 +102,7 @@ export function threeClick(dom: HTMLElement, fn: (evt: MouseEvent) => any) {
   nClickEvent(3, dom, fn)
 }
 
-function nClickEvent(
-  n: number,
-  dom: HTMLElement,
-  fn: (evt: MouseEvent) => any
-) {
+function nClickEvent(n: number, dom: HTMLElement, fn: (evt: MouseEvent) => any) {
   let count = 0
   let lastTime = 0
 
@@ -171,18 +150,7 @@ export function nextTick(fn: Function) {
 }
 
 export function convertNumberToChinese(num: number) {
-  const chineseNum = [
-    '零',
-    '一',
-    '二',
-    '三',
-    '四',
-    '五',
-    '六',
-    '七',
-    '八',
-    '九'
-  ]
+  const chineseNum = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九']
   const chineseUnit = [
     '',
     '十',
@@ -200,7 +168,7 @@ export function convertNumberToChinese(num: number) {
     '十',
     '百',
     '千',
-    '亿'
+    '亿',
   ]
   if (!num || isNaN(num)) return '零'
   const numStr = num.toString().split('')
@@ -219,11 +187,7 @@ export function convertNumberToChinese(num: number) {
   return result
 }
 
-export function cloneProperty<T>(
-  properties: (keyof T)[],
-  sourceElement: T,
-  targetElement: T
-) {
+export function cloneProperty<T>(properties: (keyof T)[], sourceElement: T, targetElement: T) {
   for (let i = 0; i < properties.length; i++) {
     const property = properties[i]
     const value = sourceElement[property]
@@ -258,7 +222,7 @@ export function omitObject<T>(object: T, omitKeys: (keyof T)[]): T {
 export function convertStringToBase64(input: string) {
   const encoder = new TextEncoder()
   const data = encoder.encode(input)
-  const charArray = Array.from(data, byte => String.fromCharCode(byte))
+  const charArray = Array.from(data, (byte) => String.fromCharCode(byte))
   const base64 = window.btoa(charArray.join(''))
   return base64
 }
@@ -283,5 +247,27 @@ export function isArrayEqual(arr1: unknown[], arr2: unknown[]): boolean {
   if (arr1.length !== arr2.length) {
     return false
   }
-  return !arr1.some(item => !arr2.includes(item))
+  return !arr1.some((item) => !arr2.includes(item))
+}
+
+// 获取对象中指定key的值
+export const getObjectValueByKey = (key: string, obj: any): any => {
+  // 将 key 按照 . 和 [ ] 进行分割
+  const keys = key.split(/\.|\[([^\]]+)\]/).filter(Boolean)
+
+  // 递归获取属性值
+  function innerGet(obj: any, keys: any): any {
+    const key = keys.shift()
+    if (obj && typeof obj === 'object' && key in obj) {
+      if (keys.length === 0) {
+        return obj[key]
+      } else {
+        return innerGet(obj[key], keys)
+      }
+    } else {
+      return undefined
+    }
+  }
+
+  return innerGet(obj, keys)
 }

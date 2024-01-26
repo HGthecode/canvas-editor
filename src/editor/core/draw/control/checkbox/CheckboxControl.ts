@@ -3,7 +3,7 @@ import { KeyMap } from '../../../../dataset/enum/KeyMap'
 import {
   IControlContext,
   IControlInstance,
-  IControlRuleOption
+  IControlRuleOption,
 } from '../../../../interface/Control'
 import { IElement } from '../../../../interface/Element'
 import { Control } from '../Control'
@@ -70,7 +70,7 @@ export class CheckboxControl implements IControlInstance {
   public setSelect(
     codes: string[],
     context: IControlContext = {},
-    options: IControlRuleOption = {}
+    options: IControlRuleOption = {},
   ) {
     // 校验是否可以设置
     if (!options.isIgnoreDisabledRule && this.control.isDisabledControl()) {
@@ -113,7 +113,8 @@ export class CheckboxControl implements IControlInstance {
       nextIndex++
     }
     control!.code = codes.join(',')
-    this.control.repaintControl()
+    const newIndex = startIndex + codes.length - 1
+    this.control.repaintControl(newIndex)
   }
 
   public keydown(evt: KeyboardEvent): number | null {

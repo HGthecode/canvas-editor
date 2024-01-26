@@ -26,6 +26,8 @@ export class DateControl implements IControlInstance {
     const { startIndex } = this.control.getRange()
     const startElement = elementList[startIndex]
     const data: IElement[] = []
+    console.log('date', startIndex)
+
     // 向左查找
     let preIndex = startIndex
     while (preIndex > 0) {
@@ -60,7 +62,6 @@ export class DateControl implements IControlInstance {
   }
 
   public setValue(): number {
-    debugger
     return -1
   }
 
@@ -70,6 +71,8 @@ export class DateControl implements IControlInstance {
     const { startIndex } = context.range || this.control.getRange()
     const startElement = elementList[startIndex]
     const data: string[] = []
+    console.log('setS', startIndex)
+
     // 向左查找
     let preIndex = startIndex
     while (preIndex > 0) {
@@ -108,7 +111,6 @@ export class DateControl implements IControlInstance {
     }
     control!.code = data.join(',')
   }
-
 
   public keydown(evt: KeyboardEvent): number {
     const range = this.control.getRange()

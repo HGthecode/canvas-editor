@@ -64,7 +64,7 @@ export interface IControlBasic {
   postfix?: string
   minWidth?: number
   underline?: boolean
-  extension?: unknown
+  extension?: any
   indentation?: ControlIndentation
 }
 
@@ -80,6 +80,10 @@ export interface IControlOption {
   bracketColor?: string
   prefix?: string
   postfix?: string
+  backgroundColor?: string
+  hoverHighlightColor?: string
+  requireBracketColor?: string //必填项前后缀颜色
+  requireBackgroundColor?: string //必填项背景颜色
 }
 
 export interface IControlInitOption {
@@ -99,11 +103,7 @@ export interface IControlInstance {
 
   getValue(): IElement[]
 
-  setValue(
-    data: IElement[],
-    context?: IControlContext,
-    options?: IControlRuleOption
-  ): number
+  setValue(data: IElement[], context?: IControlContext, options?: IControlRuleOption): number
 
   keydown(evt: KeyboardEvent): number | null
 
@@ -134,9 +134,39 @@ export interface ISetControlValueOption {
   value: string
 }
 
+export interface ISetControlValueByControlIdOption {
+  value: string
+  controlId: string
+}
+
 export interface ISetControlExtensionOption {
   conceptId: string
   extension: unknown
 }
 
 export type ISetControlHighlightOption = IControlHighlight[]
+
+export interface IGetControlList {
+  name: string
+  field: string
+  option: any
+  value: any
+  type: ControlType
+  controlId: string
+}
+
+export interface IVerifyControlErrorResult {
+  field: string
+  name: string
+  message: string
+  controlId: string
+}
+
+export interface VisibleExpressionResult {
+  visible: boolean
+  printVisible: boolean
+}
+
+export interface VisibleExpressionResultByControlId {
+  [key: string]: VisibleExpressionResult
+}

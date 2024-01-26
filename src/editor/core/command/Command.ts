@@ -104,9 +104,15 @@ export class Command {
   public getPaperMargin: CommandAdapt['getPaperMargin']
   public getSearchNavigateInfo: CommandAdapt['getSearchNavigateInfo']
   public getLocale: CommandAdapt['getLocale']
+  public setDataSource: CommandAdapt['setDataSource']
+  public getDataSource: CommandAdapt['getDataSource']
+  public getDataSourceInstance: CommandAdapt['getDataSourceInstance']
+
   public getGroupIds: CommandAdapt['getGroupIds']
   public getControlValue: CommandAdapt['getControlValue']
   public getContainer: CommandAdapt['getContainer']
+  public getPosition: CommandAdapt['getPosition']
+  public verifyControlValues: CommandAdapt['verifyControlValues']
 
   constructor(adapt: CommandAdapt) {
     // 全局命令
@@ -160,8 +166,7 @@ export class Command {
     this.executeTableBorderType = adapt.tableBorderType.bind(adapt)
     this.executeTableTdBorderType = adapt.tableTdBorderType.bind(adapt)
     this.executeTableTdSlashType = adapt.tableTdSlashType.bind(adapt)
-    this.executeTableTdBackgroundColor =
-      adapt.tableTdBackgroundColor.bind(adapt)
+    this.executeTableTdBackgroundColor = adapt.tableTdBackgroundColor.bind(adapt)
     this.executeTableSelectAll = adapt.tableSelectAll.bind(adapt)
     this.executeImage = adapt.image.bind(adapt)
     this.executeHyperlink = adapt.hyperlink.bind(adapt)
@@ -219,10 +224,17 @@ export class Command {
     this.getLocale = adapt.getLocale.bind(adapt)
     this.getGroupIds = adapt.getGroupIds.bind(adapt)
     this.getContainer = adapt.getContainer.bind(adapt)
+    this.setDataSource = adapt.setDataSource.bind(adapt)
+    this.getDataSource = adapt.getDataSource.bind(adapt)
+    this.getDataSourceInstance = adapt.getDataSourceInstance.bind(adapt)
+    this.getPosition = adapt.getPosition.bind(adapt)
+
     // 控件
     this.executeSetControlValue = adapt.setControlValue.bind(adapt)
     this.executeSetControlExtension = adapt.setControlExtension.bind(adapt)
     this.executeSetControlHighlight = adapt.setControlHighlight.bind(adapt)
     this.getControlValue = adapt.getControlValue.bind(adapt)
+
+    this.verifyControlValues = adapt.verifyControlValues.bind(adapt)
   }
 }

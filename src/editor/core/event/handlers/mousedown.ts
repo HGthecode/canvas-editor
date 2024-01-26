@@ -14,6 +14,7 @@ export function mousedown(evt: MouseEvent, host: CanvasEvent) {
   const isReadonly = draw.isReadonly()
   const rangeManager = draw.getRange()
   const position = draw.getPosition()
+
   // 是否是选区拖拽
   if (!host.isAllowDrag) {
     const range = rangeManager.getRange()
@@ -72,7 +73,7 @@ export function mousedown(evt: MouseEvent, host: CanvasEvent) {
       const { checkbox, control } = curElement
       const codes = control?.code?.split(',') || []
       if (checkbox?.value) {
-        const codeIndex = codes.findIndex(c => c === checkbox.code)
+        const codeIndex = codes.findIndex((c) => c === checkbox.code)
         codes.splice(codeIndex, 1)
       } else {
         if (checkbox?.code) {
@@ -83,14 +84,16 @@ export function mousedown(evt: MouseEvent, host: CanvasEvent) {
       if (activeControl instanceof CheckboxControl) {
         activeControl.setSelect(codes)
       }
-    } else {
-      draw.render({
-        curIndex,
-        isCompute: false,
-        isSubmitHistory: false,
-        isSetCursor: !isDirectHitImage && !isDirectHitCheckbox
-      })
     }
+
+    //  else {
+    //   draw.render({
+    //     curIndex,
+    //     isCompute: false,
+    //     isSubmitHistory: false,
+    //     isSetCursor: !isDirectHitImage && !isDirectHitCheckbox,
+    //   })
+    // }
 
     // 单选框
     const isSetRadio = isDirectHitRadio && !isReadonly
@@ -122,10 +125,11 @@ export function mousedown(evt: MouseEvent, host: CanvasEvent) {
         activeControl.setSelect()
       }
     }
+
     draw.render({
       curIndex,
-      isSubmitHistory: isSetCheckbox,
-      isSetCursor: !isDirectHitImage && !isDirectHitCheckbox,
+      isSubmitHistory: isSetCheckbox || isSetRadio,
+      isSetCursor: !isDirectHitImage && !isDirectHitCheckbox && !isDirectHitRadio,
       isCompute: false,
     })
     // 首字需定位到行首，非上一行最后一个字后

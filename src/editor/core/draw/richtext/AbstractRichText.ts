@@ -14,7 +14,7 @@ export abstract class AbstractRichText {
       x: 0,
       y: 0,
       width: 0,
-      height: 0
+      height: 0,
     }
     return this.fillRect
   }
@@ -25,7 +25,7 @@ export abstract class AbstractRichText {
     y: number,
     width: number,
     height?: number,
-    color?: string
+    color?: string,
   ) {
     const isFirstRecord = !this.fillRect.width
     if (!isFirstRecord && this.fillColor && this.fillColor !== color) {

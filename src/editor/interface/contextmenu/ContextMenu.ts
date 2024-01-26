@@ -1,5 +1,5 @@
 import { Command } from '../../core/command/Command'
-import { EditorZone } from '../../dataset/enum/Editor'
+import { EditorMode, EditorZone } from '../../dataset/enum/Editor'
 import { IElement } from '../Element'
 
 export interface IContextMenuContext {
@@ -11,6 +11,10 @@ export interface IContextMenuContext {
   isInTable: boolean
   isCrossRowCol: boolean
   zone: EditorZone
+  hoverElement: IElement | null
+  hoverIndex: number
+  hoverEnv: MouseEvent | undefined
+  mode: EditorMode
 }
 
 export interface IRegisterContextMenu {

@@ -18,8 +18,10 @@ import {
 } from '../dataset/constant/Title'
 import { ControlComponent, ControlType } from '../dataset/enum/Control'
 import { DeepRequired } from '../interface/Common'
+import { DataSource } from '../core/dataSource/DataSource'
 import { ITd } from '../interface/table/Td'
 import { ITr } from '../interface/table/Tr'
+import { IValueSet } from '../interface/Control'
 
 export function unzipElementList(elementList: IElement[]): IElement[] {
   const result: IElement[] = []
@@ -36,13 +38,18 @@ export function unzipElementList(elementList: IElement[]): IElement[] {
 interface IFormatElementListOption {
   isHandleFirstElement?: boolean
   editorOptions: DeepRequired<IEditorOption>
+  dataSource?: DataSource
 }
 
 export function formatElementList(elementList: IElement[], options: IFormatElementListOption) {
-  const { isHandleFirstElement, editorOptions } = <IFormatElementListOption>{
+  const { isHandleFirstElement, editorOptions, dataSource } = <IFormatElementListOption>{
     isHandleFirstElement: true,
     ...options,
   }
+  const dataSourceRoot = dataSource ? dataSource.getData() : {}
+
+  console.log('数据源', dataSourceRoot, elementList)
+
   const startElement = elementList[0]
   // 非首字符零宽节点文本元素则补偿
   if (
@@ -180,20 +187,59 @@ export function formatElementList(elementList: IElement[], options: IFormatEleme
       }
       i--
     } else if (el.type === ElementType.CONTROL) {
-      const { prefix, postfix, value, placeholder, code, type, valueSets } = el.control!
+      const value = el.control?.value
+      const { prefix, postfix, placeholder, code, type, valueSets, extension } = el.control!
       const {
         editorOptions: { control: controlOption, checkbox: checkboxOption, radio: radioOption },
       } = options
       const controlId = getUUID()
       // 移除父节点
       elementList.splice(i, 1)
+      // 默认背景色
+      const theBackgroundColor = controlOption.backgroundColor
+        ? controlOption.backgroundColor
+        : editorOptions.control.backgroundColor
+
       // 前后缀个性化设置
       const thePrePostfixArgs: Pick<IElement, 'color'> = {}
       if (editorOptions && editorOptions.control) {
-        thePrePostfixArgs.color = editorOptions.control.bracketColor
+        if (extension.verifyRule?.require && editorOptions.control.requireBracketColor) {
+          // 必填
+          thePrePostfixArgs.color = editorOptions.control.requireBracketColor
+        } else {
+          thePrePostfixArgs.color = editorOptions.control.bracketColor
+        }
       }
+
+      // 数据源
+      let valuePathData = ''
+      let optionsData: IValueSet[] = []
+      if (dataSourceRoot && extension && extension.dataSource && extension.dataSource.valuePath) {
+        valuePathData = dataSource?.getValueByKey(extension.dataSource.valuePath)
+      }
+      if (dataSourceRoot && extension && extension.dataSource && extension.dataSource.optionsPath) {
+        const options = dataSource?.getValueByKey(extension.dataSource.optionsPath)
+        if (options) {
+          optionsData = options.map((p: any) => {
+            if (extension.dataSource.valueField) {
+              p.code = p[extension.dataSource.valueField]
+            }
+            if (extension.dataSource.textField) {
+              p.value = p[extension.dataSource.textField]
+            }
+            return p
+          })
+          if (el.control) {
+            el.control.valueSets = optionsData
+          }
+        }
+      } else if (Array.isArray(valueSets) && valueSets.length) {
+        optionsData = valueSets
+      }
+
       // 前缀
       const prefixStrList = splitText(prefix || controlOption.prefix)
+
       for (let p = 0; p < prefixStrList.length; p++) {
         const value = prefixStrList[p]
         elementList.splice(i, 0, {
@@ -202,13 +248,32 @@ export function formatElementList(elementList: IElement[], options: IFormatEleme
           type: el.type,
           control: el.control,
           controlComponent: ControlComponent.PREFIX,
+          backgroundColor: theBackgroundColor,
           ...thePrePostfixArgs,
         })
         i++
       }
+
+      // 标签文本
+      if (extension && extension.labelText) {
+        const labelTextStrList = splitText(extension.labelText)
+        for (let p = 0; p < labelTextStrList.length; p++) {
+          const value = labelTextStrList[p]
+          elementList.splice(i, 0, {
+            controlId,
+            value,
+            type: el.type,
+            control: el.control,
+            controlComponent: ControlComponent.LABEL,
+          })
+          i++
+        }
+      }
+
       // 值
       if (
         (value && value.length) ||
+        (!(value && value.length) && valuePathData) ||
         type === ControlType.CHECKBOX ||
         type === ControlType.RADIO ||
         (type === ControlType.SELECT && code && (!value || !value.length))
@@ -216,17 +281,16 @@ export function formatElementList(elementList: IElement[], options: IFormatEleme
         let valueList: IElement[] = value || []
         if (type === ControlType.CHECKBOX) {
           const codeList = code ? code.split(',') : []
-          console.log(codeList)
 
-          if (Array.isArray(valueSets) && valueSets.length) {
+          if (Array.isArray(optionsData) && optionsData.length) {
             // 拆分valueList优先使用其属性
             const valueStyleList = valueList.reduce(
               (pre, cur) => pre.concat(cur.value.split('').map((v) => ({ ...cur, value: v }))),
               [] as IElement[],
             )
             let valueStyleIndex = 0
-            for (let v = 0; v < valueSets.length; v++) {
-              const valueSet = valueSets[v]
+            for (let v = 0; v < optionsData.length; v++) {
+              const valueSet = optionsData[v]
               // checkbox组件
               elementList.splice(i, 0, {
                 controlId,
@@ -273,18 +337,18 @@ export function formatElementList(elementList: IElement[], options: IFormatEleme
           // i++
 
           // TODO 处理code批量添加处理
-          const codeList = code ? code.split(',') : []
-          console.log(codeList)
+          // const codeList = code ? code.split(',') : []
+          // console.log(codeList)
 
-          if (Array.isArray(valueSets) && valueSets.length) {
+          if (Array.isArray(optionsData) && optionsData.length) {
             // 拆分valueList优先使用其属性
             const valueStyleList = valueList.reduce(
               (pre, cur) => pre.concat(cur.value.split('').map((v) => ({ ...cur, value: v }))),
               [] as IElement[],
             )
             let valueStyleIndex = 0
-            for (let v = 0; v < valueSets.length; v++) {
-              const valueSet = valueSets[v]
+            for (let v = 0; v < optionsData.length; v++) {
+              const valueSet = optionsData[v]
               // radio组件
               elementList.splice(i, 0, {
                 controlId,
@@ -294,37 +358,52 @@ export function formatElementList(elementList: IElement[], options: IFormatEleme
                 controlComponent: ControlComponent.RADIO,
                 radio: {
                   code: valueSet.code,
-                  value: false,
+                  value: valuePathData == valueSet.code ? true : false,
                 },
+                backgroundColor: theBackgroundColor,
               })
               i++
               // 文本
-              const valueStrList = splitText(valueSet.value)
-              for (let e = 0; e < valueStrList.length; e++) {
-                const value = valueStrList[e]
-                const isLastLetter = e === valueStrList.length - 1
-                elementList.splice(i, 0, {
-                  ...valueStyleList[valueStyleIndex],
-                  controlId,
-                  value,
-                  type: el.type,
-                  letterSpacing: isLastLetter ? radioOption.gap : 0,
-                  control: el.control,
-                  controlComponent: ControlComponent.VALUE,
-                })
-                valueStyleIndex++
-                i++
+              if (valueSet.value) {
+                const valueStrList = splitText(valueSet.value)
+                for (let e = 0; e < valueStrList.length; e++) {
+                  const value = valueStrList[e]
+                  const isLastLetter = e === valueStrList.length - 1
+                  elementList.splice(i, 0, {
+                    ...valueStyleList[valueStyleIndex],
+                    controlId,
+                    value,
+                    type: el.type,
+                    letterSpacing: isLastLetter ? radioOption.gap : 0,
+                    control: el.control,
+                    controlComponent: ControlComponent.VALUE,
+                    backgroundColor: theBackgroundColor,
+                  })
+                  valueStyleIndex++
+                  i++
+                }
               }
             }
           }
+          if (valuePathData && el.control) {
+            el.control.code = valuePathData as string
+          }
         } else {
           if (!value || !value.length) {
-            if (Array.isArray(valueSets) && valueSets.length) {
+            if (valuePathData) {
+              valueList = [
+                {
+                  value: valuePathData,
+                  color: extension.textColor ? extension.textColor : undefined,
+                },
+              ]
+            } else if (Array.isArray(valueSets) && valueSets.length) {
               const valueSet = valueSets.find((v) => v.code === code)
               if (valueSet) {
                 valueList = [
                   {
                     value: valueSet.value,
+                    color: extension.textColor ? extension.textColor : undefined,
                   },
                 ]
               }
@@ -335,6 +414,7 @@ export function formatElementList(elementList: IElement[], options: IFormatEleme
             const valueStrList = splitText(element.value)
             for (let e = 0; e < valueStrList.length; e++) {
               const value = valueStrList[e]
+
               elementList.splice(i, 0, {
                 ...element,
                 controlId,
@@ -342,13 +422,14 @@ export function formatElementList(elementList: IElement[], options: IFormatEleme
                 type: element.type || ElementType.TEXT,
                 control: el.control,
                 controlComponent: ControlComponent.VALUE,
+                backgroundColor: theBackgroundColor,
+                color: extension.textColor ? extension.textColor : undefined,
               })
               i++
             }
           }
         }
       } else if (placeholder) {
-        // placeholder
         const thePlaceholderArgs: Pick<IElement, 'color'> = {}
         if (editorOptions && editorOptions.control) {
           thePlaceholderArgs.color = editorOptions.control.placeholderColor
@@ -362,11 +443,29 @@ export function formatElementList(elementList: IElement[], options: IFormatEleme
             type: el.type,
             control: el.control,
             controlComponent: ControlComponent.PLACEHOLDER,
+            backgroundColor: theBackgroundColor,
             ...thePlaceholderArgs,
           })
           i++
         }
       }
+
+      // 单位文本
+      if (extension && extension.unitText) {
+        const unitTextStrList = splitText(extension.unitText)
+        for (let p = 0; p < unitTextStrList.length; p++) {
+          const value = unitTextStrList[p]
+          elementList.splice(i, 0, {
+            controlId,
+            value,
+            type: el.type,
+            control: el.control,
+            controlComponent: ControlComponent.UNIT,
+          })
+          i++
+        }
+      }
+
       // 后缀
       const postfixStrList = splitText(postfix || controlOption.postfix)
       for (let p = 0; p < postfixStrList.length; p++) {
@@ -378,6 +477,7 @@ export function formatElementList(elementList: IElement[], options: IFormatEleme
           control: el.control,
           controlComponent: ControlComponent.POSTFIX,
           ...thePrePostfixArgs,
+          backgroundColor: theBackgroundColor,
         })
         i++
       }
@@ -551,8 +651,6 @@ export function zipElementList(payload: IElement[]): IElement[] {
       element = hyperlinkElement
     } else if (element.type === ElementType.DATE) {
       const dateId = element.dateId
-      console.log(element)
-
       const dateElement: IElement = {
         type: ElementType.DATE,
         value: '',
@@ -580,6 +678,7 @@ export function zipElementList(payload: IElement[]): IElement[] {
         type: ElementType.CONTROL,
         value: '',
         control,
+        controlId: controlId,
       }
       const valueList: IElement[] = []
       while (e < elementList.length) {
@@ -591,6 +690,9 @@ export function zipElementList(payload: IElement[]): IElement[] {
         if (controlE.controlComponent === ControlComponent.VALUE) {
           delete controlE.control
           delete controlE.controlId
+          if (controlE.realValue && controlE.value == '*') {
+            controlE.value = controlE.realValue
+          }
           valueList.push(controlE)
         }
         e++
@@ -866,7 +968,7 @@ export function createDomFromElementList(
       ) {
         let text = ''
         if (element.type === ElementType.DATE) {
-          text = element.valueList?.map(v => v.value).join('') || ''
+          text = element.valueList?.map((v) => v.value).join('') || ''
         } else {
           text = element.value
         }

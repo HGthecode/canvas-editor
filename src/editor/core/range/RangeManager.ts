@@ -33,7 +33,7 @@ export class RangeManager {
     this.historyManager = draw.getHistoryManager()
     this.range = {
       startIndex: -1,
-      endIndex: -1
+      endIndex: -1,
     }
   }
 
@@ -77,17 +77,13 @@ export class RangeManager {
   public getTextLikeSelection(): IElement[] | null {
     const selection = this.getSelection()
     if (!selection) return null
-    return selection.filter(
-      s => !s.type || TEXTLIKE_ELEMENT_TYPE.includes(s.type)
-    )
+    return selection.filter((s) => !s.type || TEXTLIKE_ELEMENT_TYPE.includes(s.type))
   }
 
   public getTextLikeSelectionElementList(): IElement[] | null {
     const selection = this.getSelectionElementList()
     if (!selection) return null
-    return selection.filter(
-      s => !s.type || TEXTLIKE_ELEMENT_TYPE.includes(s.type)
-    )
+    return selection.filter((s) => !s.type || TEXTLIKE_ELEMENT_TYPE.includes(s.type))
   }
 
   // 获取光标所选位置行信息
@@ -234,14 +230,9 @@ export class RangeManager {
     const positionList = this.position.getPositionList()
     for (let p = startIndex + 1; p <= endIndex; p++) {
       const {
-        coordinate: { leftTop, rightBottom }
+        coordinate: { leftTop, rightBottom },
       } = positionList[p]
-      if (
-        x >= leftTop[0] &&
-        x <= rightBottom[0] &&
-        y >= leftTop[1] &&
-        y <= rightBottom[1]
-      ) {
+      if (x >= leftTop[0] && x <= rightBottom[0] && y >= leftTop[1] && y <= rightBottom[1]) {
         return true
       }
     }
@@ -261,7 +252,7 @@ export class RangeManager {
         const { type, groupId, tableId, index, tdIndex, trIndex } = searchMatch
         const range: IRange = {
           startIndex: index - 1,
-          endIndex: index
+          endIndex: index,
         }
         if (type === EditorContext.TABLE) {
           range.tableId = tableId
@@ -274,7 +265,7 @@ export class RangeManager {
       }
     }
     const rangeList: IRange[] = []
-    searchRangeMap.forEach(searchRange => {
+    searchRangeMap.forEach((searchRange) => {
       rangeList.push(searchRange)
     })
     return rangeList
@@ -287,7 +278,7 @@ export class RangeManager {
     startTdIndex?: number,
     endTdIndex?: number,
     startTrIndex?: number,
-    endTrIndex?: number
+    endTrIndex?: number,
   ) {
     this.range.startIndex = startIndex
     this.range.endIndex = endIndex
@@ -296,12 +287,7 @@ export class RangeManager {
     this.range.endTdIndex = endTdIndex
     this.range.startTrIndex = startTrIndex
     this.range.endTrIndex = endTrIndex
-    this.range.isCrossRowCol = !!(
-      startTdIndex ||
-      endTdIndex ||
-      startTrIndex ||
-      endTrIndex
-    )
+    this.range.isCrossRowCol = !!(startTdIndex || endTdIndex || startTrIndex || endTrIndex)
     this.range.zone = this.draw.getZone().getZone()
     // 激活控件
     const control = this.draw.getControl()
@@ -313,6 +299,7 @@ export class RangeManager {
         return
       }
     }
+
     control.destroyControl()
   }
 
@@ -324,14 +311,13 @@ export class RangeManager {
       range.startTdIndex,
       range.endTdIndex,
       range.startTrIndex,
-      range.endTrIndex
+      range.endTrIndex,
     )
   }
 
   public setRangeStyle() {
     const rangeStyleChangeListener = this.listener.rangeStyleChange
-    const isSubscribeRangeStyleChange =
-      this.eventBus.isSubscribe('rangeStyleChange')
+    const isSubscribeRangeStyleChange = this.eventBus.isSubscribe('rangeStyleChange')
     if (!rangeStyleChangeListener && !isSubscribeRangeStyleChange) return
     // 结束光标位置
     const { startIndex, endIndex, isCrossRowCol } = this.range
@@ -356,12 +342,10 @@ export class RangeManager {
     // 富文本
     const font = curElement.font || this.options.defaultFont
     const size = curElement.size || this.options.defaultSize
-    const bold = !~curElementList.findIndex(el => !el.bold)
-    const italic = !~curElementList.findIndex(el => !el.italic)
-    const underline = !~curElementList.findIndex(
-      el => !el.underline && !el.control?.underline
-    )
-    const strikeout = !~curElementList.findIndex(el => !el.strikeout)
+    const bold = !~curElementList.findIndex((el) => !el.bold)
+    const italic = !~curElementList.findIndex((el) => !el.italic)
+    const underline = !~curElementList.findIndex((el) => !el.underline && !el.control?.underline)
+    const strikeout = !~curElementList.findIndex((el) => !el.strikeout)
     const color = curElement.color || null
     const highlight = curElement.highlight || null
     const rowFlex = curElement.rowFlex || null
@@ -395,7 +379,7 @@ export class RangeManager {
       level,
       listType,
       listStyle,
-      groupIds
+      groupIds,
     }
     if (rangeStyleChangeListener) {
       rangeStyleChangeListener(rangeStyle)
@@ -407,8 +391,7 @@ export class RangeManager {
 
   public recoveryRangeStyle() {
     const rangeStyleChangeListener = this.listener.rangeStyleChange
-    const isSubscribeRangeStyleChange =
-      this.eventBus.isSubscribe('rangeStyleChange')
+    const isSubscribeRangeStyleChange = this.eventBus.isSubscribe('rangeStyleChange')
     if (!rangeStyleChangeListener && !isSubscribeRangeStyleChange) return
     const font = this.options.defaultFont
     const size = this.options.defaultSize
@@ -435,7 +418,7 @@ export class RangeManager {
       level: null,
       listType: null,
       listStyle: null,
-      groupIds: null
+      groupIds: null,
     }
     if (rangeStyleChangeListener) {
       rangeStyleChangeListener(rangeStyle)
@@ -469,6 +452,25 @@ export class RangeManager {
           index--
         }
       }
+      // 向右查找第一个value
+      if (startElement.controlComponent === ControlComponent.LABEL) {
+        let index = startIndex + 1
+        while (index < elementList.length) {
+          const nextElement = elementList[index]
+          if (
+            nextElement.controlId !== startElement.controlId ||
+            nextElement.controlComponent === ControlComponent.VALUE
+          ) {
+            range.startIndex = index - 1
+            break
+          } else if (nextElement.controlComponent === ControlComponent.PLACEHOLDER) {
+            range.startIndex = index - 1
+            range.endIndex = index - 1
+            return
+          }
+          index++
+        }
+      }
     } else {
       // 首、尾为占位符时，收缩到最后一个前缀字符后
       if (
@@ -480,7 +482,8 @@ export class RangeManager {
           const preElement = elementList[index]
           if (
             preElement.controlId !== endElement.controlId ||
-            preElement.controlComponent === ControlComponent.PREFIX
+            preElement.controlComponent === ControlComponent.PREFIX ||
+            preElement.controlComponent === ControlComponent.LABEL
           ) {
             range.startIndex = index
             range.endIndex = index
@@ -490,7 +493,10 @@ export class RangeManager {
         }
       }
       // 向右查找到第一个Value
-      if (startElement.controlComponent === ControlComponent.PREFIX) {
+      if (
+        startElement.controlComponent === ControlComponent.PREFIX ||
+        startElement.controlComponent === ControlComponent.LABEL
+      ) {
         let index = startIndex + 1
         while (index < elementList.length) {
           const nextElement = elementList[index]
@@ -500,9 +506,7 @@ export class RangeManager {
           ) {
             range.startIndex = index - 1
             break
-          } else if (
-            nextElement.controlComponent === ControlComponent.PLACEHOLDER
-          ) {
+          } else if (nextElement.controlComponent === ControlComponent.PLACEHOLDER) {
             range.startIndex = index - 1
             range.endIndex = index - 1
             return
@@ -512,7 +516,7 @@ export class RangeManager {
       }
       // 向左查找到第一个Value
       if (endElement.controlComponent !== ControlComponent.VALUE) {
-        let index = startIndex - 1
+        let index = startIndex
         while (index > 0) {
           const preElement = elementList[index]
           if (
@@ -520,10 +524,9 @@ export class RangeManager {
             preElement.controlComponent === ControlComponent.VALUE
           ) {
             range.startIndex = index
+            range.endIndex = index
             break
-          } else if (
-            preElement.controlComponent === ControlComponent.PLACEHOLDER
-          ) {
+          } else if (preElement.controlComponent === ControlComponent.PLACEHOLDER) {
             range.startIndex = index
             range.endIndex = index
             return
@@ -539,7 +542,7 @@ export class RangeManager {
     x: number,
     y: number,
     width: number,
-    height: number
+    height: number,
   ) {
     ctx.save()
     ctx.globalAlpha = this.options.rangeAlpha
@@ -552,7 +555,7 @@ export class RangeManager {
     const selection = this.getTextLikeSelection()
     if (!selection) return ''
     return selection
-      .map(s => s.value)
+      .map((s) => s.value)
       .join('')
       .replace(new RegExp(ZERO, 'g'), '')
   }

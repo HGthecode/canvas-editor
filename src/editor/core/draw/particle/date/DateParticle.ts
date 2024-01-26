@@ -6,6 +6,7 @@ import { RangeManager } from '../../../range/RangeManager'
 import { Draw } from '../../Draw'
 import { DatePicker } from './DatePicker'
 import { ControlType } from '../../../../dataset/enum/Control'
+// import { ControlComponent } from '../../../../dataset/enum/Control'
 
 export class DateParticle {
   private draw: Draw
@@ -46,6 +47,7 @@ export class DateParticle {
   private _setValue(date: string) {
     if (!date) return
     const range = this.getDateElementRange()
+
     if (!range) return
     const [leftIndex, rightIndex] = range
     const elementList = this.draw.getElementList()
@@ -90,50 +92,82 @@ export class DateParticle {
   public getDateElementRange(): [number, number] | null {
     let leftIndex = -1
     let rightIndex = -1
-    const { startIndex, endIndex } = this.range.getRange()
-    if (!~startIndex && !~endIndex) return null
+    const { startIndex } = this.range.getRange()
     const elementList = this.draw.getElementList()
     const startElement = elementList[startIndex]
-    if (
-      !(
-        startElement.type === ElementType.DATE ||
-        (startElement.type === ElementType.CONTROL &&
-          startElement.control?.type === ControlType.DATE)
-      )
-    )
-      return null
-    // 向左查找
-    let preIndex = startIndex
-    while (preIndex > 0) {
-      const preElement = elementList[preIndex]
-      if (
-        preElement.dateId !== startElement.dateId ||
-        preElement.controlId !== startElement.controlId
-      ) {
-        leftIndex = preIndex
-        break
-      }
-      preIndex--
-    }
-    // 向右查找
-    let nextIndex = startIndex + 1
+    // 当前控件最开始的index
+    const controlFirstIndex = elementList.findIndex((p) => p.controlId === startElement.controlId)
+    //向右查找
+    leftIndex = controlFirstIndex - 1
+    let nextIndex = controlFirstIndex
     while (nextIndex < elementList.length) {
       const nextElement = elementList[nextIndex]
-      if (
-        nextElement.dateId !== startElement.dateId ||
-        nextElement.controlId !== startElement.controlId
-      ) {
+      if (nextElement.controlId !== startElement.controlId) {
         rightIndex = nextIndex - 1
         break
       }
       nextIndex++
     }
+
     // 控件在最后
     if (nextIndex === elementList.length) {
       rightIndex = nextIndex - 1
     }
+    console.log(elementList, controlFirstIndex, leftIndex, rightIndex)
     if (!~leftIndex || !~rightIndex) return null
     return [leftIndex, rightIndex]
+    // debugger
+    // if (!~startIndex && !~endIndex) return null
+    // const elementList = this.draw.getElementList()
+    // const startElement = elementList[startIndex]
+    // if (
+    //   !(
+    //     startElement.type === ElementType.DATE ||
+    //     (startElement.type === ElementType.CONTROL &&
+    //       startElement.control?.type === ControlType.DATE)
+    //   )
+    // ) {
+    //   console.log(startElement.type, startElement.control)
+    //   debugger
+
+    //   return null
+    // }
+
+    // // 向左查找
+    // let preIndex = startIndex
+    // while (preIndex > 0) {
+    //   const preElement = elementList[preIndex]
+    //   if (
+    //     preElement.dateId !== startElement.dateId ||
+    //     preElement.controlId !== startElement.controlId
+    //   ) {
+    //     leftIndex = preIndex
+    //     break
+    //   }
+    //   preIndex--
+    // }
+    // console.log('left', leftIndex)
+
+    // // 向右查找
+    // let nextIndex = startIndex + 1
+    // while (nextIndex < elementList.length) {
+    //   const nextElement = elementList[nextIndex]
+    //   if (
+    //     nextElement.dateId !== startElement.dateId ||
+    //     nextElement.controlId !== startElement.controlId
+    //   ) {
+    //     rightIndex = nextIndex - 1
+    //     break
+    //   }
+    //   nextIndex++
+    // }
+    // // 控件在最后
+    // if (nextIndex === elementList.length) {
+    //   rightIndex = nextIndex - 1
+    // }
+    // console.log('right', rightIndex)
+    // if (!~leftIndex || !~rightIndex) return null
+    // return [leftIndex, rightIndex]
   }
 
   public clearDatePicker() {

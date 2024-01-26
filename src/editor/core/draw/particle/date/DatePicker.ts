@@ -502,13 +502,13 @@ export class DatePicker {
     }
   }
 
-  public formatDate(date: Date, format = 'yyyy-MM-dd hh:mm:ss'): string {
+  public formatDate(date: Date, format = 'YYYY-MM-DD HH:mm:ss'): string {
     let dateString = format
     const dateOption = {
-      'y+': date.getFullYear().toString(),
+      'Y+': date.getFullYear().toString(),
       'M+': (date.getMonth() + 1).toString(),
-      'd+': date.getDate().toString(),
-      'h+': date.getHours().toString(),
+      'D+': date.getDate().toString(),
+      'H+': date.getHours().toString(),
       'm+': date.getMinutes().toString(),
       's+': date.getSeconds().toString(),
     }

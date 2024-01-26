@@ -15,7 +15,7 @@ function createDragId(element: IElement): string {
 }
 
 function getElementIndexByDragId(dragId: string, elementList: IElement[]) {
-  return (<IDragElement[]>elementList).findIndex(el => el.dragId === dragId)
+  return (<IDragElement[]>elementList).findIndex((el) => el.dragId === dragId)
 }
 
 export function mouseup(evt: MouseEvent, host: CanvasEvent) {
@@ -31,26 +31,23 @@ export function mouseup(evt: MouseEvent, host: CanvasEvent) {
     const cachePositionList = host.cachePositionList!
     const range = rangeManager.getRange()
     // 是否需要拖拽-位置发生改变
-    if (
-      range.startIndex >= cacheRange.startIndex &&
-      range.endIndex <= cacheRange.endIndex
-    ) {
+    if (range.startIndex >= cacheRange.startIndex && range.endIndex <= cacheRange.endIndex) {
       rangeManager.replaceRange({
-        ...cacheRange
+        ...cacheRange,
       })
       draw.render({
         isSetCursor: false,
         isCompute: false,
-        isSubmitHistory: false
+        isSubmitHistory: false,
       })
       return
     }
     // 是否是不可拖拽的控件结构元素
     const dragElementList = cacheElementList.slice(
       cacheRange.startIndex + 1,
-      cacheRange.endIndex + 1
+      cacheRange.endIndex + 1,
     )
-    const isContainControl = dragElementList.find(element => element.controlId)
+    const isContainControl = dragElementList.find((element) => element.controlId)
     if (isContainControl) {
       // 仅允许 (最前/后元素不是控件 || 在控件前后 || 文本控件且是值) 拖拽
       const cacheStartElement = cacheElementList[cacheRange.startIndex + 1]
@@ -71,7 +68,7 @@ export function mouseup(evt: MouseEvent, host: CanvasEvent) {
         draw.render({
           curIndex: range.startIndex,
           isCompute: false,
-          isSubmitHistory: false
+          isSubmitHistory: false,
         })
         return
       }
@@ -79,16 +76,12 @@ export function mouseup(evt: MouseEvent, host: CanvasEvent) {
     // 格式化元素
     const editorOptions = draw.getOptions()
     const elementList = draw.getElementList()
-    const replaceElementList = dragElementList.map(el => {
-      if (
-        !el.type ||
-        el.type === ElementType.TEXT ||
-        el.control?.type === ControlType.TEXT
-      ) {
+    const replaceElementList = dragElementList.map((el) => {
+      if (!el.type || el.type === ElementType.TEXT || el.control?.type === ControlType.TEXT) {
         const newElement: IElement = {
-          value: el.value
+          value: el.value,
         }
-        EDITOR_ELEMENT_STYLE_ATTR.forEach(attr => {
+        EDITOR_ELEMENT_STYLE_ATTR.forEach((attr) => {
           const value = el[attr] as never
           if (value !== undefined) {
             newElement[attr] = value
@@ -99,16 +92,15 @@ export function mouseup(evt: MouseEvent, host: CanvasEvent) {
         const newElement = deepClone(el)
         formatElementList([newElement], {
           isHandleFirstElement: false,
-          editorOptions
+          editorOptions,
+          dataSource: draw.getDataSource(),
         })
         return newElement
       }
     })
     formatElementContext(elementList, replaceElementList, range.startIndex)
     // 缓存拖拽选区开始结束id
-    const cacheRangeStartId = createDragId(
-      cacheElementList[cacheRange.startIndex]
-    )
+    const cacheRangeStartId = createDragId(cacheElementList[cacheRange.startIndex])
     const cacheRangeEndId = createDragId(cacheElementList[cacheRange.endIndex])
     // 设置拖拽值
     const replaceLength = replaceElementList.length
@@ -123,16 +115,11 @@ export function mouseup(evt: MouseEvent, host: CanvasEvent) {
       rangeEnd = activeControl.setValue(replaceElementList)
       rangeStart = rangeEnd - replaceLength
     } else {
-      draw.spliceElementList(
-        elementList,
-        rangeStart + 1,
-        0,
-        ...replaceElementList
-      )
+      draw.spliceElementList(elementList, rangeStart + 1, 0, ...replaceElementList)
     }
     if (!~rangeEnd) {
       draw.render({
-        isSetCursor: false
+        isSetCursor: false,
       })
       return
     }
@@ -140,14 +127,8 @@ export function mouseup(evt: MouseEvent, host: CanvasEvent) {
     const rangeStartId = createDragId(elementList[rangeStart])
     const rangeEndId = createDragId(elementList[rangeEnd])
     // 删除原有拖拽元素
-    const cacheRangeStartIndex = getElementIndexByDragId(
-      cacheRangeStartId,
-      cacheElementList
-    )
-    const cacheRangeEndIndex = getElementIndexByDragId(
-      cacheRangeEndId,
-      cacheElementList
-    )
+    const cacheRangeStartIndex = getElementIndexByDragId(cacheRangeStartId, cacheElementList)
+    const cacheRangeEndIndex = getElementIndexByDragId(cacheRangeEndId, cacheElementList)
     const cacheEndElement = cacheElementList[cacheRangeEndIndex]
     if (
       cacheEndElement.controlId &&
@@ -156,14 +137,14 @@ export function mouseup(evt: MouseEvent, host: CanvasEvent) {
       rangeManager.replaceRange({
         ...cacheRange,
         startIndex: cacheRangeStartIndex,
-        endIndex: cacheRangeEndIndex
+        endIndex: cacheRangeEndIndex,
       })
       control.getActiveControl()?.cut()
     } else {
       draw.spliceElementList(
         cacheElementList,
         cacheRangeStartIndex + 1,
-        cacheRangeEndIndex - cacheRangeStartIndex
+        cacheRangeEndIndex - cacheRangeStartIndex,
       )
     }
     // 重设上下文
@@ -187,7 +168,7 @@ export function mouseup(evt: MouseEvent, host: CanvasEvent) {
       }
       position.setPositionContext({
         ...positionContext,
-        index: positionContextIndex
+        index: positionContextIndex,
       })
     }
     // 重设选区
@@ -200,11 +181,11 @@ export function mouseup(evt: MouseEvent, host: CanvasEvent) {
       range.startTdIndex,
       range.endTdIndex,
       range.startTrIndex,
-      range.endTrIndex
+      range.endTrIndex,
     )
     // 重新渲染
     draw.render({
-      isSetCursor: false
+      isSetCursor: false,
     })
   } else if (host.isAllowDrag) {
     // 如果是允许拖拽不允许拖放则光标重置

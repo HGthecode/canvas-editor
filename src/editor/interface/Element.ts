@@ -26,6 +26,7 @@ export interface IElementStyle {
   bold?: boolean
   color?: string
   highlight?: string
+  backgroundColor?: string
   italic?: boolean
   underline?: boolean
   strikeout?: boolean
@@ -85,6 +86,7 @@ export interface IControlElement {
   control?: IControl
   controlId?: string
   controlComponent?: ControlComponent
+  realValue?: any
 }
 
 export interface ICheckboxElement {

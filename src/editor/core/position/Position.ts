@@ -4,7 +4,7 @@ import { ControlComponent, ImageDisplay } from '../../dataset/enum/Control'
 import {
   IComputePageRowPositionPayload,
   IComputePageRowPositionResult,
-  IComputeRowPositionPayload
+  IComputeRowPositionPayload,
 } from '../../interface/Position'
 import { IEditorOption } from '../../interface/Editor'
 import { IElement, IElementPosition } from '../../interface/Element'
@@ -224,9 +224,7 @@ export class Position {
     }
   }
 
-  public computeRowPosition(
-    payload: IComputeRowPositionPayload
-  ): IElementPosition[] {
+  public computeRowPosition(payload: IComputeRowPositionPayload): IElementPosition[] {
     const { row, innerWidth } = payload
     const positionList: IElementPosition[] = []
     this.computePageRowPosition({
@@ -237,7 +235,7 @@ export class Position {
       startX: 0,
       startY: 0,
       startIndex: 0,
-      startRowIndex: 0
+      startRowIndex: 0,
     })
     return positionList
   }
@@ -321,6 +319,7 @@ export class Position {
                   trId: tr.id,
                   tableId: element.id,
                   hitLineStartIndex,
+                  controlId: tdValueElement.controlId,
                 }
               }
             }
@@ -401,7 +400,7 @@ export class Position {
         return {
           hitLineStartIndex,
           index: curPositionIndex,
-          isControl: !!element.controlId
+          isControl: !!element.controlId,
         }
       }
     }
@@ -501,7 +500,7 @@ export class Position {
     return {
       hitLineStartIndex,
       index: curPositionIndex,
-      isControl: !!elementList[curPositionIndex]?.controlId
+      isControl: !!elementList[curPositionIndex]?.controlId,
     }
   }
 

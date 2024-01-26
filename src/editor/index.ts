@@ -24,11 +24,7 @@ import { IHeader } from './interface/Header'
 import { IWatermark } from './interface/Watermark'
 import { defaultHeaderOption } from './dataset/constant/Header'
 import { defaultWatermarkOption } from './dataset/constant/Watermark'
-import {
-  ControlIndentation,
-  ControlType,
-  ImageDisplay
-} from './dataset/enum/Control'
+import { ControlIndentation, ControlType, ImageDisplay } from './dataset/enum/Control'
 import { defaultControlOption } from './dataset/constant/Control'
 import { IControlOption } from './interface/Control'
 import { ICheckboxOption } from './interface/Checkbox'
@@ -139,7 +135,7 @@ export default class Editor {
     }
     const zoneOptions: Required<IZoneOption> = {
       ...defaultZoneOption,
-      ...options.zone
+      ...options.zone,
     }
 
     const editorOptions: DeepRequired<IEditorOption> = {
@@ -198,7 +194,7 @@ export default class Editor {
       placeholder: placeholderOptions,
       group: groupOptions,
       pageBreak: pageBreakOptions,
-      zone: zoneOptions
+      zone: zoneOptions,
     }
     // 数据处理
     data = deepClone(data)
@@ -292,7 +288,7 @@ export {
   ListType,
   ListStyle,
   WordBreak,
-  ControlIndentation
+  ControlIndentation,
 }
 
 // 对外类型
@@ -310,5 +306,5 @@ export type {
   ICatalog,
   ICatalogItem,
   IRange,
-  IRangeStyle
+  IRangeStyle,
 }

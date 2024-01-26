@@ -115,7 +115,6 @@ export class TextParticle {
     if (this.curColor) {
       this.ctx.fillStyle = this.curColor
     }
-
     // const range = this.draw.getRange()
     // const elementList = this.draw.getElementList()
     // console.log(555, range, elementList)

@@ -8,7 +8,7 @@ import {
   EditorMode,
   EditorZone,
   PageMode,
-  PaperDirection
+  PaperDirection,
 } from '../../dataset/enum/Editor'
 import { ElementType } from '../../dataset/enum/Element'
 import { ElementStyleKey } from '../../dataset/enum/ElementStyle'
@@ -24,7 +24,7 @@ import {
   IGetControlValueResult,
   ISetControlExtensionOption,
   ISetControlHighlightOption,
-  ISetControlValueOption
+  ISetControlValueOption,
 } from '../../interface/Control'
 import {
   IAppendElementListOption,
@@ -69,6 +69,9 @@ import { CanvasEvent } from '../event/CanvasEvent'
 import { pasteByApi } from '../event/handlers/paste'
 import { HistoryManager } from '../history/HistoryManager'
 import { I18n } from '../i18n/I18n'
+import { DataSource } from '../dataSource/DataSource'
+import { IDataSource } from '../../interface/dataSource/DataSource'
+
 import { Position } from '../position/Position'
 import { RangeManager } from '../range/RangeManager'
 import { WorkerManager } from '../worker/WorkerManager'
@@ -85,6 +88,7 @@ export class CommandAdapt {
   private workerManager: WorkerManager
   private searchManager: Search
   private i18n: I18n
+  private dataSource: DataSource
 
   constructor(draw: Draw) {
     this.draw = draw
@@ -98,6 +102,7 @@ export class CommandAdapt {
     this.workerManager = draw.getWorkerManager()
     this.searchManager = draw.getSearch()
     this.i18n = draw.getI18n()
+    this.dataSource = draw.getDataSource()
   }
 
   public mode(payload: EditorMode) {
@@ -151,7 +156,7 @@ export class CommandAdapt {
     startTdIndex?: number,
     endTdIndex?: number,
     startTrIndex?: number,
-    endTrIndex?: number
+    endTrIndex?: number,
   ) {
     if (startIndex < 0 || endIndex < 0 || endIndex < startIndex) return
     this.range.setRange(
@@ -161,7 +166,7 @@ export class CommandAdapt {
       startTdIndex,
       endTdIndex,
       startTrIndex,
-      endTrIndex
+      endTrIndex,
     )
     const isCollapsed = startIndex === endIndex
     this.draw.render({
@@ -180,7 +185,7 @@ export class CommandAdapt {
       range.startTdIndex,
       range.endTdIndex,
       range.startTrIndex,
-      range.endTrIndex
+      range.endTrIndex,
     )
   }
 
@@ -188,7 +193,7 @@ export class CommandAdapt {
     const { tableId, startTrIndex, startTdIndex } = range
     const elementList = this.draw.getOriginalElementList()
     if (tableId) {
-      const tableElementIndex = elementList.findIndex(el => el.id === tableId)
+      const tableElementIndex = elementList.findIndex((el) => el.id === tableId)
       if (!~tableElementIndex) return
       const tableElement = elementList[tableElementIndex]
       const tr = tableElement.trList![startTrIndex!]
@@ -200,11 +205,11 @@ export class CommandAdapt {
         tdIndex: startTdIndex,
         tdId: td.id,
         trId: tr.id,
-        tableId
+        tableId,
       })
     } else {
       this.position.setPositionContext({
-        isTable: false
+        isTable: false,
       })
     }
   }
@@ -252,15 +257,13 @@ export class CommandAdapt {
   }
 
   public applyPainterStyle() {
-    const isDisabled =
-      this.draw.isReadonly() || this.control.isDisabledControl()
+    const isDisabled = this.draw.isReadonly() || this.control.isDisabledControl()
     if (isDisabled) return
     this.canvasEvent.applyPainterStyle()
   }
 
   public format() {
-    const isDisabled =
-      this.draw.isReadonly() || this.control.isDisabledControl()
+    const isDisabled = this.draw.isReadonly() || this.control.isDisabledControl()
     if (isDisabled) return
     const selection = this.range.getSelectionElementList()
     if (!selection) return
@@ -276,8 +279,7 @@ export class CommandAdapt {
   }
 
   public font(payload: string) {
-    const isDisabled =
-      this.draw.isReadonly() || this.control.isDisabledControl()
+    const isDisabled = this.draw.isReadonly() || this.control.isDisabledControl()
     if (isDisabled) return
     const selection = this.range.getSelectionElementList()
     if (!selection) return
@@ -290,8 +292,7 @@ export class CommandAdapt {
   public size(payload: number) {
     const { minSize, maxSize, defaultSize } = this.options
     if (payload < minSize || payload > maxSize) return
-    const isDisabled =
-      this.draw.isReadonly() || this.control.isDisabledControl()
+    const isDisabled = this.draw.isReadonly() || this.control.isDisabledControl()
     if (isDisabled) return
     const selection = this.range.getTextLikeSelectionElementList()
     if (!selection || !selection.length) return
@@ -309,8 +310,7 @@ export class CommandAdapt {
   }
 
   public sizeAdd() {
-    const isDisabled =
-      this.draw.isReadonly() || this.control.isDisabledControl()
+    const isDisabled = this.draw.isReadonly() || this.control.isDisabledControl()
     if (isDisabled) return
     const selection = this.range.getTextLikeSelectionElementList()
     if (!selection || !selection.length) return
@@ -334,8 +334,7 @@ export class CommandAdapt {
   }
 
   public sizeMinus() {
-    const isDisabled =
-      this.draw.isReadonly() || this.control.isDisabledControl()
+    const isDisabled = this.draw.isReadonly() || this.control.isDisabledControl()
     if (isDisabled) return
     const selection = this.range.getTextLikeSelectionElementList()
     if (!selection || !selection.length) return
@@ -359,8 +358,7 @@ export class CommandAdapt {
   }
 
   public bold() {
-    const isDisabled =
-      this.draw.isReadonly() || this.control.isDisabledControl()
+    const isDisabled = this.draw.isReadonly() || this.control.isDisabledControl()
     if (isDisabled) return
     const selection = this.range.getSelectionElementList()
     if (!selection) return
@@ -372,8 +370,7 @@ export class CommandAdapt {
   }
 
   public italic() {
-    const isDisabled =
-      this.draw.isReadonly() || this.control.isDisabledControl()
+    const isDisabled = this.draw.isReadonly() || this.control.isDisabledControl()
     if (isDisabled) return
     const selection = this.range.getSelectionElementList()
     if (!selection) return
@@ -385,8 +382,7 @@ export class CommandAdapt {
   }
 
   public underline() {
-    const isDisabled =
-      this.draw.isReadonly() || this.control.isDisabledControl()
+    const isDisabled = this.draw.isReadonly() || this.control.isDisabledControl()
     if (isDisabled) return
     const selection = this.range.getSelectionElementList()
     if (!selection) return
@@ -401,8 +397,7 @@ export class CommandAdapt {
   }
 
   public strikeout() {
-    const isDisabled =
-      this.draw.isReadonly() || this.control.isDisabledControl()
+    const isDisabled = this.draw.isReadonly() || this.control.isDisabledControl()
     if (isDisabled) return
     const selection = this.range.getSelectionElementList()
     if (!selection) return
@@ -417,8 +412,7 @@ export class CommandAdapt {
   }
 
   public superscript() {
-    const isDisabled =
-      this.draw.isReadonly() || this.control.isDisabledControl()
+    const isDisabled = this.draw.isReadonly() || this.control.isDisabledControl()
     if (isDisabled) return
     const selection = this.range.getSelectionElementList()
     if (!selection) return
@@ -441,8 +435,7 @@ export class CommandAdapt {
   }
 
   public subscript() {
-    const isDisabled =
-      this.draw.isReadonly() || this.control.isDisabledControl()
+    const isDisabled = this.draw.isReadonly() || this.control.isDisabledControl()
     if (isDisabled) return
     const selection = this.range.getSelectionElementList()
     if (!selection) return
@@ -465,8 +458,7 @@ export class CommandAdapt {
   }
 
   public color(payload: string) {
-    const isDisabled =
-      this.draw.isReadonly() || this.control.isDisabledControl()
+    const isDisabled = this.draw.isReadonly() || this.control.isDisabledControl()
     if (isDisabled) return
     const selection = this.range.getSelectionElementList()
     if (!selection) return
@@ -480,8 +472,7 @@ export class CommandAdapt {
   }
 
   public highlight(payload: string) {
-    const isDisabled =
-      this.draw.isReadonly() || this.control.isDisabledControl()
+    const isDisabled = this.draw.isReadonly() || this.control.isDisabledControl()
     if (isDisabled) return
     const selection = this.range.getSelectionElementList()
     if (!selection) return
@@ -954,9 +945,9 @@ export class CommandAdapt {
               size: 16,
               tableId: element.id,
               trId: nextTr.id,
-              tdId
-            }
-          ]
+              tdId,
+            },
+          ],
         })
       }
     }
@@ -1570,8 +1561,7 @@ export class CommandAdapt {
   }
 
   public image(payload: IDrawImagePayload) {
-    const isDisabled =
-      this.draw.isReadonly() || this.control.isDisabledControl()
+    const isDisabled = this.draw.isReadonly() || this.control.isDisabledControl()
     if (isDisabled) return
     const activeControl = this.control.getActiveControl()
     if (activeControl) return
@@ -1886,13 +1876,13 @@ export class CommandAdapt {
       const {
         coordinate: { rightTop },
         pageNo,
-        lineHeight
+        lineHeight,
       } = position
       rangeRects.push({
         x: rightTop[0],
         y: rightTop[1] + pageNo * (height + pageGap),
         width: 0,
-        height: lineHeight
+        height: lineHeight,
       })
     }
     // 区域信息
@@ -1904,7 +1894,7 @@ export class CommandAdapt {
       startPageNo,
       endPageNo,
       rangeRects,
-      zone
+      zone,
     })
   }
 
@@ -1990,9 +1980,14 @@ export class CommandAdapt {
 
   public removeControl() {
     const { startIndex, endIndex } = this.range.getRange()
+
     if (startIndex !== endIndex) return
     const elementList = this.draw.getElementList()
     const element = elementList[startIndex]
+    console.log(startIndex, element)
+    // if (element.type === ElementType.TABLE) {
+
+    // }
     if (!element.controlId) return
     // 删除控件
     const control = this.draw.getControl()
@@ -2011,6 +2006,49 @@ export class CommandAdapt {
 
   public getLocale(): string {
     return this.i18n.getLocale()
+  }
+
+  public setDataSource(dataSource: IDataSource) {
+    this.dataSource.setData(dataSource)
+
+    // 格式化element
+    const { data } = this.draw.getValue()
+    const pageComponentData = [data.header, data.main, data.footer]
+    pageComponentData.forEach((item) => {
+      if (!item) return
+      formatElementList(item, {
+        editorOptions: this.options,
+        dataSource: this.dataSource,
+      })
+    })
+    this.draw.setEditorData({
+      header: data.header,
+      main: data.main,
+      footer: data.footer,
+    })
+    // 渲染&计算&清空历史记录
+    this.historyManager.recovery()
+    this.draw.render({
+      isSetCursor: false,
+    })
+
+    // this.draw.render({ isCompute: true })
+  }
+
+  /**
+   * 获取数据源数据
+   * @returns
+   */
+  public getDataSource(): IDataSource {
+    return this.dataSource.getData()
+  }
+
+  /**
+   * 获取数据源实例
+   * @returns
+   */
+  public getDataSourceInstance(): DataSource {
+    return this.dataSource
   }
 
   public getCatalog(): Promise<ICatalog | null> {
@@ -2123,9 +2161,7 @@ export class CommandAdapt {
     this.draw.getZone().setZone(zone)
   }
 
-  public getControlValue(
-    payload: IGetControlValueOption
-  ): IGetControlValueResult | null {
+  public getControlValue(payload: IGetControlValueOption): IGetControlValueResult | null {
     return this.draw.getControl().getValueByConceptId(payload)
   }
 
@@ -2147,5 +2183,16 @@ export class CommandAdapt {
 
   public getContainer(): HTMLDivElement {
     return this.draw.getContainer()
+  }
+
+  public getPosition() {
+    return this.position
+  }
+
+  /**
+   *验证表单项的值
+   */
+  public verifyControlValues() {
+    return this.draw.verifyControlValues()
   }
 }

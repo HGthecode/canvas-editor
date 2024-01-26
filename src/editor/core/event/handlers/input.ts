@@ -35,9 +35,9 @@ export function input(data: string, host: CanvasEvent) {
   const elementList = draw.getElementList()
   const copyElement = getAnchorElement(elementList, endIndex)
   if (!copyElement) return
-  const inputData: IElement[] = splitText(text).map(value => {
+  const inputData: IElement[] = splitText(text).map((value) => {
     const newElement: IElement = {
-      value
+      value,
     }
     const nextElement = elementList[endIndex + 1]
     if (
@@ -48,7 +48,7 @@ export function input(data: string, host: CanvasEvent) {
       (copyElement.type === SUBSCRIPT && nextElement?.type === SUBSCRIPT) ||
       (copyElement.type === SUPERSCRIPT && nextElement?.type === SUPERSCRIPT)
     ) {
-      EDITOR_ELEMENT_COPY_ATTR.forEach(attr => {
+      EDITOR_ELEMENT_COPY_ATTR.forEach((attr) => {
         // 在分组外无需复制分组信息
         if (attr === 'groupIds' && !nextElement?.groupIds) return
         const value = copyElement[attr] as never
@@ -79,7 +79,7 @@ export function input(data: string, host: CanvasEvent) {
     rangeManager.setRange(curIndex, curIndex)
     draw.render({
       curIndex,
-      isSubmitHistory: !isComposing
+      isSubmitHistory: !isComposing,
     })
   }
   if (isComposing) {
@@ -87,7 +87,7 @@ export function input(data: string, host: CanvasEvent) {
       elementList,
       value: text,
       startIndex: curIndex - inputData.length,
-      endIndex: curIndex
+      endIndex: curIndex,
     }
   }
 }

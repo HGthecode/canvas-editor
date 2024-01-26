@@ -106,6 +106,10 @@ export class RadioControl implements IControlInstance {
       nextIndex++
     }
     control!.code = data.join(',')
+    console.log('radio setSelect', data)
+    const newIndex = startIndex + data.length - 1
+
+    this.control.repaintControl(newIndex)
   }
 
   // public setChecked(x, y) {

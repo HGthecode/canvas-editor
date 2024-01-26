@@ -7,7 +7,7 @@ import { KeyMap } from '../../../../dataset/enum/KeyMap'
 import {
   IControlContext,
   IControlInstance,
-  IControlRuleOption
+  IControlRuleOption,
 } from '../../../../interface/Control'
 import { IElement } from '../../../../interface/Element'
 import { omitObject, pickObject, splitText } from '../../../../utils'
@@ -143,10 +143,7 @@ export class SelectControl implements IControlInstance {
     return this.clearSelect()
   }
 
-  public clearSelect(
-    context: IControlContext = {},
-    options: IControlRuleOption = {}
-  ): number {
+  public clearSelect(context: IControlContext = {}, options: IControlRuleOption = {}): number {
     // 校验是否可以设置
     if (!options.isIgnoreDisabledRule && this.control.isDisabledControl()) {
       return -1
@@ -156,47 +153,43 @@ export class SelectControl implements IControlInstance {
     const startElement = elementList[startIndex]
     let leftIndex = -1
     let rightIndex = -1
-    // 向左查找
-    let preIndex = startIndex
-    while (preIndex > 0) {
-      const preElement = elementList[preIndex]
-      if (
-        preElement.controlId !== startElement.controlId ||
-        preElement.controlComponent === ControlComponent.PREFIX
-      ) {
-        leftIndex = preIndex
-        break
-      }
-      preIndex--
-    }
-    // 向右查找
-    let nextIndex = startIndex + 1
+
+    // 当前控件最开始的index
+    const controlFirstIndex = elementList.findIndex((p) => p.controlId === startElement.controlId)
+
+    //向右查找
+    let nextIndex = controlFirstIndex
     while (nextIndex < elementList.length) {
       const nextElement = elementList[nextIndex]
       if (
+        nextElement.controlId === startElement.controlId &&
+        leftIndex === -1 &&
+        (nextElement.controlComponent === ControlComponent.VALUE ||
+          nextElement.controlComponent === ControlComponent.PLACEHOLDER)
+      ) {
+        leftIndex = nextIndex - 1
+      } else if (
         nextElement.controlId !== startElement.controlId ||
-        nextElement.controlComponent === ControlComponent.POSTFIX
+        nextElement.controlComponent === ControlComponent.POSTFIX ||
+        nextElement.controlComponent === ControlComponent.UNIT
       ) {
         rightIndex = nextIndex - 1
         break
       }
       nextIndex++
     }
+
     if (!~leftIndex || !~rightIndex) return -1
     // 删除元素
     const draw = this.control.getDraw()
     draw.spliceElementList(elementList, leftIndex + 1, rightIndex - leftIndex)
     // 增加占位符
-    this.control.addPlaceholder(preIndex, context)
+    this.control.addPlaceholder(leftIndex, context)
     this.element.control!.code = null
-    return preIndex
+    return leftIndex
   }
 
-  public setSelect(
-    code: string,
-    context: IControlContext = {},
-    options: IControlRuleOption = {}
-  ) {
+  public setSelect(code: string, context: IControlContext = {}, options: IControlRuleOption = {}) {
     // 校验是否可以设置
     if (!options.isIgnoreDisabledRule && this.control.isDisabledControl()) {
       return

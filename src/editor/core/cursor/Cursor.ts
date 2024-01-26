@@ -100,7 +100,7 @@ export class Cursor {
       isShow = true,
       isBlink = true,
       isFocus = true,
-      hitLineStartIndex
+      hitLineStartIndex,
     } = { ...cursor, ...payload }
     // 设置光标代理
     const height = this.draw.getHeight()
@@ -114,12 +114,10 @@ export class Cursor {
       metrics,
       coordinate: { leftTop, rightTop },
       ascent,
-      pageNo
+      pageNo,
     } = cursorPosition
     const zoneManager = this.draw.getZone()
-    const curPageNo = zoneManager.isMainActive()
-      ? pageNo
-      : this.draw.getPageNo()
+    const curPageNo = zoneManager.isMainActive() ? pageNo : this.draw.getPageNo()
     const preY = curPageNo * (height + pageGap)
     // 默认偏移高度
     const defaultOffsetHeight = CURSOR_AGENT_OFFSET_HEIGHT * scale
@@ -134,15 +132,11 @@ export class Cursor {
       })
     }
     // fillText位置 + 文字基线到底部距离 - 模拟光标偏移量
-    const descent =
-      metrics.boundingBoxDescent < 0 ? 0 : metrics.boundingBoxDescent
-    const cursorTop =
-      leftTop[1] + ascent + descent - (cursorHeight - increaseHeight) + preY
+    const descent = metrics.boundingBoxDescent < 0 ? 0 : metrics.boundingBoxDescent
+    const cursorTop = leftTop[1] + ascent + descent - (cursorHeight - increaseHeight) + preY
     const cursorLeft = hitLineStartIndex ? leftTop[0] : rightTop[0]
     agentCursorDom.style.left = `${cursorLeft}px`
-    agentCursorDom.style.top = `${
-      cursorTop + cursorHeight - defaultOffsetHeight
-    }px`
+    agentCursorDom.style.top = `${cursorTop + cursorHeight - defaultOffsetHeight}px`
     // 模拟光标显示
     if (!isShow) return
     const isReadonly = this.draw.isReadonly()
@@ -169,7 +163,7 @@ export class Cursor {
     if (!cursorPosition || !direction) return
     const {
       pageNo,
-      coordinate: { leftTop, leftBottom }
+      coordinate: { leftTop, leftBottom },
     } = cursorPosition
     // 当前页面距离滚动容器顶部距离
     const prePageY =
@@ -185,14 +179,13 @@ export class Cursor {
       left: 0,
       right: 0,
       top: 0,
-      bottom: 0
+      bottom: 0,
     }
     if (scrollContainer === document.documentElement) {
       rect.right = window.innerWidth
       rect.bottom = window.innerHeight
     } else {
-      const { left, right, top, bottom } =
-        scrollContainer.getBoundingClientRect()
+      const { left, right, top, bottom } = scrollContainer.getBoundingClientRect()
       rect.left = left
       rect.right = right
       rect.top = top
@@ -203,9 +196,7 @@ export class Cursor {
     rect.top += maskMargin[0]
     rect.bottom -= maskMargin[2]
     // 不在可视范围时，移动滚动条到合适位置
-    if (
-      !(x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom)
-    ) {
+    if (!(x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom)) {
       const { scrollLeft, scrollTop } = scrollContainer
       isUp
         ? scrollContainer.scroll(scrollLeft, scrollTop - (rect.top - y))
