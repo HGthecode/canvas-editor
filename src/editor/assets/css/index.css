@@ -7,7 +7,36 @@
 @import './contextmenu/contextmenu.css';
 @import './hyperlink/hyperlink.css';
 @import './zone/zone.css';
+@import './menus/menus.css';
+@import './toolbar/toolbar.css';
 
+
+
+.editor-container{
+  text-align: center;
+  background: #f3f5f7;
+  position: relative;
+  height: 100%;
+}
+.editor-content-wraper{
+  height: 100%;
+  padding-top: 80px;
+}
+.editor-content-scroll{
+  overflow: overlay;
+  position: relative;
+  scrollbar-gutter: stable;
+  overscroll-behavior-x: contain;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  padding-top: 20px;
+}
+.editor-content{
+  margin:0 auto;
+  text-align: left;
+  /* padding-top: 80px; */
+}
 .ce-inputarea {
   width: 100px;
   height: 30px;
@@ -58,6 +87,31 @@
   text-align: center;
   display: none;
   font-size: 12px;
+}
+.form-item{
+  display: flex;
+}
+.form-item .form-item-label{
+  font-size: 14px;
+      line-height: 32px;
+}
+.form-item .form-item-label::after {
+  content: ":";
+  margin: 0 8px 0 2px;
+  position: relative;
+  top: -0.5px;
+}
+.form-item .form-item-content{
+  flex: 1;
+}
+.flex{
+  display: flex;
+}
+.flex-item{
+  flex:1;
+}
+.tr {
+  text-align: right;
 }
 
 @keyframes cursorAnimation {

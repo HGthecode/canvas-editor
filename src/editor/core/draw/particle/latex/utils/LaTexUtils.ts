@@ -274,13 +274,15 @@ function group(exprs: Expr[]): Expr {
 
 function align(exprs: Expr[], alignment = 'center'): void {
   for (let i = 0; i < exprs.length; i++) {
+    // eslint-disable-next-line quotes
     if (exprs[i].text == '^' || exprs[i].text == "'") {
       let h = 0
       let j = i
-      while (j > 0 && (exprs[j].text == '^' || exprs[j].text == '_' || exprs[j].text == "'")) {
+      while (j > 0 && (exprs[j].text == '^' || exprs[j].text == '_' || exprs[j].text == '\'')) {
         j--
       }
       h = exprs[j].bbox.y
+      // eslint-disable-next-line quotes
       if (exprs[i].text == "'") {
         exprs[i].bbox.y = h
       } else {
@@ -297,7 +299,7 @@ function align(exprs: Expr[], alignment = 'center'): void {
     } else if (exprs[i].text == '_') {
       let h = 1
       let j = i
-      while (j > 0 && (exprs[j].text == '^' || exprs[j].text == '_' || exprs[j].text == "'")) {
+      while (j > 0 && (exprs[j].text == '^' || exprs[j].text == '_' || exprs[j].text == '\'')) {
         j--
       }
       h = exprs[j].bbox.y + exprs[j].bbox.h
@@ -633,19 +635,20 @@ function plan(expr: Expr, mode = 'math'): void {
         plan(c, tmd)
         // @ts-ignore
         transform(c, 1, null, dx, dy)
-        if (c.text == '^' || c.text == '_' || c.text == "'") {
+        if (c.text == '^' || c.text == '_' || c.text == '\'') {
           let j: number = i
           while (
             j > 0 &&
-            (expr.chld[j].text == '^' || expr.chld[j].text == '_' || expr.chld[j].text == "'")
+            (expr.chld[j].text == '^' || expr.chld[j].text == '_' || expr.chld[j].text == '\'')
           ) {
             j--
           }
           const wasBig = SYMB[expr.chld[j].text] && SYMB[expr.chld[j].text].flags.big
-          if (c.text == "'") {
+          if (c.text == '\'') {
             let k = j + 1
             let nth = 0
             while (k < i) {
+              // eslint-disable-next-line quotes
               if (expr.chld[k].text == "'") {
                 nth++
               }

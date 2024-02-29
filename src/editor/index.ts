@@ -1,5 +1,8 @@
+
+import 'ant-design-vue/dist/reset.css'
+import './assets/icons/iconfont.css'
 import './assets/css/index.css'
-import { IEditorData, IEditorOption, IEditorResult } from './interface/Editor'
+import { IEditorData, IEditorOption, IEditorResult, IOptionsItem } from './interface/Editor'
 import { IElement } from './interface/Element'
 import { Draw } from './core/draw/Draw'
 import { Command } from './core/command/Command'
@@ -19,7 +22,7 @@ import {
   PaperDirection,
   WordBreak,
 } from './dataset/enum/Editor'
-import { EDITOR_COMPONENT } from './dataset/constant/Editor'
+import { EDITOR_COMPONENT,defaultFontOptions,defaultFontSizeOptions,defaultRowMarginOptions } from './dataset/constant/Editor'
 import { IHeader } from './interface/Header'
 import { IWatermark } from './interface/Watermark'
 import { defaultHeaderOption } from './dataset/constant/Header'
@@ -72,7 +75,15 @@ import { IZoneOption } from './interface/Zone'
 import { defaultZoneOption } from './dataset/constant/Zone'
 import { IBackgroundOption } from './interface/Background'
 import { defaultBackground } from './dataset/constant/Background'
+import { defaultMenusOption } from './dataset/constant/Menus'
+import { defaultToolbarOption } from './dataset/constant/Toolbar'
+
 import { BackgroundRepeat, BackgroundSize } from './dataset/enum/Background'
+import {DrawMenus} from './menus/DrawMenus'
+import { IMenusOption } from './interface/Menus'
+
+import {DrawToolbar} from './toolbar/DrawToolbar'
+import { IToolbarOption } from './interface/Toolbar'
 
 export default class Editor {
   public command: Command
@@ -82,6 +93,7 @@ export default class Editor {
   public register: Register
   public destroy: () => void
   public use: UsePlugin
+  public toolbar: DrawToolbar
 
   constructor(
     container: HTMLDivElement,
@@ -145,6 +157,29 @@ export default class Editor {
       ...options.background
     }
 
+    const menusOptions: Required<IMenusOption> = {
+      ...defaultMenusOption,
+      ...options.menus
+    }
+
+    const toolbarOptions: Required<IToolbarOption> = {
+      ...defaultToolbarOption,
+      ...options.toolbar
+    }
+
+
+    let fontOptions: IOptionsItem[] = defaultFontOptions
+    if (options.fontOptions) {
+      fontOptions = options.fontOptions
+    }
+    let fontSizeOptions: IOptionsItem[] = defaultFontSizeOptions
+    if (options.fontSizeOptions) {
+      fontSizeOptions = options.fontSizeOptions
+    }
+    let rowMarginOptions: IOptionsItem[] = defaultRowMarginOptions
+    if (options.rowMarginOptions) {
+      rowMarginOptions = options.rowMarginOptions
+    }
     const editorOptions: DeepRequired<IEditorOption> = {
       mode: EditorMode.EDIT,
       defaultType: 'TEXT',
@@ -176,7 +211,7 @@ export default class Editor {
       margins: [100, 120, 100, 120],
       pageMode: PageMode.PAGING,
       tdPadding: [0, 5, 5, 5],
-      defaultTrMinHeight: 42,
+      defaultTrMinHeight: 30,
       defaultColMinWidth: 40,
       defaultHyperlinkColor: '#0000FF',
       paperDirection: PaperDirection.VERTICAL,
@@ -202,7 +237,12 @@ export default class Editor {
       group: groupOptions,
       pageBreak: pageBreakOptions,
       zone: zoneOptions,
-      background: backgroundOptions
+      background: backgroundOptions,
+      menus:menusOptions,
+      fontOptions:fontOptions,
+      fontSizeOptions:fontSizeOptions,
+      rowMarginOptions:rowMarginOptions,
+      toolbar:toolbarOptions
     }
     // 数据处理
     data = deepClone(data)
@@ -228,6 +268,26 @@ export default class Editor {
     this.eventBus = new EventBus<EventBusMap>()
     // 重写
     this.override = new Override()
+
+    container.className='editor-container'
+
+    // const rangeStyleChangeListener = this.listener.rangeStyleChange
+    // const rangeStyleChange = (payload:IRangeStyle)=>{
+    //   console.log('on',payload)
+      
+    //   if (rangeStyleChangeListener) {
+    //     rangeStyleChangeListener(payload)
+    //   }
+    // }
+    this.listener.onRangeStyleChange = (payload:IRangeStyle)=>{
+      // console.log('on',payload)
+      // console.log(this.toolbar.render())
+      this.toolbar.reRender(payload)
+      
+      
+
+    }
+    
     // 启动
     const draw = new Draw(
       container,
@@ -241,9 +301,27 @@ export default class Editor {
       this.eventBus,
       this.override,
     )
+    
     // 命令
     this.command = new Command(new CommandAdapt(draw))
-    // 菜单
+
+    // 渲染菜单
+    new DrawMenus(
+      container,
+      this.command,
+      editorOptions
+    )
+
+    // 渲染工具栏
+    this.toolbar = new DrawToolbar(
+      container,
+      this.command,
+      editorOptions,
+    )
+   
+    
+
+    // 右键菜单
     const contextMenu = new ContextMenu(draw, this.command)
     // 快捷键
     const shortcut = new Shortcut(draw, this.command)

@@ -51,6 +51,7 @@ export class Command {
   public executeTableTdBackgroundColor: CommandAdapt['tableTdBackgroundColor']
   public executeTableSelectAll: CommandAdapt['tableSelectAll']
   public executeImage: CommandAdapt['image']
+  public insertImage:CommandAdapt['insertImage']
   public executeHyperlink: CommandAdapt['hyperlink']
   public executeDeleteHyperlink: CommandAdapt['deleteHyperlink']
   public executeCancelHyperlink: CommandAdapt['cancelHyperlink']
@@ -114,6 +115,19 @@ export class Command {
   public getPosition: CommandAdapt['getPosition']
   public verifyControlValues: CommandAdapt['verifyControlValues']
 
+  public insertFormControl:CommandAdapt['insertFormControl']
+  public insertBarcode:CommandAdapt['insertBarcode']
+  public insertQrcode:CommandAdapt['insertQrcode']
+  public insertLink:CommandAdapt['insertLink']
+  public insertSymbol:CommandAdapt['insertSymbol']
+  public insertMedicalFormulas:CommandAdapt['insertMedicalFormulas']
+  public insertLatex:CommandAdapt['insertLatex']
+  public searchReplace:CommandAdapt['searchReplace']
+  public insertSign:CommandAdapt['insertSign']
+  public settingWatermark:CommandAdapt['settingWatermark']
+  public settingPage:CommandAdapt['settingPage']
+
+
   constructor(adapt: CommandAdapt) {
     // 全局命令
     this.executeMode = adapt.mode.bind(adapt)
@@ -169,6 +183,7 @@ export class Command {
     this.executeTableTdBackgroundColor = adapt.tableTdBackgroundColor.bind(adapt)
     this.executeTableSelectAll = adapt.tableSelectAll.bind(adapt)
     this.executeImage = adapt.image.bind(adapt)
+    this.insertImage = adapt.insertImage.bind(adapt)
     this.executeHyperlink = adapt.hyperlink.bind(adapt)
     this.executeDeleteHyperlink = adapt.deleteHyperlink.bind(adapt)
     this.executeCancelHyperlink = adapt.cancelHyperlink.bind(adapt)
@@ -236,5 +251,16 @@ export class Command {
     this.getControlValue = adapt.getControlValue.bind(adapt)
 
     this.verifyControlValues = adapt.verifyControlValues.bind(adapt)
+    this.insertFormControl = adapt.insertFormControl.bind(adapt)
+    this.insertBarcode = adapt.insertBarcode.bind(adapt)
+    this.insertQrcode = adapt.insertQrcode.bind(adapt)
+    this.insertLink = adapt.insertLink.bind(adapt)
+    this.insertSymbol = adapt.insertSymbol.bind(adapt)
+    this.insertMedicalFormulas = adapt.insertMedicalFormulas.bind(adapt)
+    this.insertLatex = adapt.insertLatex.bind(adapt)
+    this.searchReplace = adapt.searchReplace.bind(adapt)
+    this.insertSign = adapt.insertSign.bind(adapt)
+    this.settingWatermark =  adapt.settingWatermark.bind(adapt)
+    this.settingPage = adapt.settingPage.bind(adapt)
   }
 }

@@ -186,3 +186,10 @@
 .ce-contextmenu-border-td-back {
   background-image: url(../../../assets/images/table-border-td-back.svg);
 }
+
+.ce-contextmenu-attr {
+  background-image: url(../../../assets/images/attr.svg);
+}
+.ce-contextmenu-signature {
+  background-image: url(../../../assets/images/signature.svg);
+}

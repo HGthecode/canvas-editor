@@ -1,0 +1,56 @@
+.editor-toolbar{
+    position: absolute;
+    top:36px;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background-color: #fff;
+    border-bottom: 1px solid #ddd;
+    width: 100%;
+    overflow-x: auto;
+}
+.editor-toolbar-main{
+    white-space: nowrap;
+}
+.editor-toolbar-wraper{
+    display: flex;
+    padding: 5px 10px;
+    align-items: center;
+    justify-content: center;
+}
+
+.editor-toolbar-group{
+    display: flex;
+    padding-left: 20px;
+    position: relative;
+}
+.editor-toolbar-group + .editor-toolbar-group::before {
+    content: "";
+    width: 1px;
+    height: 16px;
+    background-color: #cfd2d8;
+    position: absolute;
+    top: 7px;
+    left: 10px;
+}
+.editor-toolbar-item{
+    padding: 0px 6px;
+    border-radius: 5px;
+    cursor: pointer;
+    line-height: 28px;
+    font-size: 14px;
+    display: inline-block;
+    text-align: left;
+}
+
+.editor-toolbar-item:hover{
+    background: #f1f1f1;
+}
+.editor-toolbar-item.active{
+    background: #f1f1f1;
+}
+.editor-toolbar-item.disabled{
+    color:#999;
+}
+
+

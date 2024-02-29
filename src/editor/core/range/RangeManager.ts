@@ -328,9 +328,10 @@ export class RangeManager {
   }
 
   public setRangeStyle() {
+    // console.log('setRangeStyle',this.listener.rangeStyleChange)
     const rangeStyleChangeListener = this.listener.rangeStyleChange
     const isSubscribeRangeStyleChange = this.eventBus.isSubscribe('rangeStyleChange')
-    if (!rangeStyleChangeListener && !isSubscribeRangeStyleChange) return
+    // if (!rangeStyleChangeListener && !isSubscribeRangeStyleChange) return
     // 结束光标位置
     const { startIndex, endIndex, isCrossRowCol } = this.range
     if (!~startIndex && !~endIndex) return
@@ -392,6 +393,11 @@ export class RangeManager {
       listType,
       listStyle,
       groupIds,
+    }
+    // console.log('setRangeStyle',this.listener)
+    //内部监听
+    if (this.listener.onRangeStyleChange) {
+      this.listener.onRangeStyleChange(rangeStyle)
     }
     if (rangeStyleChangeListener) {
       rangeStyleChangeListener(rangeStyle)

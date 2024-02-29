@@ -134,7 +134,6 @@ export class ContextMenu {
       y: evt.offsetY,
     })
     const elementList = this.draw.getElementList()
-    console.log(elementList)
     let index = -1
     if (
       positionResult?.isTable &&
@@ -172,7 +171,6 @@ export class ContextMenu {
     const endElement = elementList[endIndex] || null
     // 当前区域
     const zone = this.draw.getZone().getZone()
-    console.log(hoverElement, index)
 
     if (hoverElement && hoverElement.type === ElementType.TABLE && hoverElement.trList) {
       //表格内控件

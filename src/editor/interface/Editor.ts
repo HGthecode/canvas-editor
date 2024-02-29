@@ -21,11 +21,20 @@ import { IPlaceholder } from './Placeholder'
 import { ITitleOption } from './Title'
 import { IWatermark } from './Watermark'
 import { IZoneOption } from './Zone'
+import {IMenusOption} from './Menus'
+import {IToolbarOption} from './Toolbar'
+
 
 export interface IEditorData {
   header?: IElement[]
   main: IElement[]
   footer?: IElement[]
+}
+
+export interface IOptionsItem {
+  name:string
+  value:string | number | undefined
+  // class?:string
 }
 
 export interface IEditorOption {
@@ -85,6 +94,11 @@ export interface IEditorOption {
   pageBreak?: IPageBreak
   zone?: IZoneOption
   background?: IBackgroundOption
+  menus?:IMenusOption
+  fontOptions?:IOptionsItem[]
+  fontSizeOptions?:IOptionsItem[]
+  rowMarginOptions?:IOptionsItem[]
+  toolbar?:IToolbarOption
 }
 
 export interface IEditorResult {

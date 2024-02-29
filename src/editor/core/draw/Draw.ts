@@ -978,8 +978,17 @@ export class Draw {
   }
 
   private _wrapContainer(rootContainer: HTMLElement): HTMLDivElement {
+    const containerWraper = document.createElement('div')
+    containerWraper.className = 'editor-content-wraper'
+
+    const containerScroll = document.createElement('div')
+    containerScroll.className = 'editor-content-scroll'
+    
     const container = document.createElement('div')
-    rootContainer.append(container)
+    container.className = 'editor-content'
+    containerScroll.append(container)
+    containerWraper.append(containerScroll)
+    rootContainer.append(containerWraper)
     return container
   }
 
@@ -1925,7 +1934,6 @@ export class Draw {
 
       // 处理计算表达式
       const activeControl = this.control.getActiveControl()
-      console.log('activeControl', activeControl)
 
       if (activeControl) {
         const activeControlElement = activeControl.getElement()

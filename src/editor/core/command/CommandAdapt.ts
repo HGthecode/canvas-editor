@@ -26,6 +26,8 @@ import {
   ISetControlHighlightOption,
   ISetControlValueOption,
 } from '../../interface/Control'
+
+
 import {
   IAppendElementListOption,
   IDrawImagePayload,
@@ -76,6 +78,32 @@ import { IDataSource } from '../../interface/dataSource/DataSource'
 import { Position } from '../position/Position'
 import { RangeManager } from '../range/RangeManager'
 import { WorkerManager } from '../worker/WorkerManager'
+
+import uploadImage from '../../components/uploadImage'
+import formControlModal from '../../components/formControl'
+import { FormControlModalProps } from '../../components/formControl/interface'
+import insertBarcode from '../../components/insertBarcode'
+import {InsertBarcodeModalProps} from '../../components/insertBarcode/interface'
+
+import insertQrcode from '../../components/insertQrcode'
+import {InsertQrcodeModalProps} from '../../components/insertQrcode/interface'
+
+import insertLink from '../../components/insertLink'
+import insertSymbol from '../../components/insertSymbol'
+import insertMedicalFormulas from '../../components/insertMedicalFormulas'
+import {InsertMedicalFormulasModalProps} from '../../components/insertMedicalFormulas/interface'
+
+import insertLatex from '../../components/insertLatex'
+import searchReplace from '../../components/searchReplace'
+import insertSign from '../../components/insertSign'
+import settingWatermark from '../../components/settingWatermark'
+import {WatermarkSettingModalProps} from '../../components/settingWatermark/interface'
+import settingPage from '../../components/settingPage'
+import {PageSettingModalProps} from '../../components/settingPage/interface'
+import { InsertLinkModalProps } from '../../components/insertLink/interface'
+
+
+
 
 export class CommandAdapt {
   private draw: Draw
@@ -1678,6 +1706,15 @@ export class CommandAdapt {
     ])
   }
 
+  public insertImage(){
+    uploadImage({
+      onSubmit: (payload:IDrawImagePayload) => {
+        // props.command.executeImage(value)
+        this.image(payload)
+      },
+    })
+  }
+
   public search(payload: string | null) {
     this.searchManager.setSearchKeyword(payload)
     this.draw.render({
@@ -2046,6 +2083,8 @@ export class CommandAdapt {
   }
 
   public insertElementList(payload: IElement[]) {
+    console.log('insertElementList',payload)
+    
     if (!payload.length) return
     const isReadonly = this.draw.isReadonly()
     if (isReadonly) return
@@ -2284,5 +2323,61 @@ export class CommandAdapt {
    */
   public verifyControlValues() {
     return this.draw.verifyControlValues()
+  }
+
+  /**
+   * 插入表单项
+   * @param payload 
+   */
+  public insertFormControl(payload:FormControlModalProps){
+    formControlModal({...payload,command:this})
+  }
+
+  /**
+   * 插入一维码
+   * @param payload 
+   */
+  public insertBarcode(payload:InsertBarcodeModalProps){
+    insertBarcode({...payload,command:this})
+  }
+  
+  /**
+   * 插入二维码
+   * @param payload 
+   */
+  public insertQrcode(payload:InsertQrcodeModalProps){
+    insertQrcode({...payload,command:this})
+  }
+  // InsertLinkModalProps
+  public insertLink(payload:InsertLinkModalProps){
+    insertLink({...payload,command:this})
+  }
+  
+  public insertSymbol(payload:FormControlModalProps){
+    insertSymbol({...payload,command:this})
+  }
+  public insertMedicalFormulas(payload:InsertMedicalFormulasModalProps){
+    insertMedicalFormulas({...payload,command:this})
+  }
+  public insertLatex(payload:FormControlModalProps){
+    insertLatex({...payload,command:this})
+  }
+  public searchReplace(){
+    searchReplace({command:this})
+  }
+  public insertSign(){
+    insertSign({command:this})
+  }
+  public settingWatermark(payload:WatermarkSettingModalProps){
+    settingWatermark({
+      ...payload,
+      command:this
+    })
+  }
+  public settingPage(payload:PageSettingModalProps){
+    settingPage({
+      ...payload,
+      command:this
+    })
   }
 }

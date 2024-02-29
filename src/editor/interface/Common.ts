@@ -41,3 +41,8 @@ export type IPadding = [
   bottom: number,
   left: number
 ]
+
+
+export type ObjectType<T> = {
+  [key: string]: T
+}

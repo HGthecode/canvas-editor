@@ -3,3 +3,9 @@ interface CanvasRenderingContext2D {
   letterSpacing: string
   wordSpacing: string
 }
+
+declare module '*.vue' {
+  import { DefineComponent } from 'vue'
+  const component: DefineComponent<{}, {}, any>
+  export default component
+}

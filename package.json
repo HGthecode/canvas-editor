@@ -65,7 +65,15 @@
     "vue": "^3.2.45"
   },
   "dependencies": {
-    "prismjs": "^1.27.0"
+    "@svgdotjs/svg.js": "^3.2.0",
+    "ant-design-vue": "4.x",
+    "dayjs": "^1.11.10",
+    "jsbarcode": "^3.11.6",
+    "lodash-es": "^4.17.21",
+    "pinia": "^2.1.7",
+    "prismjs": "^1.27.0",
+    "qrcode": "^1.5.3",
+    "vue3-colorpicker": "^2.2.3"
   },
   "simple-git-hooks": {
     "pre-commit": "npm run lint && npm run type:check",

@@ -108,6 +108,7 @@ export interface IDateElement {
 
 export interface IImageElement {
   imgDisplay?: ImageDisplay
+  extension?: any
 }
 
 export interface IBlockElement {

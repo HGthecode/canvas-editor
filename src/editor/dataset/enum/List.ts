@@ -19,3 +19,4 @@ export enum ListStyle {
   SQUARE = UlStyle.SQUARE,
   DECIMAL = OlStyle.DECIMAL
 }
+

@@ -1,16 +1,58 @@
 import { INTERNAL_CONTEXT_MENU_KEY } from '../../../dataset/constant/ContextMenu'
 import { ImageDisplay } from '../../../dataset/enum/Control'
 import { ElementType } from '../../../dataset/enum/Element'
+import { EditorMode } from '../../../dataset/enum/Editor'
+
 import {
   IContextMenuContext,
   IRegisterContextMenu
 } from '../../../interface/contextmenu/ContextMenu'
 import { Command } from '../../command/Command'
+
 const {
-  IMAGE: { CHANGE, SAVE_AS, TEXT_WRAP, TEXT_WRAP_EMBED, TEXT_WRAP_UP_DOWN }
+  IMAGE: { CHANGE, SAVE_AS, TEXT_WRAP, TEXT_WRAP_EMBED, TEXT_WRAP_UP_DOWN },
+  CONTROL: { ATTR }
 } = INTERNAL_CONTEXT_MENU_KEY
 
 export const imageMenus: IRegisterContextMenu[] = [
+  {
+    key: ATTR,
+    i18nPath: 'contextmenu.control.attr',
+    icon: 'attr',
+    when: payload => {
+      return (
+        payload.mode === EditorMode.EDIT &&
+        payload.hoverElement?.type === ElementType.IMAGE && 
+        !payload.isReadonly &&
+        payload.hoverElement?.extension &&
+        payload.hoverElement?.extension.type
+      )
+    },
+    callback: (command: Command,context: IContextMenuContext) => {
+      if (!context.hoverElement) {
+        return
+      }
+      const extensionType = context.hoverElement?.extension?.type
+      // console.log(context.hoverIndex, context.hoverIndex)
+
+      const position = command.getPosition()
+
+      if (context.hoverEnv) {
+        position.adjustPositionContext({
+          x: context.hoverEnv.offsetX,
+          y: context.hoverEnv.offsetY,
+        })
+      }
+      command.executeSetRange(context.hoverIndex, context.hoverIndex)
+      if (extensionType && extensionType === 'barcode') {
+        command.insertBarcode({context})
+      } else if (extensionType && extensionType === 'qrcode') {
+        command.insertQrcode({context})
+      } else if (extensionType && extensionType === 'medicalFormulas') {
+        command.insertMedicalFormulas({context})
+      }
+    }
+  },
   {
     key: CHANGE,
     i18nPath: 'contextmenu.image.change',

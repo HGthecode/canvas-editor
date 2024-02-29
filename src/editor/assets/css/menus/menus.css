@@ -1,0 +1,82 @@
+.editor-menus{
+    position: absolute;
+    top:0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+}
+
+.editor-menu-main{
+    display: flex;
+    padding:5px 10px;
+    background: #fff;
+    border-bottom: 1px solid #ddd;
+    
+}
+.editor-item-button{
+    padding:0px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    line-height: 25px;
+    font-size: 14px;
+}
+.editor-item-button:hover{
+    background: #f1f1f1;
+}
+
+.editor-menu .ant-dropdown-menu-item{
+    width: 180px
+}
+.editor-menu .ant-dropdown-menu-item .iconfont,
+.editor-menu .ant-dropdown-menu-submenu .iconfont{
+    font-size: 16px;
+}
+.menu-icon{
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+  display: inline-block;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  flex-shrink: 0;
+  margin-right: 8px;
+}
+
+.separator-0_0{
+    height: 16px;
+    display: block;
+    width: 80px;
+    /* background-image: url(../../../assets/images/line-single.svg); */
+    background-image: url(../../images/line-single.svg);
+
+}
+.separator-1_1{
+    height: 16px;
+    display: block;
+    width: 80px;
+    background-image: url(../../images/line-dot.svg);
+}
+.separator-3_1{
+    height: 16px;
+    display: block;
+    width: 80px;
+    background-image: url(../../images/line-dash-small-gap.svg);
+}
+.separator-4_4{
+    height: 16px;
+    display: block;
+    width: 80px;
+    background-image: url(../../images/line-dash-large-gap.svg);
+}
+.separator-7_3_3_3{
+    height: 16px;
+    display: block;
+    width: 80px;
+    background-image: url(../../images/line-dash-dot.svg);
+}
+.separator-6_2_2_2_2_2{
+    height: 16px;
+    display: block;
+    width: 80px;
+    background-image: url(../../images/line-dash-dot-dot.svg);
+}
