@@ -11,6 +11,7 @@ export const EDITOR_ELEMENT_STYLE_ATTR: Array<keyof IElement> = [
   'italic',
   'underline',
   'strikeout',
+  'textDecoration'
 ]
 
 export const EDITOR_ROW_ATTR: Array<keyof IElement> = ['rowFlex', 'rowMargin']
@@ -32,7 +33,8 @@ export const EDITOR_ELEMENT_COPY_ATTR: Array<keyof IElement> = [
   'dateFormat',
   'groupIds',
   'rowFlex',
-  'rowMargin'
+  'rowMargin',
+  'textDecoration'
 ]
 
 export const EDITOR_ELEMENT_ZIP_ATTR: Array<keyof IElement> = [
@@ -67,12 +69,16 @@ export const EDITOR_ELEMENT_ZIP_ATTR: Array<keyof IElement> = [
   'groupIds',
   'conceptId',
   'controlId',
+  'imgDisplay',
+  'imgFloatPosition',
+  'textDecoration'
 ]
 
 export const TABLE_TD_ZIP_ATTR: Array<keyof ITd> = [
   'verticalAlign',
   'backgroundColor',
-  'borderType',
+  'borderTypes',
+  'slashTypes'
 ]
 
 export const TABLE_CONTEXT_ATTR: Array<keyof IElement> = ['tdId', 'trId', 'tableId']
@@ -80,6 +86,12 @@ export const TABLE_CONTEXT_ATTR: Array<keyof IElement> = ['tdId', 'trId', 'table
 export const TITLE_CONTEXT_ATTR: Array<keyof IElement> = ['level', 'titleId']
 
 export const LIST_CONTEXT_ATTR: Array<keyof IElement> = ['listId', 'listType', 'listStyle']
+
+export const CONTROL_CONTEXT_ATTR: Array<keyof IElement> = [
+  'control',
+  'controlId',
+  'controlComponent'
+]
 
 export const EDITOR_ELEMENT_CONTEXT_ATTR: Array<keyof IElement> = [
   ...TABLE_CONTEXT_ATTR,

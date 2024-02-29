@@ -170,3 +170,7 @@ export interface VisibleExpressionResult {
 export interface VisibleExpressionResultByControlId {
   [key: string]: VisibleExpressionResult
 }
+export type ISetControlProperties = {
+  conceptId: string
+  properties: Partial<Omit<IControl, 'value'>>
+}

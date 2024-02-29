@@ -1,4 +1,4 @@
-import { IElement } from '..'
+import { IElement, ImageDisplay } from '..'
 import { EditorZone } from '../dataset/enum/Editor'
 import { IElementPosition } from './Element'
 import { IRadioOptionItem } from './Radio'
@@ -7,6 +7,8 @@ import { ITd } from './table/Td'
 
 export interface ICurrentPosition {
   index: number
+  x?: number
+  y?: number
   isCheckbox?: boolean
   isRadio?: boolean
   isControl?: boolean
@@ -37,6 +39,10 @@ export interface IGetPositionByXYPayload {
   positionList?: IElementPosition[]
 }
 
+export type IGetFloatPositionByXYPayload = IGetPositionByXYPayload & {
+  imgDisplay: ImageDisplay
+}
+
 export interface IPositionContext {
   isTable: boolean
   isCheckbox?: boolean
@@ -64,10 +70,26 @@ export interface IComputePageRowPositionPayload {
   startX: number
   startY: number
   innerWidth: number
+  isTable?: boolean
+  index?: number
+  tdIndex?: number
+  trIndex?: number
+  tdValueIndex?: number
 }
 
 export interface IComputePageRowPositionResult {
   x: number
   y: number
   index: number
+}
+
+export interface IFloatPosition {
+  pageNo: number
+  element: IElement
+  position: IElementPosition
+  isTable?: boolean
+  index?: number
+  tdIndex?: number
+  trIndex?: number
+  tdValueIndex?: number
 }

@@ -1,4 +1,5 @@
-import { ControlComponent, ImageDisplay } from '../dataset/enum/Control'
+import { ImageDisplay } from '../dataset/enum/Common'
+import { ControlComponent } from '../dataset/enum/Control'
 import { ElementType } from '../dataset/enum/Element'
 import { ListStyle, ListType } from '../dataset/enum/List'
 import { RowFlex } from '../dataset/enum/Row'
@@ -9,6 +10,7 @@ import { ICheckbox } from './Checkbox'
 import { IRadio } from './Radio'
 
 import { IControl } from './Control'
+import { ITextDecoration } from './Text'
 import { IColgroup } from './table/Colgroup'
 import { ITr } from './table/Tr'
 
@@ -33,6 +35,7 @@ export interface IElementStyle {
   rowFlex?: RowFlex
   rowMargin?: number
   letterSpacing?: number
+  textDecoration?: ITextDecoration
 }
 
 export interface IElementGroup {
@@ -109,6 +112,10 @@ export interface IDateElement {
 export interface IImageElement {
   imgDisplay?: ImageDisplay
   extension?: any
+  imgFloatPosition?: {
+    x: number
+    y: number
+  }
 }
 
 export interface IBlockElement {

@@ -87,3 +87,4 @@ export const defaultAlignWay = [
     { value: 'center', label: '居中对齐' },
     { value: 'right', label: '右对齐' },
 ]
+export const EDITOR_CLIPBOARD = `${EDITOR_PREFIX}-clipboard`

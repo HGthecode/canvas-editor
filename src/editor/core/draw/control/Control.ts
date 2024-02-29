@@ -19,8 +19,9 @@ import {
   IVerifyControlErrorResult,
   ISetControlValueByControlIdOption,
   VisibleExpressionResultByControlId,
+  ISetControlProperties,
 } from '../../../interface/Control'
-import { IEditorOption } from '../../../interface/Editor'
+import { IEditorData, IEditorOption } from '../../../interface/Editor'
 import { IElement, IElementPosition } from '../../../interface/Element'
 import { EventBusMap } from '../../../interface/EventBus'
 import { IRange } from '../../../interface/Range'
@@ -1253,5 +1254,53 @@ export class Control {
     }
     // 返回参数方便可见性表达式使用，避免多次遍历取值
     return { formData, controlList }
+  }
+  public setPropertiesByConceptId(payload: ISetControlProperties) {
+    const isReadonly = this.draw.isReadonly()
+    if (isReadonly) return
+    const { conceptId, properties } = payload
+    let isExistUpdate = false
+    const pageComponentData: IEditorData = {
+      header: this.draw.getHeaderElementList(),
+      main: this.draw.getOriginalMainElementList(),
+      footer: this.draw.getFooterElementList()
+    }
+    for (const key in pageComponentData) {
+      const elementList = pageComponentData[<keyof IEditorData>key]!
+      let i = 0
+      while (i < elementList.length) {
+        const element = elementList[i]
+        i++
+        if (element?.control?.conceptId !== conceptId) continue
+        isExistUpdate = true
+        element.control = {
+          ...element.control,
+          ...properties,
+          value: element.control.value
+        }
+        // 修改后控件结束索引
+        let newEndIndex = i
+        while (newEndIndex < elementList.length) {
+          const nextElement = elementList[newEndIndex]
+          if (nextElement.controlId !== element.controlId) break
+          newEndIndex++
+        }
+        i = newEndIndex
+      }
+    }
+    if (!isExistUpdate) return
+    // 强制更新
+    for (const key in pageComponentData) {
+      const pageComponentKey = <keyof IEditorData>key
+      const elementList = zipElementList(pageComponentData[pageComponentKey]!)
+      pageComponentData[pageComponentKey] = elementList
+      formatElementList(elementList, {
+        editorOptions: this.options
+      })
+    }
+    this.draw.setEditorData(pageComponentData)
+    this.draw.render({
+      isSetCursor: false
+    })
   }
 }

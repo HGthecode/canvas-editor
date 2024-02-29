@@ -367,6 +367,7 @@ export class RangeManager {
     const level = curElement.level || null
     const listType = curElement.listType || null
     const listStyle = curElement.listStyle || null
+    const textDecoration = underline ? curElement.textDecoration || null : null
     // 菜单
     const painter = !!this.draw.getPainterStyle()
     const undo = this.historyManager.isCanUndo()
@@ -393,11 +394,13 @@ export class RangeManager {
       listType,
       listStyle,
       groupIds,
+      textDecoration
     }
     // console.log('setRangeStyle',this.listener)
     //内部监听
     if (this.listener.onRangeStyleChange) {
       this.listener.onRangeStyleChange(rangeStyle)
+      
     }
     if (rangeStyleChangeListener) {
       rangeStyleChangeListener(rangeStyle)
@@ -437,6 +440,7 @@ export class RangeManager {
       listType: null,
       listStyle: null,
       groupIds: null,
+      textDecoration: null
     }
     if (rangeStyleChangeListener) {
       rangeStyleChangeListener(rangeStyle)

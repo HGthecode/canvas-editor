@@ -1,8 +1,10 @@
+import { ImageDisplay } from '../../../dataset/enum/Common'
 import { ElementType } from '../../../dataset/enum/Element'
 import { CanvasEvent } from '../CanvasEvent'
 
 let currentHighlightControlId = ''
 export function mousemove(evt: MouseEvent, host: CanvasEvent) {
+  const draw = host.getDraw()
   // 是否是拖拽文字
   if (host.isAllowDrag) {
     // 是否允许拖拽到选区
@@ -18,11 +20,24 @@ export function mousemove(evt: MouseEvent, host: CanvasEvent) {
         return
       }
     }
+    const cacheStartIndex = host.cacheRange?.startIndex
+    if (cacheStartIndex) {
+      // 浮动元素拖拽调整位置
+      const dragElement = host.cacheElementList![cacheStartIndex]
+      if (
+        dragElement?.type === ElementType.IMAGE &&
+        (dragElement.imgDisplay === ImageDisplay.FLOAT_TOP ||
+          dragElement.imgDisplay === ImageDisplay.FLOAT_BOTTOM)
+      ) {
+        draw.getPreviewer().clearResizer()
+        draw.getImageParticle().dragFloatImage(evt.movementX, evt.movementY)
+      }
+    }
     host.dragover(evt)
     host.isAllowDrop = true
     return
   }
-  const draw = host.getDraw()
+  
   //高亮表单控件
   const position = draw.getPosition()
   const positionList = position.getPositionList()
