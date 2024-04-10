@@ -5,6 +5,7 @@ import { IRadio } from './Radio'
 
 import { IElement } from './Element'
 import { IRange } from './Range'
+import { ObjectType } from './Common'
 
 export interface IValueSet {
   value: string
@@ -153,6 +154,15 @@ export interface IGetControlList {
   value: any
   type: ControlType
   controlId: string
+  index:number
+  trIndex?:number
+  tdIndex?:number
+  valueIndex?:number
+}
+
+export interface IGetControlListResult {
+  formItemByField:ObjectType<IGetControlList>
+  visibleRelatedFields:string[]
 }
 
 export interface IVerifyControlErrorResult {

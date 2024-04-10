@@ -62,6 +62,7 @@ export class DateControl implements IControlInstance {
   }
 
   public setValue(): number {
+    console.log('setSSSS2')
     return -1
   }
 
@@ -71,7 +72,7 @@ export class DateControl implements IControlInstance {
     const { startIndex } = context.range || this.control.getRange()
     const startElement = elementList[startIndex]
     const data: string[] = []
-    console.log('setS', startIndex)
+    console.log('setSSSS', startIndex)
 
     // 向左查找
     let preIndex = startIndex

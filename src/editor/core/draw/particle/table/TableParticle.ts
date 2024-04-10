@@ -34,7 +34,7 @@ export class TableParticle {
       for (let d = tr.tdList.length - 1; d >= 0; d--) {
         const td = tr.tdList[d]
         const { rowspan, rowIndex, colIndex } = td
-        const curRowIndex = rowIndex! + rowspan - 1
+        const curRowIndex = rowIndex! + rowspan! - 1
         if (curRowIndex !== d) {
           const changeTd = tr.tdList.splice(d, 1)[0]
           trList[curRowIndex]?.tdList.splice(colIndex!, 0, changeTd)
@@ -71,9 +71,9 @@ export class TableParticle {
       [startTd, endTd] = [endTd, startTd]
     }
     const startColIndex = startTd.colIndex!
-    const endColIndex = endTd.colIndex! + (endTd.colspan - 1)
+    const endColIndex = endTd.colIndex! + (endTd.colspan! - 1)
     const startRowIndex = startTd.rowIndex!
-    const endRowIndex = endTd.rowIndex! + (endTd.rowspan - 1)
+    const endRowIndex = endTd.rowIndex! + (endTd.rowspan! - 1)
     // 选区行列
     const rowCol: ITd[][] = []
     for (let t = 0; t < curTrList.length; t++) {
@@ -238,15 +238,23 @@ export class TableParticle {
     const { scale } = this.options
     for (let t = 0; t < trList.length; t++) {
       const tr = trList[t]
+      let trBackground = ''
+      if (tr.attr && tr.attr.background) {
+        trBackground = tr.attr.background
+      }
       for (let d = 0; d < tr.tdList.length; d++) {
         const td = tr.tdList[d]
-        if (!td.backgroundColor) continue
+        let backgroundColor = td.backgroundColor
+          if (trBackground) {
+            backgroundColor = trBackground
+          }
+        if (!backgroundColor) continue
         ctx.save()
         const width = td.width! * scale
         const height = td.height! * scale
         const x = Math.round(td.x! * scale + startX)
         const y = Math.round(td.y! * scale + startY)
-        ctx.fillStyle = td.backgroundColor
+        ctx.fillStyle = backgroundColor
         ctx.fillRect(x, y, width, height)
         ctx.restore()
       }
@@ -268,7 +276,7 @@ export class TableParticle {
 
   public getRowCountByColIndex(trList: ITr[], colIndex: number): number {
     return this.getTdListByColIndex(trList, colIndex).reduce(
-      (pre, cur) => pre + cur.rowspan,
+      (pre, cur) => pre + cur.rowspan!,
       0
     )
   }
@@ -280,7 +288,7 @@ export class TableParticle {
       for (let d = 0; d < tdList.length; d++) {
         const td = tdList[d]
         const min = td.colIndex!
-        const max = min + td.colspan - 1
+        const max = min + td.colspan! - 1
         if (colIndex >= min && colIndex <= max) {
           data.push(td)
         }
@@ -308,7 +316,7 @@ export class TableParticle {
         if (trList.length > 1 && t !== 0) {
           // 当前列起始索引：以之前单元格为起始点
           const preTd = tr.tdList[d - 1]
-          const start = preTd ? preTd.colIndex! + preTd.colspan : d
+          const start = preTd ? preTd.colIndex! + preTd.colspan! : d
           for (let c = start; c < colgroup.length; c++) {
             // 查找相同索引列之前行数，相加判断是否位置被挤占
             const rowCount = this.getRowCountByColIndex(trList.slice(0, t), c)
@@ -327,18 +335,18 @@ export class TableParticle {
         } else {
           const preTd = tr.tdList[d - 1]
           if (preTd) {
-            colIndex = preTd.colIndex! + preTd.colspan
+            colIndex = preTd.colIndex! + preTd.colspan!
           }
         }
         // 计算格宽高
         let width = 0
-        for (let col = 0; col < td.colspan; col++) {
+        for (let col = 0; col < td.colspan!; col++) {
           width += colgroup[col + colIndex].width
         }
         let height = 0
-        for (let row = 0; row < td.rowspan; row++) {
+        for (let row = 0; row < td.rowspan!; row++) {
           const curTr = trList[row + t] || trList[t]
-          height += curTr.height
+          height += curTr.height!
         }
         // y偏移量
         if (rowMinHeight === 0 || rowMinHeight > height) {
@@ -349,9 +357,9 @@ export class TableParticle {
         // 当前列最后一个td
         let isLastColTd = isLastTr
         if (!isLastColTd) {
-          if (td.rowspan > 1) {
+          if (td.rowspan! > 1) {
             const nextTrLength = trList.length - 1 - t
-            isLastColTd = td.rowspan - 1 === nextTrLength
+            isLastColTd = td.rowspan! - 1 === nextTrLength
           }
         }
         // 当前表格最后一个td
@@ -403,12 +411,13 @@ export class TableParticle {
       [startTd, endTd] = [endTd, startTd]
     }
     const startColIndex = startTd.colIndex!
-    const endColIndex = endTd.colIndex! + (endTd.colspan - 1)
+    const endColIndex = endTd.colIndex! + (endTd.colspan! - 1)
     const startRowIndex = startTd.rowIndex!
-    const endRowIndex = endTd.rowIndex! + (endTd.rowspan - 1)
+    const endRowIndex = endTd.rowIndex! + (endTd.rowspan! - 1)
     ctx.save()
     for (let t = 0; t < trList.length; t++) {
       const tr = trList[t]
+     
       for (let d = 0; d < tr.tdList.length; d++) {
         const td = tr.tdList[d]
         const tdColIndex = td.colIndex!
@@ -423,6 +432,7 @@ export class TableParticle {
           const y = td.y! * scale
           const width = td.width! * scale
           const height = td.height! * scale
+          
           ctx.globalAlpha = rangeAlpha
           ctx.fillStyle = rangeColor
           ctx.fillRect(x + startX, y + startY, width, height)

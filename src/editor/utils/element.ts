@@ -131,7 +131,7 @@ export function formatElementList(elementList: IElement[], options: IFormatEleme
           if (!tr.minHeight || tr.minHeight < editorOptions.defaultTrMinHeight) {
             tr.minHeight = editorOptions.defaultTrMinHeight
           }
-          if (tr.height < tr.minHeight) {
+          if (tr.height! < tr.minHeight) {
             tr.height = tr.minHeight
           }
           for (let d = 0; d < tr.tdList.length; d++) {
@@ -188,7 +188,7 @@ export function formatElementList(elementList: IElement[], options: IFormatEleme
       }
       i--
     } else if (el.type === ElementType.CONTROL) {
-     
+      
       // 兼容控件内容类型错误
       if (!el.control) {
         i++
@@ -203,10 +203,6 @@ export function formatElementList(elementList: IElement[], options: IFormatEleme
       const controlId = getUUID()
       // 移除父节点
       elementList.splice(i, 1)
-      // 默认背景色
-      const theBackgroundColor = controlOption.backgroundColor
-        ? controlOption.backgroundColor
-        : editorOptions.control.backgroundColor
 
       // 前后缀个性化设置
       const thePrePostfixArgs: Pick<IElement, 'color'> = {}
@@ -256,7 +252,6 @@ export function formatElementList(elementList: IElement[], options: IFormatEleme
           type: el.type,
           control: el.control,
           controlComponent: ControlComponent.PREFIX,
-          backgroundColor: theBackgroundColor,
           ...thePrePostfixArgs,
         })
         i++
@@ -277,7 +272,13 @@ export function formatElementList(elementList: IElement[], options: IFormatEleme
           i++
         }
       }
-
+      // let minWidth = 0
+      
+      
+      // if (el.control.extension.field == 'field_17059725149761' && el.control.minWidth) {
+      //   minWidth = el.control.minWidth
+      // }
+      // const controlRealWidth = 0 // 值真实宽度
       // 值
       if (
         (value && value.length) ||
@@ -368,7 +369,6 @@ export function formatElementList(elementList: IElement[], options: IFormatEleme
                   code: valueSet.code,
                   value: valuePathData == valueSet.code ? true : false,
                 },
-                backgroundColor: theBackgroundColor,
               })
               i++
               // 文本
@@ -385,7 +385,6 @@ export function formatElementList(elementList: IElement[], options: IFormatEleme
                     letterSpacing: isLastLetter ? radioOption.gap : 0,
                     control: el.control,
                     controlComponent: ControlComponent.VALUE,
-                    backgroundColor: theBackgroundColor,
                   })
                   valueStyleIndex++
                   i++
@@ -434,7 +433,6 @@ export function formatElementList(elementList: IElement[], options: IFormatEleme
             //     type: element.type || ElementType.TEXT,
             //     control: el.control,
             //     controlComponent: ControlComponent.VALUE,
-            //     backgroundColor: theBackgroundColor,
             //     color: extension.textColor ? extension.textColor : undefined,
             //   })
             //   i++
@@ -447,7 +445,6 @@ export function formatElementList(elementList: IElement[], options: IFormatEleme
               type: element.type || ElementType.TEXT,
               control: el.control,
               controlComponent: ControlComponent.VALUE,
-              backgroundColor: theBackgroundColor,
               color: extension.textColor ? extension.textColor : undefined,
             })
             i++
@@ -467,12 +464,26 @@ export function formatElementList(elementList: IElement[], options: IFormatEleme
             type: el.type,
             control: el.control,
             controlComponent: ControlComponent.PLACEHOLDER,
-            backgroundColor: theBackgroundColor,
             ...thePlaceholderArgs,
           })
           i++
         }
       }
+      // if (minWidth>0 && controlRealWidth<=minWidth) {
+      //   // 添加空白占位元素
+      //   const extraWidth = minWidth-controlRealWidth
+      //   elementList.splice(i, 0, {
+      //     controlId,
+      //     value: '',
+      //     type: el.type,
+      //     width:extraWidth,
+      //     control: el.control,
+      //     controlComponent: ControlComponent.EXTRA,
+      //     backgroundColor: theBackgroundColor,
+      //   })
+      //   i++
+      // }
+      
 
       // 单位文本
       if (extension && extension.unitText) {
@@ -501,12 +512,11 @@ export function formatElementList(elementList: IElement[], options: IFormatEleme
           control: el.control,
           controlComponent: ControlComponent.POSTFIX,
           ...thePrePostfixArgs,
-          backgroundColor: theBackgroundColor,
         })
         i++
       }
       i--
-    } else if ((!el.type || el.type === ElementType.TEXT) && el.value.length > 1) {
+    } else if ((!el.type || el.type === ElementType.TEXT) && el.value && el.value.length > 1) {
       elementList.splice(i, 1)
       const valueList = splitText(el.value)
       for (let v = 0; v < valueList.length; v++) {
@@ -636,6 +646,7 @@ export function zipElementList(payload: IElement[]): IElement[] {
           for (let d = 0; d < tr.tdList.length; d++) {
             const td = tr.tdList[d]
             const zipTd: ITd = {
+              attr:td.attr,
               colspan: td.colspan,
               rowspan: td.rowspan,
               value: zipElementList(td.value),
@@ -651,6 +662,7 @@ export function zipElementList(payload: IElement[]): IElement[] {
           }
         }
       }
+      
     } else if (element.type === ElementType.HYPERLINK) {
       // 超链接处理
       const hyperlinkId = element.hyperlinkId
@@ -747,6 +759,7 @@ export function zipElementList(payload: IElement[]): IElement[] {
     }
     zipElementListData.push(pickElement)
   }
+  
   return zipElementListData
 }
 
@@ -913,8 +926,8 @@ export function createDomFromElementList(
             const tdDom = document.createElement('td')
             tdDom.style.border = '1px solid'
             const td = tr.tdList[d]
-            tdDom.colSpan = td.colspan
-            tdDom.rowSpan = td.rowspan
+            tdDom.colSpan = td.colspan as number
+            tdDom.rowSpan = td.rowspan as number
             const childDom = buildDom(zipElementList(td.value!))
             tdDom.innerHTML = childDom.innerHTML
             if (td.backgroundColor) {
@@ -1191,7 +1204,7 @@ export function getElementListByHTML(
           })
           if (element.trList!.length) {
             // 列选项数据
-            const tdCount = element.trList![0].tdList.reduce((pre, cur) => pre + cur.colspan, 0)
+            const tdCount = element.trList![0].tdList.reduce((pre, cur) => pre + cur.colspan!, 0)
             const width = Math.ceil(options.innerWidth / tdCount)
             for (let i = 0; i < tdCount; i++) {
               element.colgroup!.push({

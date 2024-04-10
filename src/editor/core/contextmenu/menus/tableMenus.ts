@@ -5,8 +5,9 @@ import {
   TdBorder,
   TdSlash
 } from '../../../dataset/enum/table/Table'
-import { IRegisterContextMenu } from '../../../interface/contextmenu/ContextMenu'
+import { IRegisterContextMenu,IContextMenuContext } from '../../../interface/contextmenu/ContextMenu'
 import { Command } from '../../command/Command'
+
 const {
   TABLE: {
     BORDER,
@@ -34,11 +35,50 @@ const {
     DELETE_COL,
     DELETE_TABLE,
     MERGE_CELL,
-    CANCEL_MERGE_CELL
+    CANCEL_MERGE_CELL,
+    TABLE_ATTR,
+    TABLE_ROW_ATTR,
+    TABLE_COL_ATTR
   }
 } = INTERNAL_CONTEXT_MENU_KEY
 
 export const tableMenus: IRegisterContextMenu[] = [
+  {
+    isDivider: true
+  },
+  {
+    key: TABLE_ATTR,
+    i18nPath: 'contextmenu.table.tableAttr',
+    icon: 'table-attr',
+    when: payload => {
+      return !payload.isReadonly && payload.isInTable
+    },
+    callback: (command: Command,context: IContextMenuContext) => {
+      command.showTableAttrModal({context})
+    }
+  },
+  {
+    key: TABLE_ROW_ATTR,
+    i18nPath: 'contextmenu.table.tableRowAttr',
+    icon: 'border-all',
+    when: payload => {
+      return !payload.isReadonly && payload.isInTable
+    },
+    callback: (command: Command,context: IContextMenuContext) => {
+      command.showTableRowAttrModal({context})
+    }
+  },
+  {
+    key: TABLE_COL_ATTR,
+    i18nPath: 'contextmenu.table.tableColAttr',
+    icon: 'border-all',
+    when: payload => {
+      return !payload.isReadonly && payload.isInTable
+    },
+    callback: (command: Command,context: IContextMenuContext) => {
+      command.showTableColAttrModal({context})
+    }
+  },
   {
     isDivider: true
   },
@@ -183,14 +223,16 @@ export const tableMenus: IRegisterContextMenu[] = [
     i18nPath: 'contextmenu.table.insertRowCol',
     icon: 'insert-row-col',
     when: payload => {
-      return !payload.isReadonly && payload.isInTable
+      return !payload.isReadonly && payload.isInTable && (payload.hoverElement?.tableAttr?.useActionAuth.addRow!==false || payload.hoverElement?.tableAttr?.useActionAuth.addCol!==false)
     },
     childMenus: [
       {
         key: INSERT_TOP_ROW,
         i18nPath: 'contextmenu.table.insertTopRow',
         icon: 'insert-top-row',
-        when: () => true,
+        when: payload => {
+          return payload.hoverElement?.tableAttr?.useActionAuth.addRow!==false 
+        },
         callback: (command: Command) => {
           command.executeInsertTableTopRow()
         }
@@ -199,7 +241,9 @@ export const tableMenus: IRegisterContextMenu[] = [
         key: INSERT_BOTTOM_ROW,
         i18nPath: 'contextmenu.table.insertBottomRow',
         icon: 'insert-bottom-row',
-        when: () => true,
+        when: payload => {
+          return payload.hoverElement?.tableAttr?.useActionAuth.addRow!==false 
+        },
         callback: (command: Command) => {
           command.executeInsertTableBottomRow()
         }
@@ -208,7 +252,9 @@ export const tableMenus: IRegisterContextMenu[] = [
         key: INSERT_LEFT_COL,
         i18nPath: 'contextmenu.table.insertLeftCol',
         icon: 'insert-left-col',
-        when: () => true,
+        when: payload => {
+          return payload.hoverElement?.tableAttr?.useActionAuth.addCol!==false 
+        },
         callback: (command: Command) => {
           command.executeInsertTableLeftCol()
         }
@@ -217,7 +263,9 @@ export const tableMenus: IRegisterContextMenu[] = [
         key: INSERT_RIGHT_COL,
         i18nPath: 'contextmenu.table.insertRightCol',
         icon: 'insert-right-col',
-        when: () => true,
+        when: payload => {
+          return payload.hoverElement?.tableAttr?.useActionAuth.addCol!==false 
+        },
         callback: (command: Command) => {
           command.executeInsertTableRightCol()
         }
@@ -229,14 +277,22 @@ export const tableMenus: IRegisterContextMenu[] = [
     i18nPath: 'contextmenu.table.deleteRowCol',
     icon: 'delete-row-col',
     when: payload => {
-      return !payload.isReadonly && payload.isInTable
+      return !payload.isReadonly && 
+      payload.isInTable && 
+      (
+        payload.hoverElement?.tableAttr?.useActionAuth.removeRow!==false || 
+        payload.hoverElement?.tableAttr?.useActionAuth.removeCol!==false ||
+        payload.hoverElement?.tableAttr?.useActionAuth.removeTable!==false
+      )
     },
     childMenus: [
       {
         key: DELETE_ROW,
         i18nPath: 'contextmenu.table.deleteRow',
         icon: 'delete-row',
-        when: () => true,
+        when: payload => {
+          return payload.hoverElement?.tableAttr?.useActionAuth.removeRow!==false 
+        },
         callback: (command: Command) => {
           command.executeDeleteTableRow()
         }
@@ -245,7 +301,9 @@ export const tableMenus: IRegisterContextMenu[] = [
         key: DELETE_COL,
         i18nPath: 'contextmenu.table.deleteCol',
         icon: 'delete-col',
-        when: () => true,
+        when: payload => {
+          return payload.hoverElement?.tableAttr?.useActionAuth.removeCol!==false 
+        },
         callback: (command: Command) => {
           command.executeDeleteTableCol()
         }
@@ -254,7 +312,9 @@ export const tableMenus: IRegisterContextMenu[] = [
         key: DELETE_TABLE,
         i18nPath: 'contextmenu.table.deleteTable',
         icon: 'delete-table',
-        when: () => true,
+        when: payload => {
+          return payload.hoverElement?.tableAttr?.useActionAuth.removeTable!==false 
+        },
         callback: (command: Command) => {
           command.executeDeleteTable()
         }

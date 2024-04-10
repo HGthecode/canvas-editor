@@ -24,8 +24,12 @@ export default [
           icon: 'icon-save',
           hotKey: 'Ctrl+S',
           component: markRaw(BaseComponent),
-          onClick: () => {
+          onClick: ({command}:ToolbarComponentClickParams) => {
             console.log('保存')
+            const json = command.getValue()
+            console.log(json)
+            
+
           },
         },
         {

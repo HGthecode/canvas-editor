@@ -23,6 +23,7 @@ export class RangeManager {
   private eventBus: EventBus<EventBusMap>
   private position: Position
   private historyManager: HistoryManager
+  // private hoverRange:IRange
 
   constructor(draw: Draw) {
     this.draw = draw
@@ -35,6 +36,10 @@ export class RangeManager {
       startIndex: -1,
       endIndex: -1,
     }
+    // this.hoverRange = {
+    //   startIndex: -1,
+    //   endIndex: -1,
+    // }
   }
 
   public getRange(): IRange {
@@ -311,7 +316,6 @@ export class RangeManager {
         return
       }
     }
-
     control.destroyControl()
   }
 

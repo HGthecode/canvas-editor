@@ -186,12 +186,12 @@ export default class Editor {
       mode: EditorMode.EDIT,
       defaultType: 'TEXT',
       defaultColor: '#000000',
-      defaultFont: 'Microsoft YaHei',
+      defaultFont: '宋体',
       defaultSize: 16,
       minSize: 5,
       maxSize: 72,
       defaultRowMargin: 1,
-      defaultBasicRowMarginHeight: 8,
+      defaultBasicRowMarginHeight: 6,
       defaultTabWidth: 32,
       width: 794,
       height: 1123,
@@ -264,6 +264,7 @@ export default class Editor {
         editorOptions,
       })
     })
+    
     // 监听
     this.listener = new Listener()
     // 事件

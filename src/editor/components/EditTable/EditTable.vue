@@ -11,6 +11,7 @@
       :data-source="props.data"
       :columns="props.columns"
       :scroll="props.scroll"
+      class="mb-sm"
     >
       <template #bodyCell="{ column, text, record }">
         <div v-if="column.itemRender" class="edit-item-wraper">
@@ -114,19 +115,7 @@ const AInput = Input;
 const AInputNumber = InputNumber;
 const AAutoComplete = AutoComplete;
 
-  // import { ObjectType } from '/#/index'
 
-  // interface Props {
-  //   columns: ColumnItem[]
-  //   data: any
-  //   isAdd?: boolean
-  //   scroll?: ObjectType<string>
-  // }
-
-  // const props = withDefaults(defineProps<EditTableProps>(), {
-  //   isAdd: false,
-  //   notDataHiddenTable: false,
-  // })
   const props = defineProps({
     isAdd: {
       type: Boolean,

@@ -231,6 +231,8 @@ export class SelectControl implements IControlInstance {
       this.control.repaintControl(newIndex)
       this.destroy()
     }
+    // this.control.updateFormData({[control?.extension.field]:code})
+    
   }
 
   private _createSelectPopupDom() {

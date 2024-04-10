@@ -81,70 +81,74 @@ export class TableTool {
     const rowIndex = td.rowIndex
     const colIndex = td.colIndex
     // 渲染行工具
-    const rowHeightList = trList!.map(tr => tr.height)
-    const rowContainer = document.createElement('div')
-    rowContainer.classList.add(`${EDITOR_PREFIX}-table-tool__row`)
-    rowContainer.style.transform = `translateX(-${
-      this.ROW_COL_OFFSET * scale
-    }px)`
-    for (let r = 0; r < rowHeightList.length; r++) {
-      const rowHeight = rowHeightList[r] * scale
-      const rowItem = document.createElement('div')
-      rowItem.classList.add(`${EDITOR_PREFIX}-table-tool__row__item`)
-      if (r === rowIndex) {
-        rowItem.classList.add('active')
+    if ((element.attr && element.attr.useActionAuth && element.attr.useActionAuth.adjustRowHeight) || !element.attr) {
+      const rowHeightList = trList!.map(tr => tr.height)
+      const rowContainer = document.createElement('div')
+      rowContainer.classList.add(`${EDITOR_PREFIX}-table-tool__row`)
+      rowContainer.style.transform = `translateX(-${
+        this.ROW_COL_OFFSET * scale
+      }px)`
+      for (let r = 0; r < rowHeightList.length; r++) {
+        const rowHeight = rowHeightList[r]! * scale
+        const rowItem = document.createElement('div')
+        rowItem.classList.add(`${EDITOR_PREFIX}-table-tool__row__item`)
+        if (r === rowIndex) {
+          rowItem.classList.add('active')
+        }
+        const rowItemAnchor = document.createElement('div')
+        rowItemAnchor.classList.add(`${EDITOR_PREFIX}-table-tool__anchor`)
+        rowItemAnchor.onmousedown = evt => {
+          this._mousedown({
+            evt,
+            element,
+            index: r,
+            order: TableOrder.ROW
+          })
+        }
+        rowItem.append(rowItemAnchor)
+        rowItem.style.height = `${rowHeight}px`
+        rowContainer.append(rowItem)
       }
-      const rowItemAnchor = document.createElement('div')
-      rowItemAnchor.classList.add(`${EDITOR_PREFIX}-table-tool__anchor`)
-      rowItemAnchor.onmousedown = evt => {
-        this._mousedown({
-          evt,
-          element,
-          index: r,
-          order: TableOrder.ROW
-        })
-      }
-      rowItem.append(rowItemAnchor)
-      rowItem.style.height = `${rowHeight}px`
-      rowContainer.append(rowItem)
+      rowContainer.style.left = `${tableX}px`
+      rowContainer.style.top = `${tableY}px`
+      this.container.append(rowContainer)
+      this.toolRowContainer = rowContainer
+  
     }
-    rowContainer.style.left = `${tableX}px`
-    rowContainer.style.top = `${tableY}px`
-    this.container.append(rowContainer)
-    this.toolRowContainer = rowContainer
-
     // 渲染列工具
-    const colWidthList = colgroup!.map(col => col.width)
-    const colContainer = document.createElement('div')
-    colContainer.classList.add(`${EDITOR_PREFIX}-table-tool__col`)
-    colContainer.style.transform = `translateY(-${
-      this.ROW_COL_OFFSET * scale
-    }px)`
-    for (let c = 0; c < colWidthList.length; c++) {
-      const colWidth = colWidthList[c] * scale
-      const colItem = document.createElement('div')
-      colItem.classList.add(`${EDITOR_PREFIX}-table-tool__col__item`)
-      if (c === colIndex) {
-        colItem.classList.add('active')
+    if ((element.attr && element.attr.useActionAuth && element.attr.useActionAuth.adjustColWidth) || !element.attr) {
+      const colWidthList = colgroup!.map(col => col.width)
+      const colContainer = document.createElement('div')
+      colContainer.classList.add(`${EDITOR_PREFIX}-table-tool__col`)
+      colContainer.style.transform = `translateY(-${
+        this.ROW_COL_OFFSET * scale
+      }px)`
+      for (let c = 0; c < colWidthList.length; c++) {
+        const colWidth = colWidthList[c] * scale
+        const colItem = document.createElement('div')
+        colItem.classList.add(`${EDITOR_PREFIX}-table-tool__col__item`)
+        if (c === colIndex) {
+          colItem.classList.add('active')
+        }
+        const colItemAnchor = document.createElement('div')
+        colItemAnchor.classList.add(`${EDITOR_PREFIX}-table-tool__anchor`)
+        colItemAnchor.onmousedown = evt => {
+          this._mousedown({
+            evt,
+            element,
+            index: c,
+            order: TableOrder.COL
+          })
+        }
+        colItem.append(colItemAnchor)
+        colItem.style.width = `${colWidth}px`
+        colContainer.append(colItem)
       }
-      const colItemAnchor = document.createElement('div')
-      colItemAnchor.classList.add(`${EDITOR_PREFIX}-table-tool__anchor`)
-      colItemAnchor.onmousedown = evt => {
-        this._mousedown({
-          evt,
-          element,
-          index: c,
-          order: TableOrder.COL
-        })
-      }
-      colItem.append(colItemAnchor)
-      colItem.style.width = `${colWidth}px`
-      colContainer.append(colItem)
+      colContainer.style.left = `${tableX}px`
+      colContainer.style.top = `${tableY}px`
+      this.container.append(colContainer)
+      this.toolColContainer = colContainer
     }
-    colContainer.style.left = `${tableX}px`
-    colContainer.style.top = `${tableY}px`
-    this.container.append(colContainer)
-    this.toolColContainer = colContainer
 
     // 渲染单元格边框拖拽工具
     const tableHeight = element.height! * scale
@@ -159,40 +163,44 @@ export class TableTool {
       const tr = trList![r]
       for (let d = 0; d < tr.tdList.length; d++) {
         const td = tr.tdList[d]
-        const rowBorder = document.createElement('div')
-        rowBorder.classList.add(`${EDITOR_PREFIX}-table-tool__border__row`)
-        rowBorder.style.width = `${td.width! * scale}px`
-        rowBorder.style.height = `${this.BORDER_VALUE}px`
-        rowBorder.style.top = `${
-          (td.y! + td.height!) * scale - this.BORDER_VALUE / 2
-        }px`
-        rowBorder.style.left = `${td.x! * scale}px`
-        rowBorder.onmousedown = evt => {
-          this._mousedown({
-            evt,
-            element,
-            index: td.rowIndex! + td.rowspan - 1,
-            order: TableOrder.ROW
-          })
+        if ((element.attr && element.attr.useActionAuth && element.attr.useActionAuth.adjustRowHeight) || !element.attr) {
+          const rowBorder = document.createElement('div')
+          rowBorder.classList.add(`${EDITOR_PREFIX}-table-tool__border__row`)
+          rowBorder.style.width = `${td.width! * scale}px`
+          rowBorder.style.height = `${this.BORDER_VALUE}px`
+          rowBorder.style.top = `${
+            (td.y! + td.height!) * scale - this.BORDER_VALUE / 2
+          }px`
+          rowBorder.style.left = `${td.x! * scale}px`
+          rowBorder.onmousedown = evt => {
+            this._mousedown({
+              evt,
+              element,
+              index: td.rowIndex! + td.rowspan! - 1,
+              order: TableOrder.ROW
+            })
+          }
+          borderContainer.appendChild(rowBorder)
         }
-        borderContainer.appendChild(rowBorder)
-        const colBorder = document.createElement('div')
-        colBorder.classList.add(`${EDITOR_PREFIX}-table-tool__border__col`)
-        colBorder.style.width = `${this.BORDER_VALUE}px`
-        colBorder.style.height = `${td.height! * scale}px`
-        colBorder.style.top = `${td.y! * scale}px`
-        colBorder.style.left = `${
-          (td.x! + td.width!) * scale - this.BORDER_VALUE / 2
-        }px`
-        colBorder.onmousedown = evt => {
-          this._mousedown({
-            evt,
-            element,
-            index: td.colIndex! + td.colspan - 1,
-            order: TableOrder.COL
-          })
+        if ((element.attr && element.attr.useActionAuth && element.attr.useActionAuth.adjustColWidth) || !element.attr) {
+          const colBorder = document.createElement('div')
+          colBorder.classList.add(`${EDITOR_PREFIX}-table-tool__border__col`)
+          colBorder.style.width = `${this.BORDER_VALUE}px`
+          colBorder.style.height = `${td.height! * scale}px`
+          colBorder.style.top = `${td.y! * scale}px`
+          colBorder.style.left = `${
+            (td.x! + td.width!) * scale - this.BORDER_VALUE / 2
+          }px`
+          colBorder.onmousedown = evt => {
+            this._mousedown({
+              evt,
+              element,
+              index: td.colIndex! + td.colspan! - 1,
+              order: TableOrder.COL
+            })
+          }
+          borderContainer.appendChild(colBorder)
         }
-        borderContainer.appendChild(colBorder)
       }
     }
     this.container.append(borderContainer)
@@ -256,11 +264,11 @@ export class TableTool {
           const tr = trList[index] || trList[index - 1]
           // 最大移动高度-向上移动超出最小高度限定，则减少移动量
           const { defaultTrMinHeight } = this.options
-          if (dy < 0 && tr.height + dy < defaultTrMinHeight) {
-            dy = defaultTrMinHeight - tr.height
+          if (dy < 0 && tr.height! + dy < defaultTrMinHeight) {
+            dy = defaultTrMinHeight - tr.height!
           }
           if (dy) {
-            tr.height += dy
+            tr.height! += dy
             tr.minHeight = tr.height
             isChangeSize = true
           }

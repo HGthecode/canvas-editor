@@ -193,3 +193,7 @@
 .ce-contextmenu-signature {
   background-image: url(../../../assets/images/signature.svg);
 }
+
+.ce-contextmenu-table-attr {
+  background-image: url(../../../assets/images/table-attr.svg);
+}

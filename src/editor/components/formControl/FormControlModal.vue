@@ -167,7 +167,7 @@
     }
   })
 
-  console.log(props.command);
+  console.log(props.context);
   
 
   // 支持编辑数据源的控件
@@ -615,6 +615,7 @@
     }
 
     // const dataSource = state.dataSourceTableData.filter((p) => p.value)
+   
     await currentFormControl.onSubmit({ values, context: props.context,command:props.command })
     onModalCancel()
   }

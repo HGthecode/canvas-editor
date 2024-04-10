@@ -97,6 +97,8 @@ export class Draw {
   private position: Position
   private zone: Zone
   private elementList: IElement[]
+  private drawElementList: IElement[]
+
   private listener: Listener
   private eventBus: EventBus<EventBusMap>
   private override: Override
@@ -169,6 +171,7 @@ export class Draw {
     this.mode = options.mode
     this.options = options
     this.elementList = data.main
+    this.drawElementList = data.main
     this.listener = listener
     this.eventBus = eventBus
     this.override = override
@@ -244,6 +247,10 @@ export class Draw {
       isSetCursor: false,
     })
   }
+
+  // public updateControlFormData(updateData:any){
+  //   this.control.updateFormData(updateData)
+  // }
 
   public getLetterReg(): RegExp {
     return this.LETTER_REG
@@ -509,7 +516,16 @@ export class Draw {
   public getTableElementList(sourceElementList: IElement[]): IElement[] {
     const positionContext = this.position.getPositionContext()
     const { index, trIndex, tdIndex } = positionContext
-    return sourceElementList[index!].trList?.[trIndex!].tdList[tdIndex!].value || []
+    const list = sourceElementList[index!].trList?.[trIndex!].tdList[tdIndex!].value || []
+    if (list.length) {
+      for (let i = 0; i < list.length; i++) {
+        const element = list[i]
+        element.tableAttr = sourceElementList[index!].attr
+        element.trAttr = sourceElementList[index!].trList?.[trIndex!].attr
+        element.tdAttr = sourceElementList[index!].trList?.[trIndex!].tdList[tdIndex!].attr
+      }
+    }
+    return list
   }
 
   public getElementList(): IElement[] {
@@ -536,6 +552,10 @@ export class Draw {
 
   public getOriginalMainElementList(): IElement[] {
     return this.elementList
+  }
+
+  public getDrawElementList(){
+    return this.drawElementList
   }
 
   public getFooterElementList(): IElement[] {
@@ -937,6 +957,7 @@ export class Draw {
       main: zipElementList(mainElementList),
       footer: zipElementList(this.getFooterElementList()),
     }
+    
     return {
       version,
       width,
@@ -981,6 +1002,10 @@ export class Draw {
     if (footer) {
       this.footer.setElementList(footer)
     }
+  }
+
+  public setElementList(elementList:IElement[]){
+    this.elementList = elementList
   }
 
   private _wrapContainer(rootContainer: HTMLElement): HTMLDivElement {
@@ -1129,8 +1154,10 @@ export class Draw {
         }
         metrics.boundingBoxAscent = 0
       } else if (element.type === ElementType.TABLE) {
+        
         const tdPaddingWidth = tdPadding[1] + tdPadding[3]
         const tdPaddingHeight = tdPadding[0] + tdPadding[2]
+        
         // 计算表格行列
         this.tableParticle.computeRowColInfo(element)
         // 计算表格内元素信息
@@ -1147,8 +1174,8 @@ export class Draw {
             // 内容高度大于当前单元格高度需增加
             if (td.height! < curTdHeight) {
               const extraHeight = curTdHeight - td.height!
-              const changeTr = trList[t + td.rowspan - 1]
-              changeTr.height += extraHeight
+              const changeTr = trList[t + td.rowspan! - 1]
+              changeTr.height! += extraHeight
               changeTr.tdList.forEach((changeTd) => {
                 changeTd.height! += extraHeight
               })
@@ -1157,7 +1184,7 @@ export class Draw {
             let curTdMinHeight = 0
             let curTdRealHeight = 0
             let i = 0
-            while (i < td.rowspan) {
+            while (i < td.rowspan!) {
               const curTr = trList[i + t] || trList[t]
               curTdMinHeight += curTr.minHeight!
               curTdRealHeight += curTr.height!
@@ -1189,7 +1216,7 @@ export class Draw {
           }
           if (reduceHeight > 0) {
             const changeTr = trList[t]
-            changeTr.height -= reduceHeight
+            changeTr.height! -= reduceHeight
             changeTr.tdList.forEach((changeTd) => {
               changeTd.height! -= reduceHeight
             })
@@ -1231,7 +1258,7 @@ export class Draw {
           if (trList.length > 1) {
             for (let r = 0; r < trList.length; r++) {
               const tr = trList[r]
-              const trHeight = tr.height * scale
+              const trHeight = tr.height! * scale
               if (curPagePreHeight + rowMarginHeight + preTrHeight + trHeight > height) {
                 // 是否跨列
                 if (element.colgroup?.length !== tr.tdList.length) {
@@ -1247,7 +1274,7 @@ export class Draw {
           }
           if (deleteCount) {
             const cloneTrList = trList.splice(deleteStart, deleteCount)
-            const cloneTrHeight = cloneTrList.reduce((pre, cur) => pre + cur.height, 0)
+            const cloneTrHeight = cloneTrList.reduce((pre, cur) => pre + cur.height!, 0)
             element.height -= cloneTrHeight
             metrics.height -= cloneTrHeight
             metrics.boundingBoxDescent -= cloneTrHeight
@@ -1265,6 +1292,8 @@ export class Draw {
             }
           }
         }
+
+        
       } else if (element.type === ElementType.SEPARATOR) {
         element.width = availableWidth / scale
         metrics.width = availableWidth
@@ -1355,6 +1384,15 @@ export class Draw {
           metrics.boundingBoxDescent += metrics.height / 2
         }
       }
+      if (element.visible === false ) {
+          element.width = 0
+          element.height = 0
+          metrics.width = 0
+          metrics.height = 0
+          metrics.boundingBoxDescent = 0
+          metrics.boundingBoxAscent = -12
+      }
+     
       const ascent =
         (element.imgDisplay !== ImageDisplay.INLINE && element.type === ElementType.IMAGE) ||
         element.type === ElementType.LATEX
@@ -1377,10 +1415,13 @@ export class Draw {
             // 超出行宽时截断
             const rowRemainingWidth = availableWidth - curRow.width - metrics.width
             const left = Math.min(rowRemainingWidth, extraWidth) * scale
-            rowElement.left = left
-
-            // rowElement.metrics.width = left
+            // rowElement.left = left
+            // rowElement.rowFlex=RowFlex.RIGHT
+            rowElement.metrics.width = left
             curRow.width += left
+            // if (element.control && element.control.extension.field == 'field_17059725149761' && element.controlComponent === ControlComponent.POSTFIX) {
+            //   debugger
+            // }
           } else {
             rowElement.left = 0
           }
@@ -1548,7 +1589,10 @@ export class Draw {
     const isPrintMode = this.mode === EditorMode.PRINT
     const { scale, tdPadding, defaultBasicRowMarginHeight, defaultRowMargin, group } = this.options
     const { isCrossRowCol, tableId } = this.range.getRange()
-    const controlVisibleExpressionResult = this.control.getVisibleExpressionResult()
+    // const controlVisibleExpressionResult = this.control.getVisibleExpressionResult()
+    const controlBackgroundColor = this.options.control.backgroundColor
+      //   ? controlOption.backgroundColor
+      //   : editorOptions.control.backgroundColor
 
     let index = startIndex
     for (let i = 0; i < rowList.length; i++) {
@@ -1564,6 +1608,10 @@ export class Draw {
       for (let j = 0; j < curRow.elementList.length; j++) {
         const element = curRow.elementList[j]
         const metrics = element.metrics
+        if (!positionList[curRow.startIndex + j]) {
+          continue
+        }
+        
         // 当前元素位置信息
         const {
           ascent: offsetY,
@@ -1574,34 +1622,12 @@ export class Draw {
         const preElement = curRow.elementList[j - 1]
         // 元素高亮记录
 
-        // 处理可见表达式及打印可见表达式
-        if (
-          element.controlId &&
-          element.control &&
-          element.control.extension &&
-          element.control.extension.authData &&
-          controlVisibleExpressionResult
-        ) {
-          const controlId = element.controlId as string
-          const { authData } = element.control.extension
-          if (
-            authData.visibleExpression &&
-            controlVisibleExpressionResult[controlId] &&
-            controlVisibleExpressionResult[controlId].visible === false
-          ) {
-            // 可见表达式
-            continue
-          } else if (
-            this.mode === EditorMode.PRINT &&
-            authData.printVisibleExpression &&
-            controlVisibleExpressionResult[controlId] &&
-            controlVisibleExpressionResult[controlId].printVisible === false
-          ) {
-            // 打印模式下，打印可见表达式过滤
-            continue
-          }
+      
+        //不可见元素
+        if (element.visible === false ) {
+          continue
         }
-
+        
         if (element.highlight) {
           // 高亮元素相连需立即绘制，并记录下一元素坐标
           if (preElement && preElement.highlight && preElement.highlight !== element.highlight) {
@@ -1610,24 +1636,17 @@ export class Draw {
           this.highlight.recordFillInfo(ctx, x, y, metrics.width, curRow.height, element.highlight)
         } else if (preElement?.highlight) {
           this.highlight.render(ctx)
-        } else if (element.backgroundColor) {
-          if (
-            preElement &&
-            preElement.backgroundColor &&
-            preElement.backgroundColor !== element.backgroundColor
-          ) {
-            this.highlight.render(ctx)
-          }
+        }
+        else if (element.controlId && controlBackgroundColor) {
+          // 表单控件内元素添加背景色
           this.highlight.recordFillInfo(
-            ctx,
-            x,
-            y,
-            metrics.width,
-            curRow.height,
-            element.backgroundColor,
-          )
-        } else if (preElement?.backgroundColor) {
-          this.highlight.render(ctx)
+                ctx,
+                x,
+                y,
+                metrics.width,
+                curRow.height,
+                controlBackgroundColor,
+              )
         }
         // 元素绘制
         if (element.type === ElementType.IMAGE) {
@@ -1690,8 +1709,19 @@ export class Draw {
           this.blockParticle.render(pageNo, element, x, y)
         } else if (element.type === ElementType.CONTROL) {
           this._drawRichText(ctx)
-          this.textParticle.record(ctx, element, x, y + offsetY)
+          if (
+            element.control &&  
+            element.controlComponent === ControlComponent.POSTFIX && 
+            element.control.minWidth && 
+            element.control.minWidth>element.metrics.width
+          ) {
+            const w = element.metrics.width-(element.value.length*8)
+            this.textParticle.record(ctx, element, x+w, y + offsetY)
+          }else{
+            this.textParticle.record(ctx, element, x, y + offsetY)
+          }
         } else {
+          
           // 如果当前元素设置左偏移，则上一元素立即绘制
           if (element.left) {
             this.textParticle.complete()
@@ -1888,6 +1918,8 @@ export class Draw {
     })
     // 控件高亮
     this.control.renderHighlightList(ctx, pageNo)
+    this.control.renderControlHighlight(ctx, pageNo)
+
     // 渲染元素
     const index = rowList[0]?.startIndex
     this.drawRow(ctx, {
@@ -1998,25 +2030,15 @@ export class Draw {
         }
       }
 
-      // 处理计算表达式
-      const activeControl = this.control.getActiveControl()
-
-      if (activeControl) {
-        const activeControlElement = activeControl.getElement()
-        if (
-          activeControlElement &&
-          activeControlElement.control &&
-          activeControlElement.control.extension &&
-          activeControlElement.control.extension.field
-        ) {
-          const field = activeControlElement.control.extension.field
-          const { formData, controlList } = this.control.handleControlExpression(field)
-          this.control.computeControlExpressionResult(formData, controlList)
-        }
+      
+      if (isInit) {
+        this.control.initFormData()
       }
-
+   
       // 行信息
-      this.rowList = this.computeRowList(innerWidth, this.elementList)
+      console.log('computeRowList')
+      this.rowList = this.computeRowList(innerWidth,  this.elementList)
+      
       // 页面信息
       this.pageRowList = this._computePageList()
       // 位置信息
@@ -2049,6 +2071,7 @@ export class Draw {
     // 绘制元素
     // 连续页因为有高度的变化会导致canvas渲染空白，需立即渲染，否则会出现闪动
     if (isLazy && isPagingMode) {
+      console.log('_lazyRender')
       this._lazyRender()
     } else {
       this._immediateRender()
@@ -2143,4 +2166,5 @@ export class Draw {
     // 日期控件
     this.getDateParticle().clearDatePicker()
   }
+
 }

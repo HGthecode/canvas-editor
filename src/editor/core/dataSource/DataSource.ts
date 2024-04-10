@@ -15,8 +15,6 @@ export class DataSource {
     if (key.indexOf('root.') > -1) {
       key = key.replace('root.', '')
     }
-    console.log('getValue', key)
-
     return getObjectValueByKey(key, this.data)
   }
 }

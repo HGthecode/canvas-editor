@@ -4,6 +4,7 @@ import { DeepRequired } from '../../../interface/Common'
 import { IRowElement } from '../../../interface/Row'
 import { Draw } from '../Draw'
 
+
 export interface IMeasureWordResult {
   width: number
   endElement: IElement
@@ -97,11 +98,13 @@ export class TextParticle {
     if (!this.text) {
       this._setCurXY(x, y)
     }
+   
     // 样式发生改变
     if ((this.curStyle && element.style !== this.curStyle) || element.color !== this.curColor) {
       this.complete()
       this._setCurXY(x, y)
     }
+    
     this.text += element.value
     this.curStyle = element.style
     this.curColor = element.color
@@ -117,6 +120,8 @@ export class TextParticle {
     this.ctx.save()
     this.ctx.font = this.curStyle
     this.ctx.fillStyle = this.curColor || this.options.defaultColor
+    // console.log(this.curX)
+    
     this.ctx.fillText(this.text, this.curX, this.curY)
     this.ctx.restore()
   }

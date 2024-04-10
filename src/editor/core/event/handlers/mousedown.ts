@@ -140,8 +140,11 @@ export function mousedown(evt: MouseEvent, host: CanvasEvent) {
       if (activeControl instanceof RadioControl) {
         activeControl.setSelect()
       }
+      // return 为了减少一次render
+      return
     }
 
+    console.log('点击 to render')
     draw.render({
       curIndex,
       isSubmitHistory: isSetCheckbox || isSetRadio,

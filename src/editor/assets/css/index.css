@@ -113,6 +113,9 @@
 .tr {
   text-align: right;
 }
+.mb-sm{
+  margin-bottom: 5px;
+}
 
 @keyframes cursorAnimation {
   from {

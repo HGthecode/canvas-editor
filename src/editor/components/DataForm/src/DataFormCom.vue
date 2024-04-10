@@ -37,6 +37,16 @@
             v-model:value="state.formData[item.field]"
             @change="onInputChange($event, item)"
           />
+          <a-radio-group
+            v-else-if="item.type == FormInputType.BUTTONRADIOGROUP && item.props"
+            v-bind="item.props"
+            v-model:value="state.formData[item.field]"
+            @change="onInputChange($event, item)"
+          >
+            <a-radio-button v-for="(option) in item.props.options" :key="option.value" :value="option.value">
+              {{option.label}}
+            </a-radio-button>
+          </a-radio-group>
 
           <a-input-number
             v-else-if="item.type == FormInputType.NUMBER"
@@ -114,7 +124,7 @@
   import { ObjectType } from '../../../interface/Common'
   import type { Dayjs } from 'dayjs'
   import { Rule } from 'ant-design-vue/lib/form/interface'
-  import {Form,FormItem,Select,RadioGroup,Input,InputNumber,Switch,DatePicker,AutoComplete,Textarea,Checkbox} from 'ant-design-vue';
+  import {Form,FormItem,Select,RadioGroup,Input,InputNumber,Switch,DatePicker,AutoComplete,Textarea,Checkbox,RadioButton} from 'ant-design-vue';
 
   const AForm = Form;
   const AFormItem = FormItem;
@@ -127,6 +137,7 @@
   const AAutoComplete = AutoComplete;
   const ATextarea = Textarea
   const ACheckbox = Checkbox
+  const ARadioButton = RadioButton
 
 
   const formRef = ref()

@@ -53,7 +53,10 @@
       "borderTdBottom": "下边框",
       "borderTdLeft": "左边框",
       "borderTdForward": "正斜线",
-      "borderTdBack": "反斜线"
+      "borderTdBack": "反斜线",
+      "tableAttr": "表格属性",
+      "tableRowAttr": "表格行属性",
+      "tableColAttr": "表格单元格属性"
     },
     "formExtend":{
       "attr":"属性"

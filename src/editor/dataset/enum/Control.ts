@@ -16,6 +16,7 @@ export enum ControlComponent {
   LABEL = 'label',
   UNIT = 'unit',
   DATE = 'date',
+  EXTRA = 'extra' //额外占位元素
 }
 
 // 控件内容缩进方式

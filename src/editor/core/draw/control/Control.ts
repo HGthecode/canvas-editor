@@ -1,8 +1,7 @@
 import { ControlComponent, ControlType } from '../../../dataset/enum/Control'
 import { EditorZone } from '../../../dataset/enum/Editor'
 import { ElementType } from '../../../dataset/enum/Element'
-import { DeepRequired } from '../../../interface/Common'
-import { EDITOR_PREFIX } from '../../../dataset/constant/Editor'
+import { DeepRequired, ObjectType } from '../../../interface/Common'
 import {
   IControl,
   IControlContext,
@@ -12,6 +11,7 @@ import {
   IControlOption,
   IControlRuleOption,
   IGetControlList,
+  IGetControlListResult,
   IGetControlValueOption,
   IGetControlValueResult,
   ISetControlExtensionOption,
@@ -41,9 +41,13 @@ import { RadioControl } from './radio/RadioControl'
 import { DateControl } from './date/DateControl'
 
 import { ControlSearch } from './interactive/ControlSearch'
+import { ControlHighlight } from './interactive/ControlHighlight'
+
 import { SelectControl } from './select/SelectControl'
 import { TextControl } from './text/TextControl'
 import dayjs from 'dayjs'
+import {handleVisibleExpressionElementList,getExpressionResult} from '../../../utils/expression'
+import { ICurrentPosition } from '../../../interface/Position'
 
 interface IMoveCursorResult {
   newIndex: number
@@ -58,10 +62,13 @@ export class Control {
   private options: DeepRequired<IEditorOption>
   private controlOptions: IControlOption
   private activeControl: IControlInstance | null
+  private controlHighlight: ControlHighlight
 
-  private hoverPopupContainer: HTMLDivElement
-  private hoverTextDom: HTMLDivElement
   private visibleExpressionResultByControlId: VisibleExpressionResultByControlId
+  private currentFormControlByField:ObjectType<IGetControlList>
+  private currentFormDataByField:ObjectType<any>
+  private calcExpressionRelatedControlByField:ObjectType<IGetControlList[]>
+  private visibleExpressionRelatedFields:string[]
 
   constructor(draw: Draw) {
     this.draw = draw
@@ -74,11 +81,12 @@ export class Control {
     this.controlOptions = this.options.control
     this.activeControl = null
 
-    const { hoverPopupContainer, hoverTextDom } = this._createHoverPopupDom()
-
-    this.hoverPopupContainer = hoverPopupContainer
-    this.hoverTextDom = hoverTextDom
     this.visibleExpressionResultByControlId = {}
+    this.currentFormDataByField = {}
+    this.currentFormControlByField = {}
+    this.calcExpressionRelatedControlByField = {}
+    this.visibleExpressionRelatedFields = []
+    this.controlHighlight = new ControlHighlight(this)
   }
 
   // 搜索高亮匹配
@@ -100,6 +108,21 @@ export class Control {
     }
   }
 
+  public setHighlightControl(controlPosition:ICurrentPosition){
+    this.controlHighlight.setHighlightControlPosition(controlPosition)
+  }
+
+  public computeHighlightControl() {
+    this.controlHighlight.computeHighlightPositionList()
+  }
+
+  public clearHighlightControl(){
+    this.controlHighlight.clearHighlightControlPosition()
+  }
+
+  public renderControlHighlight(ctx: CanvasRenderingContext2D, pageNo: number){
+    this.controlHighlight.renderHighlight(ctx, pageNo)
+  }
   public getDraw(): Draw {
     return this.draw
   }
@@ -501,6 +524,7 @@ export class Control {
     leftIndex = ~leftIndex ? leftIndex : 0
     // 删除元素
     this.draw.spliceElementList(elementList, leftIndex + 1, rightIndex - leftIndex)
+    // this.updateFormData()
     return leftIndex
   }
 
@@ -550,6 +574,7 @@ export class Control {
     if (!this.activeControl) {
       throw new Error('active control is null')
     }
+
     return this.activeControl.setValue(data)
   }
 
@@ -694,6 +719,7 @@ export class Control {
         }
         if (type === ControlType.TEXT) {
           const formatValue = [{ value }]
+          debugger
           formatElementList(formatValue, {
             isHandleFirstElement: false,
             editorOptions: this.options,
@@ -917,41 +943,30 @@ export class Control {
     }
   }
 
-  private _createHoverPopupDom() {
-    const hoverPopupContainer = document.createElement('div')
-    hoverPopupContainer.classList.add(`${EDITOR_PREFIX}-hover-popup`)
-    const hoverTextDom = document.createElement('div')
-    hoverPopupContainer.append(hoverTextDom)
-    const container = this.draw.getContainer()
-    container.append(hoverPopupContainer)
-    return { hoverPopupContainer, hoverTextDom }
+
+  private getPageContainer(){
+    const pageContainer = document.getElementsByClassName('ce-page-container')
+    if (pageContainer && pageContainer.length) {
+      return pageContainer[0]
+    }
+    return null
   }
 
-  public drawHoverPopup(element: IElement, position: IElementPosition) {
+  public drawHoverPopup(element: IElement) {
     if (!element.control?.extension?.tip) {
       return
     }
     const tip = element.control?.extension?.tip
-    const {
-      coordinate: {
-        leftTop: [left, top],
-      },
-      lineHeight,
-    } = position
-    const height = this.draw.getHeight()
-    const pageGap = this.draw.getPageGap()
-    const preY = this.draw.getPageNo() * (height + pageGap)
-    // 位置
-    this.hoverPopupContainer.style.display = 'block'
-    this.hoverPopupContainer.style.left = `${left}px`
-    this.hoverPopupContainer.style.top = `${top + preY + lineHeight}px`
-    this.hoverTextDom.innerText = tip
+    const pageContainer = this.getPageContainer()
+    pageContainer && pageContainer.setAttribute('title',tip)
+
   }
   public clearHoverPopup() {
-    this.hoverPopupContainer.style.display = 'none'
+    const pageContainer = this.getPageContainer()
+    pageContainer && pageContainer.removeAttribute('title')
   }
 
-  public getFormControlItem(element: IElement): IGetControlList | undefined {
+  public getFormControlItem(element: IElement,index:number,trIndex?:number,tdIndex?:number,valueIndex?:number): IGetControlList | undefined {
     const extension = element.control?.extension
     const values = element.control?.value ? element.control?.value : []
     let value: any = null
@@ -980,23 +995,39 @@ export class Control {
         value: value,
         type: element.control?.type as ControlType,
         controlId: element.controlId as string,
+        index,
+        trIndex,
+        tdIndex,
+        valueIndex
       }
       return item
     }
     return undefined
   }
 
+
   // 获取表单控件列表
-  public getFormControlList(): IGetControlList[] {
-    const elementList = this.draw.getOriginalMainElementList()
-    const mainElementList = zipElementList(elementList)
-    const formItem: IGetControlList[] = []
-    for (let i = 0; i < mainElementList.length; i++) {
-      const element = mainElementList[i]
+  public getFormControlList(elementList:IElement[]): IGetControlListResult {
+    // const elementList = this.draw.getOriginalMainElementList()
+    // const mainElementList = zipElementList(elementList)
+    let visibleRelatedFields:string[] = []
+    const formItemByField: ObjectType<IGetControlList> = {}
+
+    for (let i = 0; i < elementList.length; i++) {
+      const element = elementList[i]
       if (element.type === ElementType.CONTROL) {
-        const item = this.getFormControlItem(element)
+        const item = this.getFormControlItem(element,i)
         if (item) {
-          formItem.push(item)
+          formItemByField[item.field] = item
+          // formItem.push(item)
+          if (item.option.authData && item.option.authData.visibleExpression) {
+            item.option.authData.visibleExpression.replace(/\[(.*?)\]/g, (match: string, p1: string) => {
+              if (p1) {
+                visibleRelatedFields.push(p1)
+              }
+              return match
+            })
+          }
         }
       } else if (element.type === ElementType.TABLE) {
         // 表格
@@ -1005,21 +1036,29 @@ export class Control {
             const tr = element.trList[r]
             for (let d = 0; d < tr.tdList.length; d++) {
               const td = tr.tdList[d]
-              for (let v = 0; v < td.value.length; v++) {
-                const tdItem = td.value[v]
-                if (tdItem.type === ElementType.CONTROL) {
-                  const item = this.getFormControlItem(tdItem)
-                  if (item) {
-                    formItem.push(item)
-                  }
+              if (td.value) {
+                const tdFormDataRes = this.getFormControlList(td.value)
+                for (const key in tdFormDataRes.formItemByField) {
+                  formItemByField[key] = tdFormDataRes.formItemByField[key]
                 }
+                visibleRelatedFields = [...visibleRelatedFields,...tdFormDataRes.visibleRelatedFields]
               }
+              // for (let v = 0; v < td.value.length; v++) {
+              //   const tdItem = td.value[v]
+              //   if (tdItem.type === ElementType.CONTROL) {
+              //     const item = this.getFormControlItem(tdItem,i,r,d,v)
+              //     if (item) {
+              //       formItemByField[item.field] = item
+              //       // formItem.push(item)
+              //     }
+              //   }
+              // }
             }
           }
         }
       }
     }
-    return formItem
+    return {formItemByField,visibleRelatedFields}
   }
 
   private getVerifyErrorResult(item: IGetControlList, message: string): IVerifyControlErrorResult {
@@ -1034,7 +1073,9 @@ export class Control {
   // 验证表单控件的值
   public verifyControlValues() {
     return new Promise((resolve, reject) => {
-      const controlList = this.getFormControlList()
+      // const controlList = this.getFormControlList()
+      const controlList:any = []
+
       const errorItems: IVerifyControlErrorResult[] = []
       for (let i = 0; i < controlList.length; i++) {
         const item = controlList[i]
@@ -1131,130 +1172,85 @@ export class Control {
     })
   }
 
-  // function evaluateCondition(condition) {
-  //   try {
-  //     return eval(condition);
-  //   } catch (error) {
-  //     console.error("条件表达式无效:", error);
-  //     return false;
-  //   }
+  
+  // public updateFormData(updateData?:any){
+  //   setTimeout(() => {
+  //     // TODO 将表单项列表在初始化、插入、删除时生成，避免多次获取，并记录下标
+  //     const controlList = this.getFormControlList()
+  //     let formData: any = {}
+  //     const relatedField: any = {} //根据字段名所关联的控件
+  //     for (let i = 0; i < controlList.length; i++) {
+  //       const element = controlList[i]
+  //       formData[element.field] = element.value
+  //       const authData = element.option.authData
+  //       if (authData && authData.calcExpression) {
+  //         authData.calcExpression.replace(/\[(.*?)\]/g, (match: string, p1: string) => {
+  //           if (p1) {
+  //             if (relatedField[p1]) {
+  //               relatedField[p1].push(element)
+  //             } else {
+  //               relatedField[p1] = [element]
+  //             }
+  //           }
+  //           return match
+  //         })
+  //       }
+  //     }
+  //     // 处理计算表达式
+  //     if (updateData) {
+  //       for (const key in updateData) {
+  //         formData = this.handleControlCalcExpression(key,relatedField,formData)
+  //       }
+  //     }
+  //     this.currentFormData = formData
+  //     // 处理显示表达式
+  //     const dataSource = this.draw.getDataSource()
+  //     const newElementList = handleVisibleExpressionElementList(this.draw.getOriginalElementList(),{formData,dataSource})
+  //     this.draw.setElementList(newElementList)
+      
+  //     // this.draw.render({ isSetCursor: true })
+  //   }, 10)
   // }
-
-  private getExpressionResult(formData: any, expression: string) {
-    // 替换字符串变量
-    const dataSource = this.draw.getDataSource()
-    const regex = /\]\+\[|\]-\[|\]\*\[|\]\/\[/
-    const isCalcExpression = regex.test(expression) // 是否计算表达式
-    // 使用正则表达式替换字符串中的所有 [xxxx]
-    const replacedStr = expression.replace(/\[(.*?)\]/g, (_match: string, p1: string) => {
-      let value = isCalcExpression ? '0' : ''
-      if (p1.indexOf('root.') > -1) {
-        // 数据源
-        value = dataSource.getValueByKey(p1)
-      } else if (formData[p1]) {
-        value = formData[p1]
-      }
-      if (isCalcExpression && typeof value === 'string' && !/^\d+$/.test(value)) {
-        value = '0'
-      }
-      return value
-    })
-    try {
-      return eval(replacedStr)
-    } catch (error) {
-      return false
-    }
-  }
-
-  public computeControlExpressionResult(formData: any, controlList: IGetControlList[]) {
-    const res: any = {}
-    for (let i = 0; i < controlList.length; i++) {
-      const item = controlList[i]
-      const authData = item.option.authData
-      if (authData && authData.visibleExpression) {
-        const visible = this.getExpressionResult(formData, authData.visibleExpression)
-        res[item.controlId] = {
-          visible,
-        }
-      }
-      if (authData && authData.printVisibleExpression) {
-        const printVisible = this.getExpressionResult(formData, authData.printVisibleExpression)
-        if (res[item.controlId]) {
-          res[item.controlId].printVisible = printVisible
-        } else {
-          res[item.controlId] = {
-            printVisible,
-          }
-        }
-      }
-    }
-    this.visibleExpressionResultByControlId = res
-    console.log('可见表达式', res)
-    return res
+  public getcurrentFormDataByField(){
+    return this.currentFormDataByField
   }
 
   public getVisibleExpressionResult() {
     return this.visibleExpressionResultByControlId
   }
 
-  // 获取计算表达式的字段关联数据
-  private getControlCalcExpressionRelated() {
-    const controlList = this.getFormControlList()
-    const formData: any = {}
-    const relatedField: any = {} //根据字段名所关联的控件
-    for (let i = 0; i < controlList.length; i++) {
-      const element = controlList[i]
-      formData[element.field] = element.value
-      const authData = element.option.authData
-      if (authData && authData.calcExpression) {
-        authData.calcExpression.replace(/\[(.*?)\]/g, (match: string, p1: string) => {
-          if (p1) {
-            if (relatedField[p1]) {
-              relatedField[p1].push(element)
-            } else {
-              relatedField[p1] = [element]
-            }
-          }
-          return match
-        })
-      }
+  
+  public handleControlCalcExpression(field: string) {
+    const { calcExpressionRelatedControlByField,currentFormDataByField }=this
+    // if (!(relatedField && Object.keys(relatedField).length > 0)) {
+    //   return formData
+    // }
+    if (!calcExpressionRelatedControlByField[field]) {
+      return
     }
-    return {
-      relatedField,
-      formData,
-      controlList,
-    }
-  }
 
-  public handleControlExpression(field: string, relatedField?: any, formData?: any) {
-    let controlList: IGetControlList[] = []
-    if (!relatedField) {
-      const calcExpressionRelated = this.getControlCalcExpressionRelated()
-      relatedField = calcExpressionRelated.relatedField
-      formData = calcExpressionRelated.formData
-      controlList = calcExpressionRelated.controlList
-    }
-    if (!(relatedField && Object.keys(relatedField).length > 0)) {
-      return { formData, controlList }
-    }
-    if (relatedField[field]) {
-      for (let i = 0; i < relatedField[field].length; i++) {
-        const item = relatedField[field][i]
+      const dataSource = this.draw.getDataSource()
+      for (let i = 0; i < calcExpressionRelatedControlByField[field].length; i++) {
+        const item = calcExpressionRelatedControlByField[field][i]
         const controlId = item.controlId
-        const calc = this.getExpressionResult(formData, item.option.authData.calcExpression)
+        const calcResult = getExpressionResult(item.option.authData.calcExpression,{
+          formData:currentFormDataByField,
+          dataSource
+        })
         this.setValueByControlId({
           controlId,
-          value: calc,
+          value: calcResult,
         })
-        formData[item.field] = calc
-        if (relatedField[item.field]) {
-          this.handleControlExpression(item.field, relatedField, formData)
-        }
-      }
+        this.currentFormDataByField[item.field] = calcResult
+        // formData[item.field] = calc
+        // if (relatedField[item.field]) {
+        //   this.handleControlCalcExpression(item.field, relatedField, formData)
+        // }
     }
-    // 返回参数方便可见性表达式使用，避免多次遍历取值
-    return { formData, controlList }
+    // return formData
   }
+
+ 
   public setPropertiesByConceptId(payload: ISetControlProperties) {
     const isReadonly = this.draw.isReadonly()
     if (isReadonly) return
@@ -1294,6 +1290,7 @@ export class Control {
       const pageComponentKey = <keyof IEditorData>key
       const elementList = zipElementList(pageComponentData[pageComponentKey]!)
       pageComponentData[pageComponentKey] = elementList
+      debugger
       formatElementList(elementList, {
         editorOptions: this.options
       })
@@ -1302,5 +1299,92 @@ export class Control {
     this.draw.render({
       isSetCursor: false
     })
+  }
+
+  public initFormData(){
+      // TODO 处理文本域嵌套的取值问题
+      // console.log(controlList)
+      const elementList = this.draw.getOriginalMainElementList()
+      const mainElementList = zipElementList(elementList)
+      const formControlResult = this.getFormControlList(mainElementList)
+      this.visibleExpressionRelatedFields = formControlResult.visibleRelatedFields
+      
+      const currentFormControlByField = formControlResult.formItemByField
+      this.currentFormControlByField = currentFormControlByField
+
+      const formData:ObjectType<any> = {}
+
+      const relatedField: any = {} //根据字段名所关联的控件
+      for (const key in currentFormControlByField) {
+        const item = currentFormControlByField[key]
+        formData[key] = item.value
+        const authData = item.option.authData
+        if (authData && authData.calcExpression) {
+            authData.calcExpression.replace(/\[(.*?)\]/g, (match: string, p1: string) => {
+              if (p1) {
+                if (relatedField[p1]) {
+                  relatedField[p1].push(item)
+                } else {
+                  relatedField[p1] = [item]
+                }
+              }
+              return match
+            })
+        }
+      }
+      this.currentFormDataByField = formData
+      this.calcExpressionRelatedControlByField = relatedField
+      
+      // let formData: any = {}
+      // const relatedField: any = {} //根据字段名所关联的控件
+      // for (let i = 0; i < controlList.length; i++) {
+      //   const element = controlList[i]
+      //   formData[element.field] = element.value
+      //   const authData = element.option.authData
+      //   if (authData && authData.calcExpression) {
+      //     authData.calcExpression.replace(/\[(.*?)\]/g, (match: string, p1: string) => {
+      //       if (p1) {
+      //         if (relatedField[p1]) {
+      //           relatedField[p1].push(element)
+      //         } else {
+      //           relatedField[p1] = [element]
+      //         }
+      //       }
+      //       return match
+      //     })
+      //   }
+      // }
+      // // 处理计算表达式
+      // if (updateData) {
+      //   for (const key in updateData) {
+      //     formData = this.handleControlCalcExpression(key,relatedField,formData)
+      //   }
+      // }
+      // this.currentFormData = formData
+      // // 处理显示表达式
+      // const dataSource = this.draw.getDataSource()
+      // const newElementList = handleVisibleExpressionElementList(this.draw.getOriginalElementList(),{formData,dataSource})
+      // this.draw.setElementList(newElementList)
+      
+      // this.draw.render({ isSetCursor: true })
+  }
+
+  public updateFormValueByField(field:string,value:any){
+    const item = this.currentFormControlByField[field]
+    if (!item) {
+      return
+    }
+    this.currentFormControlByField[field].value = value
+    this.currentFormDataByField[field] = value
+    
+    this.handleControlCalcExpression(field)
+    if (this.visibleExpressionRelatedFields.includes(field)) {
+      // 触发可见表达式计算
+      console.log('触发可见性',value==1)
+      const dataSource = this.draw.getDataSource()
+      const newElementList = handleVisibleExpressionElementList(this.draw.getOriginalElementList(),{formData:this.currentFormDataByField,dataSource})
+      this.draw.setElementList(newElementList)
+    }
+    this.computeHighlightControl()
   }
 }

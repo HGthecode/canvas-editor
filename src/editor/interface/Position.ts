@@ -26,6 +26,7 @@ export interface ICurrentPosition {
   itemIndex?: number
   itemData?: IRadioOptionItem
   controlId?: string
+  hitControl?:IElement
 }
 
 export interface IGetPositionByXYPayload {

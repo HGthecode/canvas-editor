@@ -115,6 +115,7 @@ export class CheckboxControl implements IControlInstance {
     control!.code = codes.join(',')
     const newIndex = startIndex + codes.length - 1
     this.control.repaintControl(newIndex)
+    // this.control.updateFormData({[control?.extension.field]:codes})
   }
 
   public keydown(evt: KeyboardEvent): number | null {

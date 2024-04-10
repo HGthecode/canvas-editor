@@ -33,6 +33,7 @@ export enum FormInputType {
   NUMBER = 'number',
   CHECKBOX = 'checkbox',
   RADIOGROUP = 'radioGroup',
+  BUTTONRADIOGROUP = 'buttonRadioGroup',
   SWITCH = 'switch',
   DATE = 'date',
   AUTOCOMPLETE = 'autoComplete',
@@ -55,3 +56,5 @@ export type FormItemTypes =
   | FormInputType.TEXTAREA
   | FormInputType.TEXT
   | FormInputType.SLOT
+  | FormInputType.BUTTONRADIOGROUP
+

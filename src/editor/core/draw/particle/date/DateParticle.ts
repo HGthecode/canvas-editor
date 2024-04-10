@@ -87,6 +87,8 @@ export class DateParticle {
       formatElementContext(elementList, [dateElement], leftIndex)
       this.draw.insertElementList([dateElement])
     }
+    // this.draw.updateControlFormData({[startElement.control?.extension.field]:date})
+    
   }
 
   public getDateElementRange(): [number, number] | null {
@@ -113,7 +115,6 @@ export class DateParticle {
     if (nextIndex === elementList.length) {
       rightIndex = nextIndex - 1
     }
-    console.log(elementList, controlFirstIndex, leftIndex, rightIndex)
     if (!~leftIndex || !~rightIndex) return null
     return [leftIndex, rightIndex]
     // debugger

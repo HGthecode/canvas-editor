@@ -2,7 +2,10 @@ import { ITd } from './Td'
 
 export interface ITr {
   id?: string
-  height: number
+  height?: number
   tdList: ITd[]
   minHeight?: number
+  attr?:any
+  visible?:boolean
+  type?:'header'|'placeholder'
 }

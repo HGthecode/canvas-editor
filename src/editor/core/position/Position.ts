@@ -326,6 +326,7 @@ export class Position {
       } = positionList[j]
       if (positionNo !== pageNo) continue
       // 命中元素
+      
       if (leftTop[0] - left <= x && rightTop[0] >= x && leftTop[1] <= y && leftBottom[1] >= y) {
         let curPositionIndex = j
         const element = elementList[j]
@@ -347,6 +348,7 @@ export class Position {
               if (~tablePosition.index) {
                 const { index: tdValueIndex, hitLineStartIndex } = tablePosition
                 const tdValueElement = td.value[tdValueIndex]
+                
                 return {
                   index,
                   isCheckbox:
@@ -367,6 +369,7 @@ export class Position {
                   tableId: element.id,
                   hitLineStartIndex,
                   controlId: tdValueElement.controlId,
+                  hitControl:tablePosition.hitControl
                 }
               }
             }
@@ -400,39 +403,6 @@ export class Position {
             isRadio: true,
           }
         }
-        // if (
-        //   element.type === ElementType.RADIO ||
-        //   element.controlComponent === ControlComponent.RADIO
-        // ) {
-        //   // 判断命中的选项
-        //   if (element.radio?.options) {
-        //     const radioOption = this.options.radio
-
-        //     let roundWidth = 7 * 2 + 2
-        //     if (radioOption.radius) {
-        //       roundWidth = radioOption.radius * 2 + 2
-        //     }
-        //     for (let r = 0; r < element.radio.options.length; r++) {
-        //       const radioItem = element.radio.options[r]
-        //       const fontWidth = radioOption.fontWidth ? radioOption.fontWidth : 0
-        //       const itemMarginRight = radioOption.itemMarginRight ? radioOption.itemMarginRight : 0
-        //       const radioItemWidth =
-        //         roundWidth + radioItem.label.length * fontWidth + itemMarginRight
-        //       const itemLeftTop = leftTop[0] + radioItemWidth * r
-        //       const itemRightTop = itemLeftTop + radioItemWidth
-        //       // 定位选中项
-        //       if (x >= itemLeftTop && x < itemRightTop && leftTop[1] <= y && leftBottom[1] >= y) {
-        //         return {
-        //           index: curPositionIndex,
-        //           isDirectHit: true,
-        //           isRadio: true,
-        //           itemIndex: r,
-        //           itemData: radioItem,
-        //         }
-        //       }
-        //     }
-        //   }
-        // }
         let hitLineStartIndex: number | undefined
         // 判断是否在文字中间前后
         if (elementList[index].value !== ZERO) {
@@ -445,6 +415,7 @@ export class Position {
           }
         }
         return {
+          hitControl:element,
           hitLineStartIndex,
           index: curPositionIndex,
           isControl: !!element.controlId,
@@ -511,6 +482,7 @@ export class Position {
           curPositionIndex = index
         }
         isLastArea = true
+        
         break
       }
     }
@@ -558,6 +530,8 @@ export class Position {
       isControl: !!elementList[curPositionIndex]?.controlId,
     }
   }
+
+  
 
   public getFloatPositionByXY(
     payload: IGetFloatPositionByXYPayload

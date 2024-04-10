@@ -34,7 +34,9 @@ export default function useTextControl(): FormControlHooksResult {
   const onSubmit = (e:any) => {
     return new Promise((resolve) => {
       const { values, context,command } = e
-      if (context) {
+      console.log(context.hoverElement)
+      
+      if (context && context.hoverElement) {
         //编辑时移除元素
         command.removeControl()
       }

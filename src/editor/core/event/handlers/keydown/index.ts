@@ -27,6 +27,7 @@ export function keydown(evt: KeyboardEvent, host: CanvasEvent) {
   const control = draw.getControl()
   const isPartRangeInControlOutside = control.isPartRangeInControlOutside()
   const activeControl = control.getActiveControl()
+  
   if (evt.key === KeyMap.Backspace) {
     if (isReadonly || isPartRangeInControlOutside) return
     let curIndex: number | null
@@ -35,6 +36,19 @@ export function keydown(evt: KeyboardEvent, host: CanvasEvent) {
     } else {
       // 判断是否允许删除
       if (isCollapsed && elementList[index].value === ZERO && index === 0) {
+        evt.preventDefault()
+        return
+      }
+      // 表格属性不允许删除
+      const deleteElement = elementList[index]
+      if (deleteElement && 
+        deleteElement.type === ElementType.TABLE &&
+        !(
+          deleteElement.attr && 
+          deleteElement.attr.useActionAuth && 
+          deleteElement.attr.useActionAuth.removeTable
+        )
+      ) {
         evt.preventDefault()
         return
       }
@@ -65,6 +79,20 @@ export function keydown(evt: KeyboardEvent, host: CanvasEvent) {
     draw.render({ curIndex })
   } else if (evt.key === KeyMap.Delete) {
     if (isReadonly || isPartRangeInControlOutside) return
+    // 表格属性不允许删除
+    const deleteElement = elementList[startIndex + 1]
+    if (deleteElement && 
+      deleteElement.type === ElementType.TABLE &&
+      !(
+        deleteElement.attr && 
+        deleteElement.attr.useActionAuth && 
+        deleteElement.attr.useActionAuth.removeTable
+      )
+    ) {
+      evt.preventDefault()
+      return
+    }
+
     let curIndex: number | null
     if (activeControl) {
       curIndex = control.keydown(evt)

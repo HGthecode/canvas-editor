@@ -1,7 +1,6 @@
 import { INTERNAL_CONTEXT_MENU_KEY } from '../../../dataset/constant/ContextMenu'
 import { ControlType } from '../../../dataset/enum/Control'
 import { EditorMode } from '../../../dataset/enum/Editor'
-import { ElementType } from '../../../dataset/enum/Element'
 import { IContextMenuContext, IRegisterContextMenu } from '../../../interface/contextmenu/ContextMenu'
 import { Command } from '../../command/Command'
 const {
@@ -16,7 +15,7 @@ export const controlMenus: IRegisterContextMenu[] = [
     when: payload => {
       return (
         payload.mode === EditorMode.EDIT &&
-        payload.hoverElement?.type === ElementType.CONTROL && 
+        payload.hoverElement?.controlId!=null && 
         !payload.isReadonly 
       )
     },
@@ -24,9 +23,13 @@ export const controlMenus: IRegisterContextMenu[] = [
       if (!context.hoverElement) {
         return
       }
+      command.executeSetRange(context.hoverIndex, context.hoverIndex)
       const type: ControlType = context.hoverElement?.control?.type as ControlType
       command.insertFormControl({ type, context })
-    }
+    } 
+     
+
+     
   },
   {
     key: DELETE,

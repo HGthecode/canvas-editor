@@ -18,6 +18,7 @@ export interface IElementBasic {
   id?: string
   type?: ElementType
   value: string
+  visible?:boolean
 }
 
 export interface IElementStyle {
@@ -60,6 +61,29 @@ export interface ITableAttr {
   colgroup?: IColgroup[]
   trList?: ITr[]
   borderType?: TableBorder
+  attr?:ITableAttrOption
+}
+
+export interface ITableDataSourceColumn {
+  title:string
+  field:string
+  width:number
+  id?:string
+}
+
+export interface ITableAttrOption {
+  code:string
+  useActionAuth:ITableAttrUserActionAuth
+  visibleExpression:string
+  printVisibleExpression:string
+  // dataSourceTableColumns:ITableDataSourceColumn[],
+  // dataSourceValuePath:string
+}
+
+export interface ITableColAttrOption {
+  padding:number[]
+  horizontalAlign:'left'|'center'|'right'
+  verticalAlign:'top'|'center'|'buttom'
 }
 
 export interface ITableElement {
@@ -67,6 +91,9 @@ export interface ITableElement {
   trId?: string
   tableId?: string
   conceptId?: string
+  tableAttr?:ITableAttrOption
+  trAttr?:any
+  tdAttr?:any
 }
 
 export type ITable = ITableAttr & ITableElement
@@ -171,4 +198,14 @@ export interface IElementFillRect {
   y: number
   width: number
   height: number
+}
+
+export interface ITableAttrUserActionAuth {
+  adjustRowHeight?:boolean
+  adjustColWidth?:boolean
+  addRow?:boolean
+  addCol?:boolean
+  removeRow?:boolean
+  removeCol?:boolean
+  removeTable?:boolean
 }

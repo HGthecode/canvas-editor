@@ -24,9 +24,11 @@ export class TextControl implements IControlInstance {
     return this.element
   }
 
-  public getValue(): IElement[] {
+  public getValue(context?: IControlContext): IElement[] {
     const elementList = this.control.getElementList()
-    const { startIndex } = this.control.getRange()
+    // const { startIndex } = this.control.getRange()
+    const range = context && context.range || this.control.getRange()
+    const { startIndex } =range
     const startElement = elementList[startIndex]
     const data: IElement[] = []
     // 向左查找
@@ -79,10 +81,14 @@ export class TextControl implements IControlInstance {
 
     const draw = this.control.getDraw()
     // 移除选区元素
+    console.log(666,startIndex,endIndex)
+    
     if (startIndex !== endIndex) {
       draw.spliceElementList(elementList, startIndex + 1, endIndex - startIndex)
     } else {
       // 移除空白占位符
+      console.log('removePlaceholder',context)
+      
       this.control.removePlaceholder(startIndex, context)
     }
     // 非文本类元素或前缀过渡掉样式属性
@@ -103,92 +109,34 @@ export class TextControl implements IControlInstance {
       const newElement: IElement = {
         color,
         ...anchorElement,
-        ...data[i],
         controlComponent: ControlComponent.VALUE,
+        ...data[i],
         underline: startElement.underline ? true : false,
       }
       formatElementContext(elementList, [newElement], startIndex)
       draw.spliceElementList(elementList, start + i, 0, newElement)
     }
-    this.formatValueByControlId()
+   
+    this.formatValueByControlId(context)
 
-    // 处理计算表达式联动的其它控件
-    // const controlExpressionResult = this.control.computeControlExpressionResult()
-    // console.log('text setValue', extension, controlExpressionResult)
-    // if (
-    //   controlExpressionResult.relatedControlField[extension.field] &&
-    //   controlExpressionResult.relatedControlField[extension.field].length
-    // ) {
-    //   for (
-    //     let i = 0;
-    //     i < controlExpressionResult.relatedControlField[extension.field].length;
-    //     i++
-    //   ) {
-    //     const controlId = controlExpressionResult.relatedControlField[extension.field][i]
-    //     this.control.setValueByControlId({
-    //       controlId: controlId,
-    //       value: '666',
-    //     })
-    //   }
-    // }
-
-    // 格式化/加密处理
-    // if (
-    //   extension.authData &&
-    //   extension.authData.encryption &&
-    //   extension.authData.encryption !== 'none'
-    // ) {
-    // this.formatValueByControlId(
-    //   anchorElement.controlId,
-    //   elementList,
-    //   extension.authData.encryption,
-    // )
-    // 加密处理
-    // const controlValues: string[] = []
-    // for (let i = 0; i < elementList.length; i++) {
-    //   const element = elementList[i]
-    //   if (element.controlId && element.controlId === anchorElement.controlId) {
-    //     const nextI = i + 1
-    //     if (element.controlComponent === ControlComponent.VALUE) {
-    //       controlValues.push(element.value)
-    //     }
-    //     if (
-    //       element.controlComponent === ControlComponent.VALUE &&
-    //       extension.authData.encryption === 'showHT' &&
-    //       controlValues.length > 1 &&
-    //       elementList[nextI].controlComponent === ControlComponent.VALUE &&
-    //       element.value != '*'
-    //     ) {
-    //       // 仅显示首尾字符
-    //       element.realValue = element.value
-    //       element.value = '*'
-    //     } else if (
-    //       element.controlComponent === ControlComponent.VALUE &&
-    //       extension.authData.encryption === 'phone' &&
-    //       controlValues.length > 3 &&
-    //       controlValues.length < 8 &&
-    //       elementList[nextI].controlComponent === ControlComponent.VALUE &&
-    //       element.value != '*'
-    //     ) {
-    //       // 手机号脱敏
-    //       element.realValue = element.value
-    //       element.value = '*'
-    //     }
-    //   }
-    // }
-    // }
-
+    
     return start + data.length - 1
   }
 
-  public formatValueByControlId() {
-    const values = this.getValue()
-    console.log(values)
+  public formatValueByControlId( context?: IControlContext) {
+    
+    const values = this.getValue(context)
     if (!values.length) {
       return
     }
     const control = values[0].control
     const extension = control?.extension
+    let valueText = ''
+    values.forEach(v => {
+      valueText+=v.value
+    })
+    this.control.updateFormValueByField(extension.field,valueText)
+    
     if (!(extension.authData && extension.authData.encryption)) {
       return
     }
@@ -274,7 +222,6 @@ export class TextControl implements IControlInstance {
     if (this.control.isDisabledControl()) {
       return null
     }
-    console.log('keyw')
 
     const elementList = this.control.getElementList()
     const range = this.control.getRange()
@@ -286,8 +233,6 @@ export class TextControl implements IControlInstance {
     const draw = this.control.getDraw()
     // backspace
     if (evt.key === KeyMap.Backspace) {
-      console.log('back', startIndex, endIndex)
-
       // 移除选区元素
       if (startIndex !== endIndex) {
         draw.spliceElementList(elementList, startIndex + 1, endIndex - startIndex)
@@ -322,7 +267,6 @@ export class TextControl implements IControlInstance {
       }
     } else if (evt.key === KeyMap.Delete) {
       // 移除选区元素
-      console.log('c', startIndex, endIndex)
 
       if (startIndex !== endIndex) {
         draw.spliceElementList(elementList, startIndex + 1, endIndex - startIndex)

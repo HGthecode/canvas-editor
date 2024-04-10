@@ -128,6 +128,13 @@ export class Command {
   public insertSign:CommandAdapt['insertSign']
   public settingWatermark:CommandAdapt['settingWatermark']
   public settingPage:CommandAdapt['settingPage']
+  public showTableAttrModal:CommandAdapt['showTableAttrModal']
+  public showTableRowAttrModal:CommandAdapt['showTableRowAttrModal']
+  public showTableColAttrModal:CommandAdapt['showTableColAttrModal']
+  public setTableAttr:CommandAdapt['setTableAttr']
+  public insertTableRowsByCode:CommandAdapt['insertTableRowsByCode']
+
+
 
 
   constructor(adapt: CommandAdapt) {
@@ -266,5 +273,10 @@ export class Command {
     this.insertSign = adapt.insertSign.bind(adapt)
     this.settingWatermark =  adapt.settingWatermark.bind(adapt)
     this.settingPage = adapt.settingPage.bind(adapt)
+    this.showTableAttrModal = adapt.showTableAttrModal.bind(adapt)
+    this.showTableRowAttrModal = adapt.showTableRowAttrModal.bind(adapt)
+    this.setTableAttr = adapt.setTableAttr.bind(adapt)
+    this.showTableColAttrModal = adapt.showTableColAttrModal.bind(adapt)
+    this.insertTableRowsByCode = adapt.insertTableRowsByCode.bind(adapt)
   }
 }

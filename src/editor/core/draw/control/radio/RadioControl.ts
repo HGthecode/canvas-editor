@@ -64,6 +64,8 @@ export class RadioControl implements IControlInstance {
   }
 
   public setSelect(context: IControlContext = {}) {
+    console.log('radio setSelect')
+    
     const { control } = this.element
     const elementList = context.elementList || this.control.getElementList()
     const { startIndex } = context.range || this.control.getRange()
@@ -106,15 +108,15 @@ export class RadioControl implements IControlInstance {
       nextIndex++
     }
     control!.code = data.join(',')
-    console.log('radio setSelect', data)
     const newIndex = startIndex + data.length - 1
-
+    const value = data.length?data[0]:''
+    this.control.updateFormValueByField(control?.extension.field,value)
     this.control.repaintControl(newIndex)
+    
+    // this.control.updateFormData({[control?.extension.field]:data})
   }
 
-  // public setChecked(x, y) {
-  //   console.log('x-y', x, y)
-  // }
+  
 
   public keydown(evt: KeyboardEvent): number {
     const range = this.control.getRange()

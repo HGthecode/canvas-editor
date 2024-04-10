@@ -46,7 +46,7 @@ import {
   IEditorResult,
   IEditorText,
 } from '../../interface/Editor'
-import { IElement, IElementStyle } from '../../interface/Element'
+import { IElement, IElementStyle, ITableAttrOption, ITableColAttrOption } from '../../interface/Element'
 import { IPasteOption } from '../../interface/Event'
 import { IMargin } from '../../interface/Margin'
 import { IRange, RangeContext, RangeRect } from '../../interface/Range'
@@ -104,6 +104,8 @@ import {WatermarkSettingModalProps} from '../../components/settingWatermark/inte
 import settingPage from '../../components/settingPage'
 import {PageSettingModalProps} from '../../components/settingPage/interface'
 import { InsertLinkModalProps } from '../../components/insertLink/interface'
+import {tableAttrModal,tableRowAttrModal,tableColAttrModal} from '../../components/tableAttr'
+import { TableAttrModalProps } from '../../components/tableAttr/interface'
 
 
 
@@ -783,6 +785,20 @@ export class CommandAdapt {
       value: '',
       colgroup,
       trList,
+      attr:{
+        code:'',
+        useActionAuth:{
+          adjustRowHeight:true,
+          adjustColWidth:true,
+          addRow:true,
+          addCol:true,
+          removeRow:true,
+          removeCol:true,
+          removeTable:true
+        },
+        visibleExpression:'',
+        printVisibleExpression:''
+      }
     }
     // 格式化element
     formatElementList([element], {
@@ -798,6 +814,55 @@ export class CommandAdapt {
     )
     this.range.setRange(curIndex, curIndex)
     this.draw.render({ curIndex, isSetCursor: false })
+  }
+
+  // 根据表格code插入行数据
+  public insertTableRowsByCode(code:string,rows:ITr[],startIndex:number){
+    const originalElementList = this.draw.getOriginalElementList()
+    const tableIndex = originalElementList.findIndex(p=>p.attr?.code === code)
+    if (tableIndex===-1) {
+      return
+    }
+    const table = originalElementList[tableIndex]
+    const tableTrList = table.trList!
+    const trList: ITr[] = []
+    for (let r = 0; r < rows.length; r++) {
+      const newTrId = getUUID()
+      const tdList: ITd[] = []
+      for (let c = 0; c < rows[r].tdList.length; c++) {
+        const newTdId = getUUID()
+        const tdItem = rows[r].tdList[c]
+        const values:IElement[] = []
+        for (let v = 0; v < tdItem.value.length; v++) {
+          const valueItem = tdItem.value[v]
+          values.push({
+            ...valueItem,
+            size: 16, 
+            tableId:table.id,
+            trId: newTrId,
+            tdId: newTdId, 
+          })
+        }
+        tdList.push({
+          id:newTdId,
+          colspan:tdItem.colspan || 1,
+          rowspan:tdItem.colIndex || 1,
+          value: values,
+        })
+      } 
+      const tr: ITr = {
+        id: newTrId,
+        height: this.options.defaultTrMinHeight,
+        tdList,
+      }
+      trList.push(tr)
+    }
+
+    tableTrList.splice(startIndex, 0, ...trList)
+    // 重新设置上下文
+    this.range.setRange(0, 0)
+    // 重新渲染
+    this.draw.render({ curIndex: 0 })
   }
 
   public insertTableTopRow() {
@@ -817,7 +882,7 @@ export class CommandAdapt {
         const tr = curTrList[t]
         for (let d = 0; d < tr.tdList.length; d++) {
           const td = tr.tdList[d]
-          if (td.rowspan > 1 && td.rowIndex! + td.rowspan >= curTrNo + 1) {
+          if (td.rowspan && td.rowspan > 1 && td.rowIndex! + td.rowspan >= curTrNo + 1) {
             td.rowspan += 1
           }
         }
@@ -883,7 +948,7 @@ export class CommandAdapt {
         const tr = curTrList[t]
         for (let d = 0; d < tr.tdList.length; d++) {
           const td = tr.tdList[d]
-          if (td.rowspan > 1 && td.rowIndex! + td.rowspan >= curTrNo + 1) {
+          if (td.rowspan  && td.rowspan > 1 && td.rowIndex! + td.rowspan >= curTrNo + 1) {
             td.rowspan += 1
           }
         }
@@ -1071,7 +1136,7 @@ export class CommandAdapt {
       const tdList = tr.tdList
       for (let d = 0; d < tdList.length; d++) {
         const td = tdList[d]
-        if (td.rowIndex! + td.rowspan > curTdRowIndex) {
+        if (td.rowspan && td.rowIndex! + td.rowspan > curTdRowIndex) {
           td.rowspan--
         }
       }
@@ -1079,7 +1144,7 @@ export class CommandAdapt {
     // 补跨行
     for (let d = 0; d < curTr.tdList.length; d++) {
       const td = curTr.tdList[d]
-      if (td.rowspan > 1) {
+      if (td.rowspan && td.rowspan > 1) {
         const tdId = getUUID()
         const nextTr = trList[trIndex! + 1]
         nextTr.tdList.splice(d, 0, {
@@ -1134,7 +1199,7 @@ export class CommandAdapt {
       const tr = curTrList[t]
       for (let d = 0; d < tr.tdList.length; d++) {
         const td = tr.tdList[d]
-        if (td.colspan > 1) {
+        if (td.colspan && td.colspan > 1) {
           const tdColIndex = td.colIndex!
           // 交叉减去一列
           if (tdColIndex <= curColIndex && tdColIndex + td.colspan - 1 >= curColIndex) {
@@ -1207,9 +1272,9 @@ export class CommandAdapt {
       [startTd, endTd] = [endTd, startTd]
     }
     const startColIndex = startTd.colIndex!
-    const endColIndex = endTd.colIndex! + (endTd.colspan - 1)
+    const endColIndex = endTd.colIndex! + (endTd.colspan! - 1)
     const startRowIndex = startTd.rowIndex!
-    const endRowIndex = endTd.rowIndex! + (endTd.rowspan - 1)
+    const endRowIndex = endTd.rowIndex! + (endTd.rowspan! - 1)
     // 选区行列
     const rowCol: ITd[][] = []
     for (let t = 0; t < curTrList.length; t++) {
@@ -1269,12 +1334,12 @@ export class CommandAdapt {
         }
         // 列合并
         if (t === 0 && d !== 0) {
-          anchorTd.colspan += td.colspan
+          anchorTd.colspan! += td.colspan!
         }
         // 行合并
         if (t !== 0) {
           if (anchorTd.colIndex === td.colIndex) {
-            anchorTd.rowspan += td.rowspan
+            anchorTd.rowspan! += td.rowspan!
           }
         }
       }
@@ -1313,7 +1378,7 @@ export class CommandAdapt {
     if (curTd.rowspan === 1 && curTd.colspan === 1) return
     const colspan = curTd.colspan
     // 设置跨列
-    if (curTd.colspan > 1) {
+    if (curTd.colspan && curTd.colspan > 1) {
       for (let c = 1; c < curTd.colspan; c++) {
         const tdId = getUUID()
         curTr.tdList.splice(tdIndex! + c, 0, {
@@ -1334,10 +1399,10 @@ export class CommandAdapt {
       curTd.colspan = 1
     }
     // 设置跨行
-    if (curTd.rowspan > 1) {
+    if (curTd.rowspan && curTd.rowspan > 1) {
       for (let r = 1; r < curTd.rowspan; r++) {
         const tr = curTrList[trIndex! + r]
-        for (let c = 0; c < colspan; c++) {
+        for (let c = 0; c < colspan!; c++) {
           const tdId = getUUID()
           tr.tdList.splice(curTd.colIndex!, 0, {
             id: tdId,
@@ -2149,8 +2214,6 @@ export class CommandAdapt {
   }
 
   public insertElementList(payload: IElement[]) {
-    console.log('insertElementList',payload)
-    
     if (!payload.length) return
     const isReadonly = this.draw.isReadonly()
     if (isReadonly) return
@@ -2452,4 +2515,127 @@ export class CommandAdapt {
       command:this
     })
   }
+
+  public showTableAttrModal(payload:TableAttrModalProps){
+    tableAttrModal({
+      ...payload,
+      command:this
+    })
+  }
+  public showTableRowAttrModal(payload:TableAttrModalProps){
+    tableRowAttrModal({
+      ...payload,
+      command:this
+    })
+  }
+  public showTableColAttrModal(payload:TableAttrModalProps){
+    tableColAttrModal({
+      ...payload,
+      command:this
+    })
+  }
+
+  public setTableAttr(payload:ITableAttrOption) {
+    const isReadonly = this.draw.isReadonly()
+    if (isReadonly) return
+    const positionContext = this.position.getPositionContext()
+    if (!positionContext.isTable) return
+    const { index } = positionContext
+    
+    const originalElementList = this.draw.getOriginalElementList()
+    const element = originalElementList[index!]
+    element.attr = payload
+    // console.log(element)
+    // if (element.attr.dataSourceValuePath && element.attr.dataSourceTableColumns && element.trList?.length) {
+    //   // 根据配置数据源渲染表格，插入表头和占位行
+    //   const headerRowIndex = element.trList?.find(p=>p.type === 'header')
+    //   // 生成表头行配置
+    //   const headerTrId = getUUID()
+    //   const firstRow = element.trList[0]
+    //   const headerTr: ITr = {
+    //     height: firstRow.height,
+    //     id: headerTrId,
+    //     tdList: [],
+    //   }
+    //   for (let t = 0; t < headerTr.tdList.length; t++) {
+    //     const curTd = headerTr.tdList[t]
+    //     const newTdId = getUUID()
+    //     headerTr.tdList.push({
+    //       id: newTdId,
+    //       rowspan: 1,
+    //       colspan: curTd.colspan,
+    //       value: [
+    //         {
+    //           value: ZERO,
+    //           size: 16,
+    //           tableId:element.tableId,
+    //           trId: headerTrId,
+    //           tdId: newTdId,
+    //         },
+    //       ],
+    //     })
+    //   }
+    //   if (headerRowIndex>-1) {
+    //     // 已存在表头
+
+    //   }
+    // }
+    
+    const { endIndex } = this.range.getRange()
+    this.draw.render({
+      curIndex: endIndex,
+    })
+
+  }
+  public setTableRowAttr(payload:ITableAttrOption) {
+    const isReadonly = this.draw.isReadonly()
+    if (isReadonly) return
+    const positionContext = this.position.getPositionContext()
+    if (!positionContext.isTable) return
+    const { index,trIndex } = positionContext
+    
+    const originalElementList = this.draw.getOriginalElementList()
+    const element = originalElementList[index!]
+    const curTrList = element.trList!
+    const curTr = curTrList[trIndex!]!
+    curTr.attr = payload
+    const { endIndex } = this.range.getRange()
+    this.draw.render({
+      curIndex: endIndex,
+    })
+  }
+
+  public setTableColAttr(payload:ITableColAttrOption) {
+    const isReadonly = this.draw.isReadonly()
+    if (isReadonly) return
+    const positionContext = this.position.getPositionContext()
+    if (!positionContext.isTable) return
+    const { index,trIndex,tdIndex } = positionContext
+    
+    const originalElementList = this.draw.getOriginalElementList()
+    const element = originalElementList[index!]
+    const curTrList = element.trList!
+    const curTr = curTrList[trIndex!]!
+    const curTd = curTr.tdList[tdIndex!]
+    curTd.attr = payload
+    const { endIndex } = this.range.getRange()
+    if (payload.horizontalAlign) {
+      if (curTd.value && curTd.value.length) {
+        for (let i = 0; i < curTd.value.length; i++) {
+          const item = curTd.value[i]
+          item.rowFlex = payload.horizontalAlign as RowFlex
+        }
+      }else{
+        curTd.value.push({value:'',rowFlex: payload.horizontalAlign as RowFlex})
+      }
+    }
+    if (payload.verticalAlign) {
+      curTd.verticalAlign = payload.verticalAlign as VerticalAlign
+    }
+    this.draw.render({
+      curIndex: endIndex,
+    })
+  }
+
+ 
 }
