@@ -145,7 +145,7 @@ export function formatElementList(
       })
       // 追加节点
       if (valueList.length) {
-        const listId = getUUID()
+        const listId = el.listId || getUUID()
         for (let v = 0; v < valueList.length; v++) {
           const value = valueList[v]
           value.listId = listId
@@ -209,7 +209,23 @@ export function formatElementList(
       const tableId = el.id || getUUID()
       el.id = tableId
       if (el.trList) {
-        const { defaultTrMinHeight } = editorOptions.table
+        const {
+          table: { defaultTrMinHeight, defaultColMinWidth },
+          margins
+        } = editorOptions
+        // 当colgroup未传入时，默认使用编辑器宽度平分
+        if (!el.colgroup?.length && el.trList.length) {
+          const colCount = el.trList[0].tdList.reduce(
+            (pre, cur) => pre + cur.colspan,
+            0
+          )
+          const innerWidth = editorOptions.width - margins[1] - margins[3]
+          const colWidth = Math.max(innerWidth / colCount, defaultColMinWidth)
+          el.colgroup = []
+          for (let c = 0; c < colCount; c++) {
+            el.colgroup.push({ width: colWidth })
+          }
+        }
         for (let t = 0; t < el.trList.length; t++) {
           const tr = el.trList[t]
           const trId = tr.id || getUUID()
