@@ -132,7 +132,8 @@ export const CONTROL_STYLE_ATTR: Array<keyof IControlStyle> = [
   'bold',
   'highlight',
   'italic',
-  'strikeout'
+  'strikeout',
+  'color'
 ]
 
 export const AREA_CONTEXT_ATTR: Array<keyof IElement> = ['areaId', 'area']

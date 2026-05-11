@@ -82,10 +82,10 @@ export class ControlSearch {
         !this.control.getIsExistValueByElementListIndex(elementList, index)
     }
     return (
-      (isActiveControlHighlight ? activeBackgroundColor : '') ||
-      (isDisabledControlHighlight ? disabledBackgroundColor : '') ||
-      (isExitsValueControlHighlight ? existValueBackgroundColor : '') ||
-      (isNoValueControlHighlight ? noValueBackgroundColor : '')
+      (isActiveControlHighlight ? (element.control?.activeBackgroundColor ?? activeBackgroundColor) : '') ||
+      (isDisabledControlHighlight ? (element.control?.disabledBackgroundColor ?? disabledBackgroundColor) : '') ||
+      (isExitsValueControlHighlight ? (element.control?.existValueBackgroundColor ?? existValueBackgroundColor) : '') ||
+      (isNoValueControlHighlight ? (element.control?.noValueBackgroundColor ?? noValueBackgroundColor) : '')
     )
   }
 

@@ -87,6 +87,14 @@ export interface IControlBasic {
   rowFlex?: RowFlex
   preText?: string
   postText?: string
+  placeholderColor?: string
+  bracketColor?: string
+  borderWidth?: number
+  borderColor?: string
+  activeBackgroundColor?: string
+  disabledBackgroundColor?: string
+  existValueBackgroundColor?: string
+  noValueBackgroundColor?: string
 }
 
 export interface IControlStyle {
@@ -96,6 +104,7 @@ export interface IControlStyle {
   highlight?: string
   italic?: boolean
   strikeout?: boolean
+  color?: string
 }
 
 export type IControl = IControlBasic &

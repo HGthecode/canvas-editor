@@ -108,7 +108,16 @@ elementList.splice(12, 0, {
     value: null,
     placeholder: '其他补充',
     prefix: '{',
-    postfix: '}'
+    postfix: '}',
+    postText: '天',
+    preText: '发热',
+    color: '#FF0000', // 控件内容文本的颜色
+    placeholderColor: '#00FF00', // 占位符颜色
+    bracketColor: '#0000FF', // 前后缀括号颜色
+    border: true, // 开启边框
+    borderWidth: 2, // 边框宽度
+    borderColor: '#FF00FF', // 边框颜色
+    activeBackgroundColor: '#FFF000' // 激活状态背景色
   }
 })
 

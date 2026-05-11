@@ -1,11 +1,12 @@
 import { DeepRequired } from '../../../../interface/Common'
 import { IEditorOption } from '../../../../interface/Editor'
-import { IElementFillRect } from '../../../../interface/Element'
+import { IElement, IElementFillRect } from '../../../../interface/Element'
 import { Draw } from '../../Draw'
 
 export class ControlBorder {
   protected borderRect: IElementFillRect
   private options: DeepRequired<IEditorOption>
+  private element: IElement | null = null
 
   constructor(draw: Draw) {
     this.borderRect = this.clearBorderInfo()
@@ -22,12 +23,19 @@ export class ControlBorder {
     return this.borderRect
   }
 
-  public recordBorderInfo(x: number, y: number, width: number, height: number) {
+  public recordBorderInfo(
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    element?: IElement
+  ) {
     const isFirstRecord = !this.borderRect.width
     if (isFirstRecord) {
       this.borderRect.x = x
       this.borderRect.y = y
       this.borderRect.height = height
+      this.element = element || null
     }
     this.borderRect.width += width
   }
@@ -41,8 +49,8 @@ export class ControlBorder {
     const { x, y, width, height } = this.borderRect
     ctx.save()
     ctx.translate(0, 1 * scale)
-    ctx.lineWidth = borderWidth * scale
-    ctx.strokeStyle = borderColor
+    ctx.lineWidth = (this.element?.control?.borderWidth ?? borderWidth) * scale
+    ctx.strokeStyle = this.element?.control?.borderColor ?? borderColor
     ctx.beginPath()
     ctx.rect(x, y, width, height)
     ctx.stroke()

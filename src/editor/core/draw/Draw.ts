@@ -2355,7 +2355,8 @@ export class Draw {
             x,
             y + rowMargin,
             element.metrics.width,
-            curRow.height - 2 * rowMargin
+            curRow.height - 2 * rowMargin,
+            element
           )
         } else if (preElement?.control?.border) {
           this.control.drawBorder(ctx)

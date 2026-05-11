@@ -1448,8 +1448,14 @@ export class Control {
     })
   }
 
-  public recordBorderInfo(x: number, y: number, width: number, height: number) {
-    this.controlBorder.recordBorderInfo(x, y, width, height)
+  public recordBorderInfo(
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    element?: IElement
+  ) {
+    this.controlBorder.recordBorderInfo(x, y, width, height, element)
   }
 
   public drawBorder(ctx: CanvasRenderingContext2D) {
