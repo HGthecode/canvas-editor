@@ -1,4 +1,5 @@
 import { CommandAdapt } from './CommandAdapt'
+import { CommandAdaptExtend } from './CommandAdaptExtend'
 
 // 通过CommandAdapt中转避免直接暴露编辑器上下文
 export class Command {
@@ -146,6 +147,7 @@ export class Command {
   public getTitleValue: CommandAdapt['getTitleValue']
   public getPositionContextByEvent: CommandAdapt['getPositionContextByEvent']
   public getElementById: CommandAdapt['getElementById']
+  public extend: CommandAdaptExtend
 
   constructor(adapt: CommandAdapt) {
     // 全局命令
@@ -295,6 +297,8 @@ export class Command {
     this.getTitleValue = adapt.getTitleValue.bind(adapt)
     this.getPositionContextByEvent = adapt.getPositionContextByEvent.bind(adapt)
     this.getElementById = adapt.getElementById.bind(adapt)
+    // 自定义扩展
+    this.extend = adapt.extend
     // 控件
     this.executeSetControlValue = adapt.setControlValue.bind(adapt)
     this.executeSetControlValueList = adapt.setControlValueList.bind(adapt)

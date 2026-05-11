@@ -137,6 +137,7 @@ import {
 import { IAreaBadge, IBadge } from '../../interface/Badge'
 import { IRichtextOption } from '../../interface/Command'
 import { WatermarkType } from '../../dataset/enum/Watermark'
+import { registerExtend, type CommandAdaptExtend } from './CommandAdaptExtend'
 
 export class CommandAdapt {
   private draw: Draw
@@ -151,6 +152,7 @@ export class CommandAdapt {
   private i18n: I18n
   private zone: Zone
   private tableOperate: TableOperate
+  public extend: CommandAdaptExtend
 
   constructor(draw: Draw) {
     this.draw = draw
@@ -165,6 +167,7 @@ export class CommandAdapt {
     this.i18n = draw.getI18n()
     this.zone = draw.getZone()
     this.tableOperate = draw.getTableOperate()
+    this.extend = registerExtend(this)
   }
 
   public mode(payload: EditorMode) {
