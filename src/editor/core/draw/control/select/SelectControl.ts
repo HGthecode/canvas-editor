@@ -425,6 +425,20 @@ export class SelectControl implements IControlInstance {
     const styleElement = valueElement
       ? pickObject(valueElement, EDITOR_ELEMENT_STYLE_ATTR)
       : pickObject(elementList[range.startIndex], CONTROL_STYLE_ATTR)
+
+    if (!valueElement) {
+      const controlDefaultStyle: Partial<IElement> = control
+        ? pickObject(<IElement>(<unknown>control), CONTROL_STYLE_ATTR)
+        : {}
+
+      // 对于下拉控件，如果是首次设值（即没有原有值元素），
+      // 新的值元素应当直接使用控件自身定义的文本样式，而不应受到占位符、前缀或后缀颜色的干扰。
+      if (controlDefaultStyle.color) {
+        styleElement.color = controlDefaultStyle.color as string
+      } else {
+        delete styleElement.color
+      }
+    }
     // 清空选项
     const prefixIndex = this.clearSelect(context, {
       isAddPlaceholder: false,

@@ -26,3 +26,6 @@
 | `src/editor/core/draw/control/richtext/Border.ts` | `recordBorderInfo` 方法增加 `element` 参数，从而支持读取独立配置的边框颜色和粗细。 |
 | `src/editor/core/draw/control/Control.ts` | `recordBorderInfo` 方法透传 `element` 参数给边框组件。 |
 | `src/editor/core/draw/Draw.ts` | 绘制边框时将当前 `element` 传给 `this.control.recordBorderInfo`。 |
+| `src/editor/core/draw/control/text/TextControl.ts` | 修改 `setValue` 方法，防止输入文本时错误继承 `placeholderColor` 或 `bracketColor`。 |
+| `src/editor/core/draw/control/select/SelectControl.ts` | 修改 `setSelect` 方法，防止下拉选择文本时错误继承 `placeholderColor` 或 `bracketColor`。 |
+| `src/editor/core/draw/control/number/NumberControl.ts` | 修改 `_setCalculatedValue` 方法，防止通过计算器赋值时错误继承 `placeholderColor` 或 `bracketColor`。 |

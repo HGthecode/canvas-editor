@@ -108,16 +108,16 @@ elementList.splice(12, 0, {
     value: null,
     placeholder: '其他补充',
     prefix: '{',
-    postfix: '}',
-    postText: '天',
-    preText: '发热',
-    color: '#FF0000', // 控件内容文本的颜色
-    placeholderColor: '#00FF00', // 占位符颜色
-    bracketColor: '#0000FF', // 前后缀括号颜色
-    border: true, // 开启边框
-    borderWidth: 2, // 边框宽度
-    borderColor: '#FF00FF', // 边框颜色
-    activeBackgroundColor: '#FFF000' // 激活状态背景色
+    postfix: '}'
+    // postText: '天',
+    // preText: '发热'
+    // color: '#FF0000', // 控件内容文本的颜色
+    // placeholderColor: '#00FF00', // 占位符颜色
+    // bracketColor: '#0000FF', // 前后缀括号颜色
+    // border: true, // 开启边框
+    // borderWidth: 2, // 边框宽度
+    // borderColor: '#FF00FF', // 边框颜色
+    // activeBackgroundColor: '#FFF000' // 激活状态背景色
   }
 })
 
@@ -146,7 +146,8 @@ elementList.splice(94, 0, {
         value: '不详',
         code: '98177'
       }
-    ]
+    ],
+    color: '#FF0000'
   }
 })
 
@@ -551,5 +552,17 @@ export const options: IEditorOption = {
   zone: {
     tipDisabled: false
   },
-  maskMargin: [60, 0, 30, 0] // 菜单栏高度60，底部工具栏30为遮盖层
+  maskMargin: [60, 0, 30, 0], // 菜单栏高度60，底部工具栏30为遮盖层
+  control: {
+    placeholderColor: '#999999', // 占位符颜色。默认：#000000
+    bracketColor: '#999999', // 括号颜色。默认：#000000
+    // prefix: ' ', // 前缀字符。默认：{}
+    // postfix: ' ', // 后缀字符。默认：{}
+    borderWidth: 2, // 边框宽度。默认：0
+    borderColor: '#000000', // 边框颜色
+    activeBackgroundColor: '#cddeed', // 激活时背景色
+    disabledBackgroundColor: '#fafafa', // 禁用时背景色
+    existValueBackgroundColor: '#d9ebf9', // 有值时背景色
+    noValueBackgroundColor: '#d9ebf9' // 无值时背景色
+  }
 }

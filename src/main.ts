@@ -733,7 +733,8 @@ window.onload = function () {
                       }
                     ]
                   : null,
-                placeholder
+                placeholder,
+                // color: '#ff2200'
               }
             })
           }

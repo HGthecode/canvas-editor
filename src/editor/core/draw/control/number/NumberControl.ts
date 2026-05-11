@@ -107,6 +107,20 @@ export class NumberControl extends TextControl {
       ? pickObject(valueElement, EDITOR_ELEMENT_STYLE_ATTR)
       : pickObject(elementList[range.startIndex], CONTROL_STYLE_ATTR)
 
+    if (!valueElement) {
+      const controlDefaultStyle: Partial<IElement> = this.element.control
+        ? pickObject(<IElement>(<unknown>this.element.control), CONTROL_STYLE_ATTR)
+        : {}
+
+      // 对于数字计算器设值，如果是首次设值（即没有原有值元素），
+      // 新的值元素应当直接使用控件自身定义的文本样式，而不应受到占位符、前缀或后缀颜色的干扰。
+      if (controlDefaultStyle.color) {
+        styleElement.color = controlDefaultStyle.color as string
+      } else {
+        delete styleElement.color
+      }
+    }
+
     // 属性赋值元素-默认为前缀属性
     const propertyElement = omitObject(
       elementList[prefixIndex],

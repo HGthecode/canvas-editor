@@ -111,17 +111,27 @@ export class TextControl implements IControlInstance {
     }
     // 非文本类元素或前缀过渡掉样式属性
     const startElement = elementList[startIndex]
+    const isAnchorPlaceholder = startElement.controlComponent === ControlComponent.PLACEHOLDER
+    const isAnchorPrefix = startElement.controlComponent === ControlComponent.PREFIX || startElement.controlComponent === ControlComponent.PRE_TEXT
+    const isAnchorPostfix = startElement.controlComponent === ControlComponent.POSTFIX || startElement.controlComponent === ControlComponent.POST_TEXT
+    
     const anchorElement =
       (startElement.type &&
         !TEXTLIKE_ELEMENT_TYPE.includes(startElement.type)) ||
-      startElement.controlComponent === ControlComponent.PREFIX ||
-      startElement.controlComponent === ControlComponent.PRE_TEXT
+      isAnchorPrefix
         ? pickObject(startElement, [
             'control',
             'controlId',
             ...CONTROL_STYLE_ATTR
           ])
         : omitObject(startElement, ['type'])
+
+    const controlDefaultStyle: Partial<IElement> = startElement.control
+      ? pickObject(<IElement>(<unknown>startElement.control), CONTROL_STYLE_ATTR)
+      : {}
+    const placeholderColor = startElement.control?.placeholderColor || this.options.control.placeholderColor
+    const bracketColor = startElement.control?.bracketColor || this.options.control.bracketColor
+
     // 插入起始位置
     const start = range.startIndex + 1
     for (let i = 0; i < data.length; i++) {
@@ -129,6 +139,18 @@ export class TextControl implements IControlInstance {
         ...anchorElement,
         ...data[i],
         controlComponent: ControlComponent.VALUE
+      }
+
+      // 如果是从占位符或前后缀继续输入，且颜色与占位符/前后缀相同，则恢复为控件文本颜色
+      const isInheritedPlaceholderColor = isAnchorPlaceholder && newElement.color === placeholderColor
+      const isInheritedBracketColor = (isAnchorPrefix || isAnchorPostfix) && newElement.color === bracketColor
+      
+      if (isInheritedPlaceholderColor || isInheritedBracketColor) {
+        if (controlDefaultStyle.color) {
+          newElement.color = controlDefaultStyle.color as string
+        } else {
+          delete newElement.color
+        }
       }
       formatElementContext(elementList, [newElement], startIndex, {
         editorOptions: this.options
