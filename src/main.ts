@@ -20,7 +20,8 @@ import Editor, {
   RowFlex,
   TextDecorationStyle,
   TitleLevel,
-  splitText
+  splitText,
+  IContextMenuContext
 } from './editor'
 import { Dialog } from './components/dialog/Dialog'
 import { formatPrismToken } from './utils/prism'
@@ -1288,6 +1289,12 @@ window.onload = function () {
     })
   }
 
+  const editorSaveDom = document.querySelector<HTMLDivElement>('.editor-save')!
+  editorSaveDom.onclick = function () {
+    const value = instance.command.getValue()
+    console.log(value)
+  }
+
   async function updateCatalog() {
     const catalog = await instance.command.getCatalog()
     const catalogMainDom =
@@ -2000,6 +2007,34 @@ window.onload = function () {
       },
       callback: (command: Command) => {
         command.executeClearGraffiti()
+      }
+    },
+    {
+      key: 'tableATTR',
+      icon: 'attr',
+      name: '表格属性', // 使用%s代表选区文本。示例：搜索：%s
+      shortCut: '',
+      when: payload => {
+        return (
+          !payload.isReadonly &&
+          !payload.editorHasSelection &&
+          !!payload.startElement?.tableId
+        )
+      },
+      callback: (command: Command, context: IContextMenuContext) => {
+        if (!context.tableElement) {
+          return
+        }
+        console.log('context', context)
+        command.executeUpdateElementById({
+          id: context.tableElement.id,
+          properties: {
+            extension: {
+              a: 1,
+              b: 2
+            }
+          }
+        })
       }
     }
   ])
