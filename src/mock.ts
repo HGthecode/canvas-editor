@@ -419,7 +419,8 @@ elementList.push(
             value: `2022-08-10 17:30:01`
           }
         ],
-        placeholder: '签署日期'
+        placeholder: '签署日期',
+        color: 'red'
       }
     },
     {

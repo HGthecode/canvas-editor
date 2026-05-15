@@ -733,7 +733,7 @@ window.onload = function () {
                       }
                     ]
                   : null,
-                placeholder,
+                placeholder
                 // color: '#ff2200'
               }
             })
@@ -916,7 +916,8 @@ window.onload = function () {
                       }
                     ]
                   : null,
-                placeholder
+                placeholder,
+                color: 'red'
               }
             })
           }

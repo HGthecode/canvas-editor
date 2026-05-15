@@ -92,17 +92,27 @@ export class DateControl implements IControlInstance {
     }
     // 非文本类元素或前缀过渡掉样式属性
     const startElement = elementList[startIndex]
+    const isAnchorPlaceholder = startElement.controlComponent === ControlComponent.PLACEHOLDER
+    const isAnchorPrefix = startElement.controlComponent === ControlComponent.PREFIX || startElement.controlComponent === ControlComponent.PRE_TEXT
+    const isAnchorPostfix = startElement.controlComponent === ControlComponent.POSTFIX || startElement.controlComponent === ControlComponent.POST_TEXT
+    
     const anchorElement =
       (startElement.type &&
         !TEXTLIKE_ELEMENT_TYPE.includes(startElement.type)) ||
-      startElement.controlComponent === ControlComponent.PREFIX ||
-      startElement.controlComponent === ControlComponent.PRE_TEXT
+      isAnchorPrefix
         ? pickObject(startElement, [
             'control',
             'controlId',
             ...CONTROL_STYLE_ATTR
           ])
         : omitObject(startElement, ['type'])
+
+    const controlDefaultStyle: Partial<IElement> = startElement.control
+      ? pickObject(<IElement>(<unknown>startElement.control), CONTROL_STYLE_ATTR)
+      : {}
+    const placeholderColor = startElement.control?.placeholderColor || this.options.control.placeholderColor
+    const bracketColor = startElement.control?.bracketColor || this.options.control.bracketColor
+
     // 插入起始位置
     const start = range.startIndex + 1
     for (let i = 0; i < data.length; i++) {
@@ -111,6 +121,19 @@ export class DateControl implements IControlInstance {
         ...data[i],
         controlComponent: ControlComponent.VALUE
       }
+
+      // 如果是从占位符或前后缀继续输入，且颜色与占位符/前后缀相同，则恢复为控件文本颜色
+      const isInheritedPlaceholderColor = isAnchorPlaceholder && newElement.color === placeholderColor
+      const isInheritedBracketColor = (isAnchorPrefix || isAnchorPostfix) && newElement.color === bracketColor
+      
+      if (isInheritedPlaceholderColor || isInheritedBracketColor) {
+        if (controlDefaultStyle.color) {
+          newElement.color = controlDefaultStyle.color as string
+        } else {
+          delete newElement.color
+        }
+      }
+
       formatElementContext(elementList, [newElement], startIndex, {
         editorOptions: this.options
       })
@@ -170,6 +193,21 @@ export class DateControl implements IControlInstance {
     const styleElement = valueElement
       ? pickObject(valueElement, EDITOR_ELEMENT_STYLE_ATTR)
       : pickObject(elementList[range.startIndex], CONTROL_STYLE_ATTR)
+
+    if (!valueElement) {
+      const controlDefaultStyle: Partial<IElement> = this.element.control
+        ? pickObject(<IElement>(<unknown>this.element.control), CONTROL_STYLE_ATTR)
+        : {}
+
+      // 对于日期控件，如果是首次设值（即没有原有值元素），
+      // 新的值元素应当直接使用控件自身定义的文本样式，而不应受到占位符、前缀或后缀颜色的干扰。
+      if (controlDefaultStyle.color) {
+        styleElement.color = controlDefaultStyle.color as string
+      } else {
+        delete styleElement.color
+      }
+    }
+
     // 清空选项
     const prefixIndex = this.clearSelect(context, {
       isAddPlaceholder: false,

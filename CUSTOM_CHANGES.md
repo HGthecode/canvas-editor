@@ -29,3 +29,4 @@
 | `src/editor/core/draw/control/text/TextControl.ts` | 修改 `setValue` 方法，防止输入文本时错误继承 `placeholderColor` 或 `bracketColor`。 |
 | `src/editor/core/draw/control/select/SelectControl.ts` | 修改 `setSelect` 方法，防止下拉选择文本时错误继承 `placeholderColor` 或 `bracketColor`。 |
 | `src/editor/core/draw/control/number/NumberControl.ts` | 修改 `_setCalculatedValue` 方法，防止通过计算器赋值时错误继承 `placeholderColor` 或 `bracketColor`。 |
+| `src/editor/core/draw/control/date/DateControl.ts` | 修改 `setValue` 和 `setSelect` 方法，防止直接输入及通过日期面板赋值时错误继承 `placeholderColor` 或 `bracketColor`。 |
