@@ -58,6 +58,7 @@ export interface IEditorOption {
   height?: number
   scale?: number
   pageGap?: number
+  lineGap?: number
   underlineColor?: string
   strikeoutColor?: string
   rangeColor?: string
@@ -137,6 +138,7 @@ export type IUpdateOption = Omit<
   | 'height'
   | 'scale'
   | 'pageGap'
+  | 'lineGap'
   | 'pageMode'
   | 'paperDirection'
   | 'historyMaxRecordCount'

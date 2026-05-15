@@ -1831,18 +1831,20 @@ export class Draw {
           metrics.boundingBoxDescent += metrics.height / 2
         }
       }
+      const lineGap = (this.options.lineGap || 0) * scale
       const ascent =
         !element.hide &&
         ((element.imgDisplay !== ImageDisplay.INLINE &&
           element.type === ElementType.IMAGE) ||
           element.type === ElementType.LATEX)
-          ? metrics.height + rowMargin
-          : metrics.boundingBoxAscent + rowMargin
+          ? metrics.height + rowMargin + lineGap / 2
+          : metrics.boundingBoxAscent + rowMargin + lineGap / 2
       const height =
         rowMargin +
         metrics.boundingBoxAscent +
         metrics.boundingBoxDescent +
-        rowMargin
+        rowMargin +
+        lineGap
       const rowElement: IRowElement = Object.assign(element, {
         metrics,
         left: 0,
@@ -2155,12 +2157,13 @@ export class Draw {
           } = positionList[curRow.startIndex + j]
           // 元素向左偏移量
           const offsetX = element.left || 0
+          const lineGap = (this.options.lineGap || 0) * this.options.scale
           this.highlight.recordFillInfo(
             ctx,
             x - offsetX,
-            y + marginHeight - highlightMarginHeight, // 先减去行margin，再加上高亮margin
+            y + marginHeight - highlightMarginHeight + lineGap / 2, // 先减去行margin，再加上高亮margin
             element.metrics.width + offsetX,
-            curRow.height - 2 * marginHeight + 2 * highlightMarginHeight,
+            curRow.height - 2 * marginHeight + 2 * highlightMarginHeight - lineGap,
             highlight
           )
         } else if (preElement?.highlight) {
@@ -2351,11 +2354,12 @@ export class Draw {
           }
           // 当前元素位置信息记录
           const rowMargin = this.getElementRowMargin(element)
+          const lineGap = (this.options.lineGap || 0) * scale
           this.control.recordBorderInfo(
             x,
-            y + rowMargin,
+            y + rowMargin + lineGap / 2,
             element.metrics.width,
-            curRow.height - 2 * rowMargin,
+            curRow.height - 2 * rowMargin - lineGap,
             element
           )
         } else if (preElement?.control?.border) {
@@ -2372,6 +2376,7 @@ export class Draw {
           }
           // 行间距
           const rowMargin = this.getElementRowMargin(element)
+          const lineGap = (this.options.lineGap || 0) * scale
           // 元素向左偏移量
           const offsetX = element.left || 0
           // 下标元素y轴偏移值
@@ -2386,7 +2391,7 @@ export class Draw {
           this.underline.recordFillInfo(
             ctx,
             x - offsetX,
-            y + curRow.height - rowMargin + offsetY,
+            y + curRow.height - rowMargin - lineGap / 2 + offsetY,
             metrics.width + offsetX,
             0,
             color,
