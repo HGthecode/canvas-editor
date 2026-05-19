@@ -1390,7 +1390,9 @@ export class Control {
       const pageComponentKey = <keyof Omit<IEditorData, 'graffiti'>>key
       const elementList = zipElementList(pageComponentData[pageComponentKey]!, {
         isClassifyArea: true,
-        extraPickAttrs: ['id']
+        // 保留 controlId：默认 zip 字段集不含 controlId，若不补充则会被丢弃，
+        // 后续 formatElementList 第 325 行走 getUUID() 重新生成，导致外部缓存的 id 全部失效
+        extraPickAttrs: ['id', 'controlId']
       })
       pageComponentData[pageComponentKey] = elementList
       formatElementList(elementList, {
