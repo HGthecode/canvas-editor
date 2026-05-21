@@ -2146,6 +2146,7 @@ export class Draw {
     const highlightMarginHeight = this.getHighlightMarginHeight()
     for (let i = 0; i < rowList.length; i++) {
       const curRow = rowList[i]
+      let preHighlight: string | undefined = undefined
       for (let j = 0; j < curRow.elementList.length; j++) {
         const element = curRow.elementList[j]
         const preElement = curRow.elementList[j - 1]
@@ -2156,9 +2157,9 @@ export class Draw {
         if (highlight) {
           // 高亮元素相连需立即绘制，并记录下一元素坐标
           if (
-            preElement &&
-            preElement.highlight &&
-            preElement.highlight !== element.highlight
+            preHighlight &&
+            (preHighlight !== highlight ||
+              (element.controlId && element.controlId !== preElement?.controlId))
           ) {
             this.highlight.render(ctx)
           }
@@ -2177,12 +2178,13 @@ export class Draw {
             y + marginHeight - highlightMarginHeight + lineGap / 2, // 先减去行margin，再加上高亮margin
             element.metrics.width + offsetX,
             curRow.height - 2 * marginHeight + 2 * highlightMarginHeight - lineGap,
-            highlight
+            highlight as string
           )
-        } else if (preElement?.highlight) {
+        } else if (preHighlight) {
           // 之前是高亮元素，当前不是需立即绘制
           this.highlight.render(ctx)
         }
+        preHighlight = highlight as string | undefined
       }
       this.highlight.render(ctx)
     }
