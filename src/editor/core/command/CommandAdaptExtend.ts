@@ -29,9 +29,11 @@ export interface ITableAttrOption {
 }
 
 export interface ITableColAttrOption {
-  padding?: number[]
   horizontalAlign?: 'left' | 'center' | 'right'
-  verticalAlign?: 'top' | 'center' | 'bottom'
+  /** VerticalAlign 枚举值为 top/middle/bottom */
+  verticalAlign?: 'top' | 'middle' | 'bottom'
+  backgroundColor?: string
+  disabled?: boolean
 }
 
 /* ---------- 扩展方法实现 ---------- */
@@ -96,9 +98,11 @@ export function setTableColAttr(
   const element = originalElementList[index!]
   const curTr = element.trList![trIndex!]
   const curTd = curTr.tdList[tdIndex!]
-  curTd.attr = payload
+  // 存储原始属性，供下次打开时回填
+  curTd.attr = { ...payload }
 
   const { endIndex } = range.getRange()
+  // 水平对齐：写入每个内容元素的 rowFlex
   if (payload.horizontalAlign) {
     if (curTd.value && curTd.value.length) {
       for (let i = 0; i < curTd.value.length; i++) {
@@ -108,8 +112,17 @@ export function setTableColAttr(
       curTd.value.push({ value: '', rowFlex: payload.horizontalAlign as RowFlex })
     }
   }
+  // 垂直对齐：写入 td.verticalAlign（枚举值 top/middle/bottom）
   if (payload.verticalAlign) {
     curTd.verticalAlign = payload.verticalAlign as VerticalAlign
+  }
+  // 背景色
+  if (payload.backgroundColor !== undefined) {
+    curTd.backgroundColor = payload.backgroundColor || undefined
+  }
+  // 禁止编辑
+  if (payload.disabled !== undefined) {
+    curTd.disabled = payload.disabled
   }
   draw.render({ curIndex: endIndex })
 }
@@ -136,14 +149,23 @@ export function getTableRowAttr(adapt: CommandAdapt): any {
   return element.trList![trIndex!].attr ?? null
 }
 
-export function getTableColAttr(adapt: CommandAdapt): any {
+export function getTableColAttr(adapt: CommandAdapt): ITableColAttrOption {
   const draw = (adapt as any).draw
   const position = (adapt as any).position
   const positionContext: IPositionContext = position.getPositionContext()
-  if (!positionContext.isTable) return null
+  const defaultAttr: ITableColAttrOption = { horizontalAlign: 'left', verticalAlign: 'top', backgroundColor: '', disabled: false }
+  if (!positionContext.isTable) return defaultAttr
   const { index, trIndex, tdIndex } = positionContext
   const element = draw.getOriginalElementList()[index!]
-  return element.trList![trIndex!].tdList[tdIndex!].attr ?? null
+  const curTd = element.trList![trIndex!].tdList[tdIndex!]
+  // 优先读已保存的attr，次选从td实际渲染状态中提取
+  const savedAttr = (curTd as any).attr as ITableColAttrOption | undefined
+  return {
+    horizontalAlign: savedAttr?.horizontalAlign || (curTd.value?.[0] as any)?.rowFlex || 'left',
+    verticalAlign: savedAttr?.verticalAlign || curTd.verticalAlign || 'top',
+    backgroundColor: savedAttr?.backgroundColor ?? curTd.backgroundColor ?? '',
+    disabled: savedAttr?.disabled ?? curTd.disabled ?? false,
+  }
 }
 
 /* ---------- 注册入口 ---------- */
@@ -154,7 +176,7 @@ export interface CommandAdaptExtend {
   setTableColAttr: (payload: ITableColAttrOption) => void
   getTableAttr: () => ITableAttrOption | null
   getTableRowAttr: () => any
-  getTableColAttr: () => any
+  getTableColAttr: () => ITableColAttrOption
 }
 
 export function registerExtend(adapt: CommandAdapt): CommandAdaptExtend {
