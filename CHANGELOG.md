@@ -1,3 +1,48 @@
+## [0.9.135](https://github.com/Hufe921/canvas-editor/compare/v0.9.134...v0.9.135) (2026-06-06)
+
+
+### Bug Fixes
+
+* avoid removing last checkbox code when unchecked code is missing ([ffaccae](https://github.com/Hufe921/canvas-editor/commit/ffaccae9cfd804bae3045ebc90b294ffc2518f91))
+* correct delete key behavior when text is selected before control #1421 ([56a713a](https://github.com/Hufe921/canvas-editor/commit/56a713a1f4eb80610c778b9b6c91faaea4c55687)), closes [#1421](https://github.com/Hufe921/canvas-editor/issues/1421)
+* correct regex search navigation match length ([f540dda](https://github.com/Hufe921/canvas-editor/commit/f540dda8bdb3f40791c654e7eb1522a8384b9204))
+
+
+### Chores
+
+* add pnpm-workspace.yaml ([078dfb1](https://github.com/Hufe921/canvas-editor/commit/078dfb125197925847b48b4f2489212a26627b30))
+
+
+### Features
+
+* add accessibility support for screen readers #1420 ([ae28324](https://github.com/Hufe921/canvas-editor/commit/ae283249f63962736e758640eb77c5f4a955a0f8)), closes [#1420](https://github.com/Hufe921/canvas-editor/issues/1420)
+
+
+
+## [0.9.134](https://github.com/Hufe921/canvas-editor/compare/v0.9.133...v0.9.134) (2026-05-22)
+
+
+### Chores
+
+* add dependabot config ([4478c59](https://github.com/Hufe921/canvas-editor/commit/4478c59a77bdedf58c655319254be3485a5438b4))
+* lock pnpm version ([c474691](https://github.com/Hufe921/canvas-editor/commit/c47469115dd1ffb5a5251d04e0665547b4022dfc))
+* update workflow config ([0e9aa29](https://github.com/Hufe921/canvas-editor/commit/0e9aa29a16cedbe51bd22130656840797eb02cb9))
+
+
+### Documentation
+
+* add CONTRIBUTING.md ([c7b138d](https://github.com/Hufe921/canvas-editor/commit/c7b138d436da7105fb21027fa8cfdba78214f69b))
+* update documentation descriptions ([1322c86](https://github.com/Hufe921/canvas-editor/commit/1322c86a98356110ad3255b8aaf8d209311ce6d4))
+
+
+### Features
+
+* add filterHideElementRow option for print mode #1410 ([67ca33a](https://github.com/Hufe921/canvas-editor/commit/67ca33a1f2002c1e70eee6f04882e55b65fed8ee)), closes [#1410](https://github.com/Hufe921/canvas-editor/issues/1410)
+* add year and month picker for date control #1256 ([fb45ee1](https://github.com/Hufe921/canvas-editor/commit/fb45ee18811f23b733b8fa2c6e7529d31b83691b)), closes [#1256](https://github.com/Hufe921/canvas-editor/issues/1256)
+* use table-relative coordinates for float images #1372 ([1d403ea](https://github.com/Hufe921/canvas-editor/commit/1d403ea6f344217791de151c8606e93788bce533)), closes [#1372](https://github.com/Hufe921/canvas-editor/issues/1372)
+
+
+
 ## [0.9.133](https://github.com/Hufe921/canvas-editor/compare/v0.9.132...v0.9.133) (2026-05-05)
 
 
