@@ -6,4 +6,7 @@ export interface ITableOption {
   defaultColMinWidth?: number
   defaultBorderColor?: string
   overflow?: boolean
+  showCellNumber?: boolean
+  cellNumberColor?: string
+  cellNumberFontSize?: number
 }

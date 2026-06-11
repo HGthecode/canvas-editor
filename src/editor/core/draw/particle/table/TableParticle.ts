@@ -544,6 +544,46 @@ export class TableParticle {
     ctx.restore()
   }
 
+  private _getColLetter(colIndex: number): string {
+    let letter = ''
+    let index = colIndex
+    while (index >= 0) {
+      letter = String.fromCharCode(65 + (index % 26)) + letter
+      index = Math.floor(index / 26) - 1
+    }
+    return letter
+  }
+
+  private _drawCellNumber(
+    ctx: CanvasRenderingContext2D,
+    element: IElement,
+    startX: number,
+    startY: number
+  ) {
+    const { showCellNumber, cellNumberColor, cellNumberFontSize } =
+      this.options.table
+    if (!showCellNumber) return
+    const { trList } = element
+    if (!trList?.length) return
+    const { scale } = this.options
+    ctx.save()
+    ctx.font = `${cellNumberFontSize * scale}px sans-serif`
+    ctx.fillStyle = cellNumberColor!
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    for (let t = 0; t < trList.length; t++) {
+      const tr = trList[t]
+      for (let d = 0; d < tr.tdList.length; d++) {
+        const td = tr.tdList[d]
+        const centerX = (td.x! + td.width! / 2) * scale + startX
+        const centerY = (td.y! + td.height! / 2) * scale + startY
+        const cellNumber = `${this._getColLetter(td.colIndex!)}${td.rowIndex! + 1}`
+        ctx.fillText(cellNumber, centerX, centerY)
+      }
+    }
+    ctx.restore()
+  }
+
   public render(
     ctx: CanvasRenderingContext2D,
     element: IElement,
@@ -552,5 +592,6 @@ export class TableParticle {
   ) {
     this._drawBackgroundColor(ctx, element, startX, startY)
     this._drawBorder(ctx, element, startX, startY)
+    this._drawCellNumber(ctx, element, startX, startY)
   }
 }

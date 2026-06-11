@@ -33,6 +33,8 @@
 - `npm run docs:build` — 构建 VitePress 文档
 - `npm run release` — 执行发布脚本
 
+- `npm pack --pack-destination ../emr-editor`
+
 运行单个 Cypress 测试文件：
 ```bash
 npx cypress run --spec cypress/e2e/<测试文件>.cy.ts

@@ -33,4 +33,6 @@ export interface ITd {
   realMinHeight?: number // 真实最小高度（包含跨列）
   disabled?: boolean // 内容不可编辑
   deletable?: boolean // 内容不可删除
+  field?: string // 数据源字段名
+  valuePath?: string // 数据源值路径表达式
 }

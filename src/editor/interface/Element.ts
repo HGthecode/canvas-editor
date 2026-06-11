@@ -72,6 +72,12 @@ export interface ITableAttr {
   borderWidth?: number
   borderExternalWidth?: number
   translateX?: number
+  /** 表格编码 */
+  code?: string
+  /** 可见性表达式 */
+  visibleExpression?: string
+  /** 打印可见性表达式 */
+  printVisibleExpression?: string
 }
 
 export interface ITableRule {

@@ -15,7 +15,22 @@
 | `src/editor/core/command/Command.ts` | 新增 `public extend: CommandAdaptExtend` 属性并在构造函数中赋值 |
 | `src/editor/index.ts` | 新增导出 `ITableAttrOption`、`ITableColAttrOption`、`ITableAttrUserActionAuth`、`CommandAdaptExtend` |
 
-### 2. 控件样式增强（支持单个控件独立配置颜色和边框）
+### 2. 表格单元格编号显示（showCellNumber）
+**改动目的**：新增 `showCellNumber` 选项，开启后在每个单元格中央显示行列编号（A1、B1、C2...）。
+| 文件 | 改动内容 |
+|------|---------|
+| `src/editor/interface/table/Table.ts` | `ITableOption` 新增 `showCellNumber`、`cellNumberColor`、`cellNumberFontSize` 字段 |
+| `src/editor/dataset/constant/Table.ts` | `defaultTableOption` 添加对应默认值 |
+| `src/editor/core/draw/particle/table/TableParticle.ts` | 新增 `_getColLetter()` 和 `_drawCellNumber()` 私有方法，在 `render()` 末尾调用 |
+| `src/editor/core/command/CommandAdaptExtend.ts` | 新增 `setShowCellNumber()` 方法及接口/注册绑定，支持动态开关并即时重绘 |
+
+### 4. 表格表级数据源字段读取
+**改动目的**：新增 `getTableFieldByIndex` 方法，支持在 per-cell field 为空时自动推导写回路径（`{tableField}.{cellId}`），实现跨单元格计算表达式。
+| 文件 | 改动内容 |
+|------|---------|
+| `src/editor/core/command/CommandAdaptExtend.ts` | 新增 `getTableFieldByIndex()` 函数、接口方法签名及注册绑定 |
+
+### 3. 控件样式增强（支持单个控件独立配置颜色和边框）
 **改动目的**：允许为每一个表单控件单独指定文本颜色（color）、占位符颜色（placeholderColor）、前后缀颜色（bracketColor）、背景色以及边框样式。
 | 文件 | 改动内容 |
 |------|---------|

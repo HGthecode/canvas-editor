@@ -87,7 +87,10 @@ export const EDITOR_ELEMENT_ZIP_ATTR: Array<keyof IElement> = [
   'hide',
   'label',
   'labelId',
-  'lineWidth'
+  'lineWidth',
+  'code',
+  'visibleExpression',
+  'printVisibleExpression'
 ]
 
 export const TABLE_TD_ZIP_ATTR: Array<keyof ITd> = [
@@ -99,7 +102,9 @@ export const TABLE_TD_ZIP_ATTR: Array<keyof ITd> = [
   'borderTypes',
   'slashTypes',
   'disabled',
-  'deletable'
+  'deletable',
+  'field',
+  'valuePath'
 ]
 
 export const TABLE_CONTEXT_ATTR: Array<keyof IElement> = [
