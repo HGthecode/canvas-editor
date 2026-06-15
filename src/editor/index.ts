@@ -74,7 +74,7 @@ import { IBadge } from './interface/Badge'
 import { WatermarkType, WatermarkLayer } from './dataset/enum/Watermark'
 import { INTERNAL_SHORTCUT_KEY } from './dataset/constant/Shortcut'
 import { IGraffitiData } from './interface/Graffiti'
-import { ITableAttrOption, ITableColAttrOption, ITableAttrUserActionAuth, CommandAdaptExtend } from './core/command/CommandAdaptExtend'
+import { ITableAttrOption, ITableColAttrOption, ITableAttrUserActionAuth, IDynamicTableColumn, IDynamicTableConfig, CommandAdaptExtend } from './core/command/CommandAdaptExtend'
 
 export default class Editor {
   public command: Command
@@ -243,5 +243,7 @@ export type {
   ITableAttrOption,
   ITableColAttrOption,
   ITableAttrUserActionAuth,
+  IDynamicTableColumn,
+  IDynamicTableConfig,
   CommandAdaptExtend
 }

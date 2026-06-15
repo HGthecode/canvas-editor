@@ -4,12 +4,17 @@
  * 独立文件维护，便于合并上游 canvas-editor 时减少冲突。
  * 使用方式：CommandAdapt 构造函数末尾调用 registerExtend(this)
  */
+import { ElementType } from '../../dataset/enum/Element'
 import { RowFlex } from '../../dataset/enum/Row'
+import { TableBorder } from '../../dataset/enum/table/Table'
 import { VerticalAlign } from '../../dataset/enum/VerticalAlign'
 import { IPositionContext } from '../../interface/Position'
 import type { CommandAdapt } from './CommandAdapt'
+import type { IColgroup } from '../../interface/table/Colgroup'
+import type { IElement } from '../../interface/Element'
 import type { ITd } from '../../interface/table/Td'
 import type { ITr } from '../../interface/table/Tr'
+import { formatElementContext, formatElementList } from '../../utils/element'
 
 /* ---------- 扩展参数类型 ---------- */
 
@@ -40,6 +45,245 @@ export interface ITableColAttrOption {
   field?: string
   /** 数据源：数据值路径（表达式） */
   valuePath?: string
+}
+
+/* ---------- 动态表格类型 ---------- */
+
+export interface IDynamicTableColumn {
+  title: string
+  field: string
+  width: number
+  align: 'left' | 'center' | 'right'
+  color: string
+  backgroundColor: string
+}
+
+export interface IDynamicTableConfig {
+  field?: string
+  showHeader?: boolean
+  dataSourcePath?: string
+  columns?: IDynamicTableColumn[]
+  borderColor?: string
+  borderType?: string
+  visibleExpression?: string
+  printVisibleExpression?: string
+}
+
+/* ---------- 动态表格扩展方法 ---------- */
+
+/**
+ * 在光标位置插入一个动态表格。
+ * 根据配置构建表头行（若 showHeader），不添加占位数据行。
+ * 配置存储在 element.extension 中，tableToolDisabled 设为 true。
+ */
+export function insertDynamicTableAtCursor(
+  adapt: CommandAdapt,
+  config: IDynamicTableConfig
+): void {
+  const draw = (adapt as any).draw
+  if (draw.isReadonly()) return
+
+  const columns = config.columns ?? []
+  const colCount = columns.length || 1
+  const innerWidth = draw.getContextInnerWidth()
+  const { defaultTrMinHeight } = draw.getOptions().table
+
+  // 构建 colgroup
+  const colgroup: IColgroup[] = []
+  if (columns.length) {
+    for (const col of columns) {
+      colgroup.push({ width: col.width || innerWidth / colCount })
+    }
+  } else {
+    const colWidth = innerWidth / colCount
+    for (let c = 0; c < colCount; c++) {
+      colgroup.push({ width: colWidth })
+    }
+  }
+
+  // 构建 trList
+  const trList: ITr[] = []
+  if (config.showHeader && columns.length) {
+    const headerTdList: ITd[] = []
+    for (const col of columns) {
+      headerTdList.push({
+        colspan: 1,
+        rowspan: 1,
+        value: [{
+          value: col.title || '',
+          rowFlex: col.align as RowFlex
+        }],
+        backgroundColor: col.backgroundColor || undefined
+      })
+    }
+    trList.push({
+      height: defaultTrMinHeight,
+      tdList: headerTdList
+    })
+  }
+
+  // 构建表格元素
+  const element: IElement = {
+    type: ElementType.TABLE,
+    value: '',
+    colgroup,
+    trList,
+    borderType: (config.borderType as TableBorder) ?? TableBorder.ALL,
+    borderColor: config.borderColor ?? '#000000',
+    tableToolDisabled: true,
+    extension: JSON.parse(JSON.stringify(config)) as any
+  }
+
+  // 格式化并插入
+  const range = (adapt as any).range
+  const { startIndex, endIndex } = range.getRange()
+  const elementList = draw.getOriginalElementList()
+
+  formatElementList([element], { editorOptions: draw.getOptions() })
+  formatElementContext(elementList, [element], startIndex, {
+    editorOptions: draw.getOptions()
+  })
+
+  const curIndex = startIndex + 1
+  draw.spliceElementList(
+    elementList,
+    curIndex,
+    startIndex === endIndex ? 0 : endIndex - startIndex,
+    [element]
+  )
+  range.setRange(curIndex, curIndex)
+  draw.render({ curIndex, isSetCursor: false })
+}
+
+/**
+ * 重建动态表格的所有数据行。
+ * 保留表头行（若 showHeader 且 trList[0] 存在），
+ * 根据 dataArray 逐项构建新数据行，每列取值 item[col.field]。
+ * 数据行单元格设为 disabled=true（只读）。不提交历史记录。
+ */
+export function rebuildDynamicTableDataRows(
+  adapt: CommandAdapt,
+  elementIndex: number,
+  config: IDynamicTableConfig,
+  dataArray: any[]
+): void {
+  const draw = (adapt as any).draw
+  const originalElementList = draw.getOriginalElementList() as any[]
+  const element = originalElementList[elementIndex]
+  if (!element || element.type !== ElementType.TABLE) return
+
+  const columns = config.columns ?? []
+  const { defaultTrMinHeight } = draw.getOptions().table
+
+  // 构建新的 trList
+  const newTrList: ITr[] = []
+
+  // 保留表头行
+  const hasHeader = !!(config.showHeader && element.trList && element.trList.length > 0)
+  if (hasHeader) {
+    newTrList.push(element.trList[0])
+  }
+
+  // 根据数据数组构建数据行
+  if (dataArray.length && columns.length) {
+    for (const item of dataArray) {
+      const tdList: ITd[] = []
+      for (const col of columns) {
+        const rawValue = item != null ? item[col.field] : undefined
+        const textValue = rawValue != null ? String(rawValue) : ''
+        const valueElement: IElement = {
+          value: textValue,
+          rowFlex: col.align as RowFlex
+        }
+        if (col.color && col.color !== '#000000') {
+          valueElement.color = col.color
+        }
+        tdList.push({
+          colspan: 1,
+          rowspan: 1,
+          value: [valueElement],
+          backgroundColor: (col.backgroundColor && col.backgroundColor !== '#ffffff')
+            ? col.backgroundColor
+            : undefined,
+          disabled: true
+        })
+      }
+      newTrList.push({
+        height: defaultTrMinHeight,
+        tdList
+      })
+    }
+  }
+
+  // 更新 colgroup 以匹配列配置
+  if (columns.length) {
+    const newColgroup: IColgroup[] = columns.map(col => ({
+      width: col.width || 80
+    }))
+    element.colgroup = newColgroup
+  }
+
+  // 格式化每个 td 的 value 元素
+  const editorOptions = draw.getOptions()
+  for (const tr of newTrList) {
+    for (const td of tr.tdList) {
+      if (td.value && td.value.length) {
+        formatElementList(td.value as IElement[], { editorOptions })
+      }
+    }
+  }
+
+  // 替换 trList
+  element.trList = newTrList
+
+  // 重绘，不提交历史
+  draw.render({ isSubmitHistory: false, isSetCursor: false })
+}
+
+/**
+ * 扫描所有区域（正文、页眉、页脚）的元素列表，
+ * 收集所有配置了动态表格（extension.columns && extension.dataSourcePath）的 TABLE 元素。
+ * 返回元素索引、配置和当前行数。
+ */
+export function getAllDynamicTables(
+  adapt: CommandAdapt
+): { elementIndex: number; config: IDynamicTableConfig; currentRowCount: number }[] {
+  const draw = (adapt as any).draw
+  const result: { elementIndex: number; config: IDynamicTableConfig; currentRowCount: number }[] = []
+
+  const searchIn = (elementList: any[], offset: number) => {
+    for (let i = 0; i < elementList.length; i++) {
+      const el = elementList[i]
+      if (el.type !== ElementType.TABLE) continue
+      const ext = el.extension as any
+      if (!ext?.columns || !ext?.dataSourcePath) continue
+      result.push({
+        elementIndex: offset + i,
+        config: ext as IDynamicTableConfig,
+        currentRowCount: (el.trList as ITr[])?.length ?? 0
+      })
+    }
+  }
+
+  // 正文区域从索引 0 开始
+  searchIn(draw.getOriginalMainElementList() || draw.getOriginalElementList(), 0)
+
+  // 页眉区域
+  const headerList = draw.getHeaderElementList()
+  if (headerList?.length) {
+    const mainLen = (draw.getOriginalMainElementList() || draw.getOriginalElementList()).length
+    searchIn(headerList, mainLen)
+  }
+
+  // 页脚区域
+  const footerList = draw.getFooterElementList()
+  if (footerList?.length) {
+    const mainLen = (draw.getOriginalMainElementList() || draw.getOriginalElementList()).length
+    const headerLen = headerList?.length ?? 0
+    searchIn(footerList, mainLen + headerLen)
+  }
+
+  return result
 }
 
 /* ---------- 扩展方法实现 ---------- */
@@ -407,6 +651,12 @@ export interface CommandAdaptExtend {
   getAllTablesVisibilityInfo: () => { id: string; visibleExpression: string; printVisibleExpression: string; hide: boolean }[]
   /** 批量设置表格元素的 hide 属性（不提交历史），然后统一重绘一次 */
   setTableHideList: (payload: { id: string; hide: boolean }[]) => void
+  /** 在光标位置插入一个动态表格 */
+  insertDynamicTableAtCursor: (config: IDynamicTableConfig) => void
+  /** 重建动态表格的所有数据行（不提交历史） */
+  rebuildDynamicTableDataRows: (elementIndex: number, config: IDynamicTableConfig, dataArray: any[]) => void
+  /** 扫描所有区域，收集所有动态表格的信息 */
+  getAllDynamicTables: () => { elementIndex: number; config: IDynamicTableConfig; currentRowCount: number }[]
 }
 
 export function registerExtend(adapt: CommandAdapt): CommandAdaptExtend {
@@ -425,5 +675,8 @@ export function registerExtend(adapt: CommandAdapt): CommandAdaptExtend {
     getTableFieldByIndex: getTableFieldByIndex.bind(null, adapt),
     getAllTablesVisibilityInfo: getAllTablesVisibilityInfo.bind(null, adapt),
     setTableHideList: setTableHideList.bind(null, adapt),
+    insertDynamicTableAtCursor: insertDynamicTableAtCursor.bind(null, adapt),
+    rebuildDynamicTableDataRows: rebuildDynamicTableDataRows.bind(null, adapt),
+    getAllDynamicTables: getAllDynamicTables.bind(null, adapt),
   }
 }

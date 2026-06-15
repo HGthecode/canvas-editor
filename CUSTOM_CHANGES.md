@@ -45,3 +45,10 @@
 | `src/editor/core/draw/control/select/SelectControl.ts` | 修改 `setSelect` 方法，防止下拉选择文本时错误继承 `placeholderColor` 或 `bracketColor`。 |
 | `src/editor/core/draw/control/number/NumberControl.ts` | 修改 `_setCalculatedValue` 方法，防止通过计算器赋值时错误继承 `placeholderColor` 或 `bracketColor`。 |
 | `src/editor/core/draw/control/date/DateControl.ts` | 修改 `setValue` 和 `setSelect` 方法，防止直接输入及通过日期面板赋值时错误继承 `placeholderColor` 或 `bracketColor`。 |
+
+### 5. 动态表格支持
+**改动目的**：新增动态表格功能，支持通过配置数据源数组路径和列定义来动态生成表格行，行数由数据源数组长度决定。
+| 文件 | 改动内容 |
+|------|---------|
+| `src/editor/core/command/CommandAdaptExtend.ts` | 新增 `IDynamicTableColumn`、`IDynamicTableConfig` 类型导出；新增 `insertDynamicTableAtCursor()`、`rebuildDynamicTableDataRows()`、`getAllDynamicTables()` 三个扩展命令及接口/注册绑定 |
+| `src/editor/index.ts` | 新增导出 `IDynamicTableColumn`、`IDynamicTableConfig` |
