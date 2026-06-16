@@ -3,6 +3,8 @@ import { VIRTUAL_ELEMENT_TYPE } from '../../../dataset/constant/Element'
 import { ElementType } from '../../../dataset/enum/Element'
 import { IElement } from '../../../interface/Element'
 import { IPasteOption } from '../../../interface/Event'
+import { ITd } from '../../../interface/table/Td'
+import { ITr } from '../../../interface/table/Tr'
 import {
   getClipboardData,
   getIsClipboardContainFile,
@@ -10,11 +12,148 @@ import {
 } from '../../../utils/clipboard'
 import {
   formatElementContext,
+  formatElementList,
   getElementListByHTML
 } from '../../../utils/element'
 import { CanvasEvent } from '../CanvasEvent'
 import { IOverrideResult } from '../../override/Override'
-import { normalizeLineBreak } from '../../../utils'
+import { deepClone, normalizeLineBreak } from '../../../utils'
+
+/**
+ * 按网格位置（rowIndex, colIndex）在目标表格中查找对应的 td
+ * 考虑 colspan/rowspan 区间覆盖
+ */
+function findTdByGridPosition(
+  trList: ITr[],
+  targetRowIndex: number,
+  targetColIndex: number
+): { td: ITd; tr: ITr } | null {
+  for (const tr of trList) {
+    for (const td of tr.tdList) {
+      const rowStart = td.rowIndex ?? -1
+      const rowEnd = rowStart + (td.rowspan || 1) - 1
+      const colStart = td.colIndex ?? -1
+      const colEnd = colStart + (td.colspan || 1) - 1
+      if (
+        targetRowIndex >= rowStart && targetRowIndex <= rowEnd &&
+        targetColIndex >= colStart && targetColIndex <= colEnd
+      ) {
+        return { td, tr }
+      }
+    }
+  }
+  return null
+}
+
+interface SourceCellInfo {
+  td: ITd
+  sourceRow: number
+  sourceCol: number
+}
+
+/**
+ * 遍历源 TABLE 的 trList/tdList，按视觉顺序返回单元格列表
+ * 处理 colspan/rowspan 占位（压缩后 colIndex/rowIndex 丢失，需要重建）
+ */
+function getSourceCellsInVisualOrder(
+  sourceTrList: ITr[]
+): SourceCellInfo[] {
+  const cells: SourceCellInfo[] = []
+  if (!sourceTrList?.length) return cells
+  // 记录被上方 rowspan 占用的列
+  const occupiedCols: Map<number, Set<number>> = new Map()
+  for (let r = 0; r < sourceTrList.length; r++) {
+    const tr = sourceTrList[r]
+    let colOffset = 0
+    for (const td of tr.tdList) {
+      // 跳过被上方 rowspan 占用的列
+      const occupied = occupiedCols.get(r)
+      if (occupied) {
+        while (occupied.has(colOffset)) colOffset++
+      }
+      cells.push({ td, sourceRow: r, sourceCol: colOffset })
+      // 标记后续行中这些列被占用
+      if (td.rowspan > 1) {
+        for (let sr = r + 1; sr < r + td.rowspan; sr++) {
+          if (!occupiedCols.has(sr)) occupiedCols.set(sr, new Set())
+          for (let sc = 0; sc < (td.colspan || 1); sc++) {
+            occupiedCols.get(sr)!.add(colOffset + sc)
+          }
+        }
+      }
+      colOffset += td.colspan || 1
+    }
+  }
+  return cells
+}
+
+/**
+ * 多单元格粘贴：将源 TABLE 的每个单元格按网格位置映射到目标表格
+ * 类似 Excel 的单元格填充行为
+ */
+function pasteTableCells(host: CanvasEvent, sourceTableElement: IElement) {
+  const draw = host.getDraw()
+  if (draw.isReadonly() || draw.isDisabled()) return
+
+  const positionContext = draw.getPosition().getPositionContext()
+  const { index, trIndex, tdIndex } = positionContext
+  if (index === undefined || trIndex === undefined || tdIndex === undefined) return
+
+  const originalElementList = draw.getOriginalElementList()
+  const targetTable = originalElementList[index]
+  const targetTrList = targetTable.trList
+  if (!targetTrList?.length) return
+
+  // 获取光标所在 td 的网格位置
+  const cursorTd = targetTrList[trIndex].tdList[tdIndex]
+  if (cursorTd.rowIndex === undefined || cursorTd.colIndex === undefined) return
+  const cursorRowIndex = cursorTd.rowIndex
+  const cursorColIndex = cursorTd.colIndex
+
+  // 获取源单元格视觉顺序列表
+  const sourceTrList = sourceTableElement.trList
+  if (!sourceTrList?.length) return
+  const sourceCells = getSourceCellsInVisualOrder(sourceTrList)
+  if (!sourceCells.length) return
+
+  // 逐单元格映射粘贴
+  for (const { td: sourceTd, sourceRow, sourceCol } of sourceCells) {
+    const targetRowIndex = cursorRowIndex + sourceRow
+    const targetColIndex = cursorColIndex + sourceCol
+    const target = findTdByGridPosition(targetTrList, targetRowIndex, targetColIndex)
+    if (!target) break // 溢出时截断
+
+    // 克隆源值
+    const clonedValue = deepClone(sourceTd.value)
+    if (!clonedValue.length) {
+      // 空单元格设置一个零宽占位符
+      target.td.value = [{ value: ZERO }]
+      continue
+    }
+
+    // 格式化（处理列表/标题展开、首字符补偿等）
+    formatElementList(clonedValue, {
+      isHandleFirstElement: true,
+      editorOptions: draw.getOptions()
+    })
+
+    // 更新表格/行/单元格 ID 以匹配目标
+    for (const el of clonedValue) {
+      el.tableId = targetTable.id
+      el.trId = target.tr.id
+      el.tdId = target.td.id
+    }
+
+    // 替换目标单元格内容
+    target.td.value = clonedValue
+  }
+
+  // 渲染并提交历史
+  draw.render({
+    curIndex: cursorTd.value.length - 1,
+    isSubmitHistory: true
+  })
+}
 
 export function pasteElement(host: CanvasEvent, elementList: IElement[]) {
   const draw = host.getDraw()
@@ -24,6 +163,18 @@ export function pasteElement(host: CanvasEvent, elementList: IElement[]) {
     draw.getControl().getIsDisabledPasteControl()
   ) {
     return
+  }
+  // 检测表格到表格的粘贴：剪贴板为 TABLE 元素且光标在表格内
+  if (elementList.length && elementList[0].type === ElementType.TABLE) {
+    const positionContext = draw.getPosition().getPositionContext()
+    if (positionContext.isTable) {
+      const range = draw.getRange().getRange()
+      // MVP 仅支持单单元格目标，跨行列选区不回退
+      if (!range.isCrossRowCol) {
+        pasteTableCells(host, elementList[0])
+        return
+      }
+    }
   }
   const rangeManager = draw.getRange()
   const { startIndex } = rangeManager.getRange()
