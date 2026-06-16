@@ -113,7 +113,8 @@ export function insertDynamicTableAtCursor(
           value: col.title || '',
           rowFlex: col.align as RowFlex
         }],
-        backgroundColor: col.backgroundColor || undefined
+        backgroundColor: col.backgroundColor || undefined,
+        disabled: true
       })
     }
     trList.push({

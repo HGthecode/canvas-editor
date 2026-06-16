@@ -16,6 +16,7 @@ import {
   IRangeChange,
   IRangeStyleChange,
   ISaved,
+  ITableCellDblclick,
   IVisiblePageNoListChange,
   IZoneChange
 } from './Listener'
@@ -45,4 +46,5 @@ export interface EventBusMap {
   imageDblclick: IImageDblclick
   labelMousedown: ILabelMousedown
   rangeChange: IRangeChange
+  tableCellDblclick: ITableCellDblclick
 }

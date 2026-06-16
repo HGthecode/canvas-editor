@@ -176,6 +176,7 @@ export class ContextMenu {
       startElement,
       endElement,
       isReadonly,
+      isDesignMode: this.draw.isDesignMode(),
       editorHasSelection,
       editorTextFocus,
       isCrossRowCol,

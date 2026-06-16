@@ -127,6 +127,28 @@ function dblclick(host: CanvasEvent, evt: MouseEvent) {
     draw.getPreviewer().render()
     return
   }
+  // 双击表格单元格事件
+  if (positionContext.isTable && positionContext.isDirectHit) {
+    const eventBus = draw.getEventBus()
+    if (eventBus.isSubscribe('tableCellDblclick')) {
+      // 通过 tableId 在原始元素列表中查找表格元素
+      const originalElementList = draw.getOriginalElementList()
+      const tableElement = originalElementList.find(
+        el => el.type === ElementType.TABLE && el.id === positionContext.tableId
+      )
+      if (tableElement) {
+        eventBus.emit('tableCellDblclick', {
+          evt,
+          element: tableElement,
+          trIndex: positionContext.trIndex!,
+          tdIndex: positionContext.tdIndex!,
+          tdId: positionContext.tdId,
+          tableId: positionContext.tableId
+        })
+      }
+    }
+    return
+  }
   // 切换区域
   if (draw.getIsPagingMode()) {
     if (!~positionContext.index && positionContext.zone) {

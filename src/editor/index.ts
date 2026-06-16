@@ -53,7 +53,11 @@ import { Plugin } from './core/plugin/Plugin'
 import { UsePlugin } from './interface/Plugin'
 import { EventBus } from './core/event/eventbus/EventBus'
 import { EventBusMap } from './interface/EventBus'
-import { IRangeStyle } from './interface/Listener'
+import {
+  IRangeStyle,
+  ITableCellDblclickPayload,
+  ITableCellDblclick
+} from './interface/Listener'
 import { Override } from './core/override/Override'
 import { LETTER_CLASS } from './dataset/constant/Common'
 import { INTERNAL_CONTEXT_MENU_KEY } from './dataset/constant/ContextMenu'
@@ -245,5 +249,7 @@ export type {
   ITableAttrUserActionAuth,
   IDynamicTableColumn,
   IDynamicTableConfig,
+  ITableCellDblclickPayload,
+  ITableCellDblclick,
   CommandAdaptExtend
 }

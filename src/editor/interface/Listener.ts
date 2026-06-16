@@ -89,3 +89,16 @@ export type ILabelMousedown = (payload: {
 }) => void
 
 export type IRangeChange = (payload: IRange) => void
+
+export interface ITableCellDblclickPayload {
+  evt: MouseEvent
+  element: IElement
+  trIndex: number
+  tdIndex: number
+  tdId?: string
+  tableId?: string
+}
+
+export type ITableCellDblclick = (
+  payload: ITableCellDblclickPayload
+) => void

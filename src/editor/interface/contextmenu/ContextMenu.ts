@@ -8,6 +8,7 @@ export interface IContextMenuContext {
   startElement: IElement | null
   endElement: IElement | null
   isReadonly: boolean
+  isDesignMode: boolean
   editorHasSelection: boolean
   editorTextFocus: boolean
   isInTable: boolean
