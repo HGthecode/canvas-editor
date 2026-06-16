@@ -2342,6 +2342,7 @@ export class CommandAdapt {
     Object.entries(newOption).forEach(([key, value]) => {
       Reflect.set(this.options, key, value)
     })
+    this.draw.setMode(newOption.mode)
     this.forceUpdate()
   }
 
