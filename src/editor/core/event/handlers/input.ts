@@ -103,15 +103,9 @@ export function input(data: string, host: CanvasEvent) {
   }
   if (~curIndex) {
     rangeManager.setRange(curIndex, curIndex)
-    // 非表格内文本输入时跳过全量布局重算：
-    // 纯文本替换不改变元素数量、表格结构、页面分布，
-    // 仅需重绘受影响区域和光标位置，无需执行 computeRowList。
-    const positionContext = position.getPositionContext()
-    const isTableInput = positionContext?.isTable
     draw.render({
       curIndex,
-      isSubmitHistory: !isComposing,
-      isCompute: isTableInput // 表格内仍需计算（单元格高度可能因换行变化）
+      isSubmitHistory: !isComposing
     })
     if (data) {
       draw.getAccessibility().input(data)
