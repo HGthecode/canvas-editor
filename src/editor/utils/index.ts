@@ -55,11 +55,28 @@ export function deepCloneOmitKeys<T, K>(obj: T, omitKeys: (keyof K)[]): T {
 }
 
 export function deepClone<T>(obj: T): T {
-  if (typeof structuredClone === 'function') {
-    return structuredClone(obj)
-  }
+  // 不使用 structuredClone，因为它会保留输入对象图中的共享引用。
+  // 当调用方传入包含重复引用的数组（如 mainList.push(...main) 两次）
+  // 时，structuredClone 会让克隆结果中对应位置仍然是同一个对象，
+  // 导致后续原地修改（分配 id、positionList、metrics）互相覆盖。
+  // 手动递归克隆每次遇到同一对象都会生成独立副本，确保原地修改安全。
   if (!obj || typeof obj !== 'object') {
     return obj
+  }
+  // 内置特殊类型：手动克隆以保持语义正确
+  if (obj instanceof Date) {
+    return new Date(obj.getTime()) as T
+  }
+  if (obj instanceof RegExp) {
+    return new RegExp(obj.source, obj.flags) as T
+  }
+  if (obj instanceof Map) {
+    return new Map(
+      Array.from(obj, ([k, v]) => [k, deepClone(v)])
+    ) as T
+  }
+  if (obj instanceof Set) {
+    return new Set(Array.from(obj, v => deepClone(v))) as T
   }
   let newObj = {} as T
   if (Array.isArray(obj)) {

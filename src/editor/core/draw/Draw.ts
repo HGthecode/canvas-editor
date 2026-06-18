@@ -201,6 +201,9 @@ export class Draw {
   private intersectionPageNo: number
   private lazyRenderIntersectionObserver: IntersectionObserver | null
   private printModeData: Required<Omit<IEditorData, 'graffiti'>> | null
+  // 复用的离屏 Canvas，避免 computeRowList（含递归调用）每次创建新 Canvas
+  private _measureCanvas: HTMLCanvasElement
+  private _measureCtx: CanvasRenderingContext2D
 
   constructor(
     rootContainer: HTMLElement,
@@ -300,6 +303,9 @@ export class Draw {
     this.intersectionPageNo = 0
     this.lazyRenderIntersectionObserver = null
     this.printModeData = null
+    // 初始化复用的离屏 Canvas，避免 computeRowList 递归调用时反复创建
+    this._measureCanvas = document.createElement('canvas')
+    this._measureCtx = this._measureCanvas.getContext('2d')!
 
     // 打印模式优先设置打印数据
     if (this.mode === EditorMode.PRINT) {
@@ -1409,8 +1415,7 @@ export class Draw {
       defaultTabWidth
     } = this.options
     const defaultBasicRowMarginHeight = this.getDefaultBasicRowMarginHeight()
-    const canvas = document.createElement('canvas')
-    const ctx = canvas.getContext('2d') as CanvasRenderingContext2D
+    const ctx = this._measureCtx
     // 计算列表偏移宽度
     const listStyleMap = this.listParticle.computeListStyle(ctx, elementList)
     const rowList: IRow[] = []
@@ -2091,6 +2096,61 @@ export class Draw {
     return rowList
   }
 
+  /**
+   * 表格单元格编辑快速路径：仅重新计算被编辑单元格的 rowList。
+   * 避免对所有页面的全部单元格递归调用 computeRowList（30 页 ≈ 9300 次）。
+   * @returns 单元格内容高度是否发生变化（换行/折叠导致）
+   */
+  private _recomputeSingleTableCellRowList(
+    elementIndex: number,
+    trIndex: number,
+    tdIndex: number
+  ): boolean {
+    const elementList = this.getOriginalElementList()
+    const tableElement = elementList[elementIndex]
+    if (!tableElement || tableElement.type !== ElementType.TABLE) {
+      return true
+    }
+    const trList = tableElement.trList!
+    const tr = trList[trIndex]
+    if (!tr) return true
+    const td = tr.tdList[tdIndex]
+    if (!td) return true
+    const { tdPadding } = this.options.table
+    const tdPaddingWidth = tdPadding[1] + tdPadding[3]
+    const tdPaddingHeight = tdPadding[0] + tdPadding[2]
+    const { scale } = this.options
+    const oldMainHeight = td.mainHeight || 0
+    // 仅对该单元格的内容计算行布局（而非全部单元格）
+    const rowList = this.computeRowList({
+      innerWidth: (td.width! - tdPaddingWidth) * scale,
+      elementList: td.value,
+      isFromTable: true,
+      isPagingMode: this.getIsPagingMode()
+    })
+    const newRowHeight = rowList.reduce((pre, cur) => pre + cur.height, 0)
+    const newTdHeight = newRowHeight / scale + tdPaddingHeight
+    td.rowList = rowList
+    td.mainHeight = newTdHeight
+    if (Math.abs(newTdHeight - oldMainHeight) > 0.01) {
+      const extraHeight = newTdHeight - td.height!
+      if (extraHeight > 0) {
+        const changeTr = trList[trIndex + td.rowspan - 1]
+        changeTr.height += extraHeight
+        changeTr.tdList.forEach(changeTd => {
+          changeTd.height! += extraHeight
+          if (!changeTd.realHeight) {
+            changeTd.realHeight = changeTd.height!
+          } else {
+            changeTd.realHeight! += extraHeight
+          }
+        })
+      }
+      return true
+    }
+    return false
+  }
+
   private _computePageList(): IRow[][] {
     const pageRowList: IRow[][] = [[]]
     const {
@@ -2765,7 +2825,6 @@ export class Draw {
       isFirstRender = false
     } = payload || {}
     let { curIndex } = payload || {}
-    const innerWidth = this.getInnerWidth()
     const isPagingMode = this.getIsPagingMode()
     // 缓存当前页数信息
     const oldPageSize = this.pageRowList.length
@@ -2783,27 +2842,48 @@ export class Draw {
           this.footer.compute()
         }
       }
-      // 行信息
-      const margins = this.getMargins()
-      const pageHeight = this.getHeight()
-      const extraHeight = this.header.getExtraHeight()
-      const mainOuterHeight = this.getMainOuterHeight()
-      const startX = margins[3]
-      const startY = margins[0] + extraHeight
-      const surroundElementList = pickSurroundElementList(this.elementList)
-      this.rowList = this.computeRowList({
-        startX,
-        startY,
-        pageHeight,
-        mainOuterHeight,
-        isPagingMode,
-        innerWidth,
-        surroundElementList,
-        elementList: this.elementList
-      })
-      // 页面信息
-      this.pageRowList = this._computePageList()
-      // 位置信息
+      // 表格单元格编辑快速路径：
+      // 仅对当前编辑单元格调用 computeRowList，避免全量递归所有页面
+      // 的全部单元格（30 页 ≈ 9300 个单元格）。
+      // 若单元格高度未变（大多数击键不触发换行），
+      // 则跳过全量 computeRowList + _computePageList。
+      const positionContext = this.position.getPositionContext()
+      const useFastPath =
+        !isSourceHistory &&
+        !isInit &&
+        positionContext.isTable &&
+        positionContext.index !== undefined &&
+        positionContext.trIndex !== undefined &&
+        positionContext.tdIndex !== undefined &&
+        !this._recomputeSingleTableCellRowList(
+          positionContext.index,
+          positionContext.trIndex,
+          positionContext.tdIndex
+        )
+      if (!useFastPath) {
+        // 完整布局计算
+        const innerWidth = this.getInnerWidth()
+        const margins = this.getMargins()
+        const pageHeight = this.getHeight()
+        const extraHeight = this.header.getExtraHeight()
+        const mainOuterHeight = this.getMainOuterHeight()
+        const startX = margins[3]
+        const startY = margins[0] + extraHeight
+        const surroundElementList = pickSurroundElementList(this.elementList)
+        this.rowList = this.computeRowList({
+          startX,
+          startY,
+          pageHeight,
+          mainOuterHeight,
+          isPagingMode,
+          innerWidth,
+          surroundElementList,
+          elementList: this.elementList
+        })
+        // 页面信息
+        this.pageRowList = this._computePageList()
+      }
+      // 位置信息（快速路径和完整路径都需要更新位置）
       this.position.computePositionList()
       // 区域信息
       this.area.compute()
