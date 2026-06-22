@@ -13,6 +13,7 @@ export interface IContextMenuContext {
   editorTextFocus: boolean
   isInTable: boolean
   isCrossRowCol: boolean
+  isControl: boolean
   zone: EditorZone
   trIndex: number | null
   tdIndex: number | null

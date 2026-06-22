@@ -152,7 +152,7 @@ export class ContextMenu {
     // 是否存在选区
     const editorHasSelection = editorTextFocus && startIndex !== endIndex
     // 是否在表格内
-    const { isTable, trIndex, tdIndex, index } =
+    const { isTable, trIndex, tdIndex, index, isControl } =
       this.position.getPositionContext()
     let tableElement: IElement | null = null
     if (isTable) {
@@ -180,6 +180,7 @@ export class ContextMenu {
       editorHasSelection,
       editorTextFocus,
       isCrossRowCol,
+      isControl: isControl ?? false,
       zone,
       isInTable: isTable,
       trIndex: trIndex ?? null,
