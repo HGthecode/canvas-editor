@@ -1,6 +1,7 @@
 import { NBSP, WRAP, ZERO } from '../../dataset/constant/Common'
 import {
   AREA_CONTEXT_ATTR,
+  EDITOR_ELEMENT_PARAGRAPH_STYLE_ATTR,
   EDITOR_ELEMENT_STYLE_ATTR,
   EDITOR_ROW_ATTR,
   LIST_CONTEXT_ATTR,
@@ -327,7 +328,10 @@ export class CommandAdapt {
     if (!selection) return
     const painterStyle: IElementStyle = {}
     selection.forEach(s => {
-      const painterStyleKeys = EDITOR_ELEMENT_STYLE_ATTR
+      const painterStyleKeys = [
+        ...EDITOR_ELEMENT_STYLE_ATTR,
+        ...EDITOR_ELEMENT_PARAGRAPH_STYLE_ATTR
+      ]
       painterStyleKeys.forEach(p => {
         const key = p as keyof typeof ElementStyleKey
         if (painterStyle[key] === undefined) {
@@ -1532,7 +1536,7 @@ export class CommandAdapt {
       0
     )
     const height = this.draw.getHeight()
-    const mainOuterHeight = this.draw.getMainOuterHeight()
+    const mainOuterHeight = this.draw.getMainOuterHeight(lastPageIndex)
     const remaining = height - (mainOuterHeight + usedHeight)
     return remaining > 0 ? remaining : 0
   }

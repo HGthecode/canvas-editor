@@ -204,6 +204,7 @@ export class Draw {
   // 复用的离屏 Canvas，避免 computeRowList（含递归调用）每次创建新 Canvas
   private _measureCanvas: HTMLCanvasElement
   private _measureCtx: CanvasRenderingContext2D
+  private controlMinWidthPlaceholderElementListSet: WeakSet<IElement[]>
 
   constructor(
     rootContainer: HTMLElement,
@@ -306,6 +307,7 @@ export class Draw {
     // 初始化复用的离屏 Canvas，避免 computeRowList 递归调用时反复创建
     this._measureCanvas = document.createElement('canvas')
     this._measureCtx = this._measureCanvas.getContext('2d')!
+    this.controlMinWidthPlaceholderElementListSet = new WeakSet()
 
     // 打印模式优先设置打印数据
     if (this.mode === EditorMode.PRINT) {
@@ -453,10 +455,10 @@ export class Draw {
     return pageHeight - this.getMainOuterHeight()
   }
 
-  public getMainOuterHeight(): number {
+  public getMainOuterHeight(pageNo?: number): number {
     const margins = this.getMargins()
-    const headerExtraHeight = this.header.getExtraHeight()
-    const footerExtraHeight = this.footer.getExtraHeight()
+    const headerExtraHeight = this.header.getExtraHeight(pageNo)
+    const footerExtraHeight = this.footer.getExtraHeight(pageNo)
     return margins[0] + margins[2] + headerExtraHeight + footerExtraHeight
   }
 
@@ -485,9 +487,8 @@ export class Draw {
   public getContextInnerWidth(): number {
     const positionContext = this.position.getPositionContext()
     if (positionContext.isTable) {
-      const { index, trIndex, tdIndex } = positionContext
       const elementList = this.getOriginalElementList()
-      const td = elementList[index!].trList![trIndex!].tdList[tdIndex!]
+      const td = this.position.getTableTdByContext(elementList, positionContext)
       const tdPadding = this.getTdPadding()
       return td!.width! - tdPadding[1] - tdPadding[3]
     }
@@ -603,8 +604,10 @@ export class Draw {
 
   public getTableRowList(sourceElementList: IElement[]): IRow[] {
     const positionContext = this.position.getPositionContext()
-    const { index, trIndex, tdIndex } = positionContext
-    return sourceElementList[index!].trList![trIndex!].tdList[tdIndex!].rowList!
+    return this.position.getTableTdByContext(
+      sourceElementList,
+      positionContext
+    )!.rowList!
   }
 
   public getOriginalRowList() {
@@ -687,9 +690,9 @@ export class Draw {
 
   public getTableElementList(sourceElementList: IElement[]): IElement[] {
     const positionContext = this.position.getPositionContext()
-    const { index, trIndex, tdIndex } = positionContext
     return (
-      sourceElementList[index!].trList?.[trIndex!].tdList[tdIndex!].value || []
+      this.position.getTableTdByContext(sourceElementList, positionContext)
+        ?.value || []
     )
   }
 
@@ -729,12 +732,11 @@ export class Draw {
 
   public getTd(): ITd | null {
     const positionContext = this.position.getPositionContext()
-    const { index, trIndex, tdIndex, isTable } = positionContext
-    if (isTable) {
-      const elementList = this.getOriginalElementList()
-      return elementList[index!].trList![trIndex!].tdList[tdIndex!]
-    }
-    return null
+    if (!positionContext.isTable) return null
+    return this.position.getTableTdByContext(
+      this.getOriginalElementList(),
+      positionContext
+    )
   }
 
   public insertElementList(
@@ -1404,7 +1406,6 @@ export class Draw {
       startX = 0,
       startY = 0,
       pageHeight = 0,
-      mainOuterHeight = 0,
       surroundElementList = []
     } = payload
     const {
@@ -1416,6 +1417,17 @@ export class Draw {
     } = this.options
     const defaultBasicRowMarginHeight = this.getDefaultBasicRowMarginHeight()
     const ctx = this._measureCtx
+    // const canvas = document.createElement('canvas')
+    // const ctx = canvas.getContext('2d') as CanvasRenderingContext2D
+    // 还原最小宽度控件占位
+    if (this.controlMinWidthPlaceholderElementListSet.has(elementList)) {
+      for (let i = elementList.length - 1; i >= 0; i--) {
+        if (elementList[i].isControlMinWidthPlaceholder) {
+          elementList.splice(i, 1)
+        }
+      }
+      this.controlMinWidthPlaceholderElementListSet.delete(elementList)
+    }
     // 计算列表偏移宽度
     const listStyleMap = this.listParticle.computeListStyle(ctx, elementList)
     const rowList: IRow[] = []
@@ -1434,6 +1446,12 @@ export class Draw {
     let x = startX
     let y = startY
     let pageNo = 0
+    // 分页模式下按页计算起始 Y（页眉/页脚禁用时该页起始位置上移）
+    let pageStartY = startY
+    if (isPagingMode && !isFromTable) {
+      pageStartY = this.getMargins()[0] + this.getHeader().getExtraHeight(0)
+      y = pageStartY
+    }
     // 列表位置
     let listId: string | undefined
     let listIndex = 0
@@ -1637,7 +1655,8 @@ export class Draw {
         // 表格分页处理(拆分表格)
         if (isPagingMode) {
           const height = this.getHeight()
-          const marginHeight = this.getMainOuterHeight()
+          // 按表格所在页计算外部占位高度（页眉/页脚禁用时该页可用空间更大）
+          const marginHeight = this.getMainOuterHeight(pageNo)
           let curPagePreHeight = marginHeight
           for (let r = 0; r < rowList.length; r++) {
             const row = rowList[r]
@@ -1790,6 +1809,17 @@ export class Draw {
         metrics.boundingBoxDescent = 0
         metrics.boundingBoxAscent =
           this.textParticle.getBasisWordBoundingBoxAscent(ctx, ctx.font)
+      } else if (element.isControlMinWidthPlaceholder) {
+        metrics.width = (element.width || 0) * scale
+        metrics.height = defaultSize * scale
+        ctx.font = this.getElementFont(element)
+        const basisMetrics = this.textParticle.measureBasisWord(
+          ctx,
+          element.font!
+        )
+        metrics.boundingBoxAscent = basisMetrics.actualBoundingBoxAscent * scale
+        metrics.boundingBoxDescent =
+          basisMetrics.actualBoundingBoxDescent * scale
       } else if (element.type === ElementType.BLOCK) {
         if (!element.width) {
           metrics.width = availableWidth
@@ -1862,12 +1892,21 @@ export class Draw {
         left: 0,
         style: this.getElementFont(element, scale)
       })
-      // 暂时只考虑非换行场景：控件开始时统计宽度，结束时消费宽度及还原
-      if (rowElement.control?.minWidth) {
+      // 控件开始时统计宽度，结束时消费最小宽度并补充跨行占位
+      if (
+        rowElement.control?.minWidth &&
+        !rowElement.isControlMinWidthPlaceholder
+      ) {
         if (rowElement.controlComponent) {
           controlRealWidth += metrics.width
         }
         if (rowElement.controlComponent === ControlComponent.POSTFIX) {
+          const controlMinWidth = rowElement.control.minWidth * scale
+          const extraWidth = controlMinWidth - controlRealWidth
+          const rowRemainingWidth = Math.max(
+            availableWidth - curRow.width - rowElement.metrics.width,
+            0
+          )
           // 设置最小宽度控件属性（字符偏移量）
           this.control.setMinWidthControlInfo({
             row: curRow,
@@ -1875,6 +1914,23 @@ export class Draw {
             availableWidth,
             controlRealWidth
           })
+          let placeholderWidth = extraWidth - rowRemainingWidth
+          const placeholderList: IElement[] = []
+          while (placeholderWidth > 0) {
+            const width = Math.min(placeholderWidth, availableWidth)
+            placeholderList.push({
+              ...rowElement,
+              value: '',
+              width: width / scale,
+              left: 0,
+              isControlMinWidthPlaceholder: true
+            } as IElement)
+            placeholderWidth -= width
+          }
+          if (placeholderList.length) {
+            elementList.splice(i + 1, 0, ...placeholderList)
+            this.controlMinWidthPlaceholderElementListSet.add(elementList)
+          }
           controlRealWidth = 0
         }
       }
@@ -2061,17 +2117,19 @@ export class Draw {
       if (isWrap) {
         x = startX
         y += curRow.height
-        if (
-          isPagingMode &&
-          !isFromTable &&
-          pageHeight &&
-          (y - startY + mainOuterHeight + height > pageHeight ||
-            element.type === ElementType.PAGE_BREAK)
-        ) {
-          y = startY
-          // 删除多余四周环绕型元素
-          deleteSurroundElementList(surroundElementList, pageNo)
-          pageNo += 1
+        if (isPagingMode && !isFromTable && pageHeight) {
+          const curMainOuterHeight = this.getMainOuterHeight(pageNo)
+          if (
+            y - pageStartY + curMainOuterHeight + height > pageHeight ||
+            element.type === ElementType.PAGE_BREAK
+          ) {
+            // 删除多余四周环绕型元素
+            deleteSurroundElementList(surroundElementList, pageNo)
+            pageNo += 1
+            pageStartY =
+              this.getMargins()[0] + this.getHeader().getExtraHeight(pageNo)
+            y = pageStartY
+          }
         }
         // 计算下一行第一个元素是否存在环绕交叉
         rowElement.left = 0
@@ -2158,10 +2216,10 @@ export class Draw {
       pageNumber: { maxPageNo }
     } = this.options
     const height = this.getHeight()
-    const marginHeight = this.getMainOuterHeight()
-    let pageHeight = marginHeight
     let pageNo = 0
     if (pageMode === PageMode.CONTINUITY) {
+      const marginHeight = this.getMainOuterHeight(0)
+      let pageHeight = marginHeight
       pageRowList[0] = this.rowList
       // 重置高度
       pageHeight += this.rowList.reduce(
@@ -2181,6 +2239,8 @@ export class Draw {
       }
       this._initPageContext(this.ctxList[0])
     } else {
+      // 每页页眉/页脚禁用状态可能不同，按页计算外部占位高度
+      let pageHeight = this.getMainOuterHeight(0)
       for (let i = 0; i < this.rowList.length; i++) {
         const row = this.rowList[i]
         const rowOffsetY = row.offsetY || 0
@@ -2192,9 +2252,9 @@ export class Draw {
             this.elementList = this.elementList.slice(0, row.startIndex)
             break
           }
-          pageHeight = marginHeight + row.height + rowOffsetY
-          pageRowList.push([row])
           pageNo++
+          pageHeight = this.getMainOuterHeight(pageNo) + row.height + rowOffsetY
+          pageRowList.push([row])
         } else {
           pageHeight += row.height + rowOffsetY
           pageRowList[pageNo].push(row)
@@ -2866,7 +2926,7 @@ export class Draw {
         const margins = this.getMargins()
         const pageHeight = this.getHeight()
         const extraHeight = this.header.getExtraHeight()
-        const mainOuterHeight = this.getMainOuterHeight()
+        // const mainOuterHeight = this.getMainOuterHeight()
         const startX = margins[3]
         const startY = margins[0] + extraHeight
         const surroundElementList = pickSurroundElementList(this.elementList)
@@ -2874,7 +2934,7 @@ export class Draw {
           startX,
           startY,
           pageHeight,
-          mainOuterHeight,
+          // mainOuterHeight,
           isPagingMode,
           innerWidth,
           surroundElementList,
@@ -2986,10 +3046,11 @@ export class Draw {
     const positionContext = this.position.getPositionContext()
     const positionList = this.position.getPositionList()
     if (positionContext.isTable) {
-      const { index, trIndex, tdIndex } = positionContext
       const elementList = this.getOriginalElementList()
-      const tablePositionList =
-        elementList[index!].trList?.[trIndex!].tdList[tdIndex!].positionList
+      const tablePositionList = this.position.getTableTdByContext(
+        elementList,
+        positionContext
+      )?.positionList
       if (curIndex === undefined && tablePositionList) {
         curIndex = tablePositionList.length - 1
       }

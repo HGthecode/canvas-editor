@@ -37,6 +37,8 @@ export interface IElementStyle {
   strikeout?: boolean
   rowFlex?: RowFlex
   rowMargin?: number
+  level?: TitleLevel
+  title?: ITitle
   letterSpacing?: number
   textDecoration?: ITextDecoration
 }
@@ -114,6 +116,7 @@ export interface IControlElement {
   control?: IControl
   controlId?: string
   controlComponent?: ControlComponent
+  isControlMinWidthPlaceholder?: boolean
 }
 
 export interface ICheckboxElement {
