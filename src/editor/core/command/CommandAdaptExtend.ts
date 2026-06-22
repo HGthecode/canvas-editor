@@ -575,6 +575,21 @@ export function setTableCellTextContent(
   // 保留单元格属性（如 rowFlex），只替换文本内容
   const rowFlex = td.value?.[0]?.rowFlex
   td.value = [{ value: text, rowFlex }]
+  // 重新计算目标单元格的行布局
+  // 确保公式等非当前编辑单元格能被正确渲染
+  const recomputed = draw.recomputeTableCellLayout(elementIndex, trIndex, tdIndex)
+  console.log(
+    '[DEBUG setTableCellTextContent] 目标单元格 elementIndex=',
+    elementIndex,
+    'trIndex=',
+    trIndex,
+    'tdIndex=',
+    tdIndex,
+    'text=',
+    text,
+    'recomputeTableCellLayout返回(heightChanged)=',
+    recomputed
+  )
   const { endIndex } = range.getRange()
   draw.render({ curIndex: endIndex >= 0 ? endIndex : 0 })
 }

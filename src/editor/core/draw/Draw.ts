@@ -2209,6 +2209,20 @@ export class Draw {
     return false
   }
 
+  /**
+   * 公开暴露：强制重新计算指定表格单元格的 rowList 布局。
+   * 用于 emr-editor 层在 setTableCellTextContent 后将非当前编辑单元格
+   * 的 td.value 变更反映到 td.rowList，确保 computePositionList 能生成正确的渲染位置。
+   * @returns 单元格内容高度是否发生变化（换行/折叠导致）
+   */
+  public recomputeTableCellLayout(
+    elementIndex: number,
+    trIndex: number,
+    tdIndex: number
+  ): boolean {
+    return this._recomputeSingleTableCellRowList(elementIndex, trIndex, tdIndex)
+  }
+
   private _computePageList(): IRow[][] {
     const pageRowList: IRow[][] = [[]]
     const {

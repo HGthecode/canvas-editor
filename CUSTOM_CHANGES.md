@@ -52,3 +52,10 @@
 |------|---------|
 | `src/editor/core/command/CommandAdaptExtend.ts` | 新增 `IDynamicTableColumn`、`IDynamicTableConfig` 类型导出；新增 `insertDynamicTableAtCursor()`、`rebuildDynamicTableDataRows()`、`getAllDynamicTables()` 三个扩展命令及接口/注册绑定 |
 | `src/editor/index.ts` | 新增导出 `IDynamicTableColumn`、`IDynamicTableConfig` |
+
+### 6. 公式单元格即时重绘修复
+**改动目的**：修复表格单元格中公式（如 SUM 表达式）在源单元格输入时不即时重绘的问题。为非当前编辑的单元格提供布局重算能力，确保 `setTableCellTextContent` 后公式单元格内容能被正确渲染。
+| 文件 | 改动内容 |
+|------|---------|
+| `src/editor/core/draw/Draw.ts` | 新增 `public recomputeTableCellLayout()` 方法，包装已有的 `_recomputeSingleTableCellRowList()` |
+| `src/editor/core/command/CommandAdaptExtend.ts` | `setTableCellTextContent()` 中在设置 `td.value` 后调用 `draw.recomputeTableCellLayout()` |
