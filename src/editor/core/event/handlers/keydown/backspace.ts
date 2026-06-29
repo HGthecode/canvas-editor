@@ -147,16 +147,19 @@ export function backspace(evt: KeyboardEvent, host: CanvasEvent) {
     curIndex = isCollapsed ? index - 1 : startIndex
   }
   draw.getGlobalEvent().setCanvasEventAbility()
+  const renderOption = isCrossRowCol ? { isForceFullCompute: true } : {}
   if (curIndex === null) {
     rangeManager.setRange(startIndex, startIndex)
     draw.render({
       curIndex: startIndex,
-      isSubmitHistory: false
+      isSubmitHistory: false,
+      ...renderOption
     })
   } else {
     rangeManager.setRange(curIndex, curIndex)
     draw.render({
-      curIndex
+      curIndex,
+      ...renderOption
     })
   }
 }

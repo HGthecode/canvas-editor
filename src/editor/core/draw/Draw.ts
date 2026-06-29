@@ -2893,6 +2893,7 @@ export class Draw {
       isSubmitHistory = true,
       isSetCursor = true,
       isCompute = true,
+      isForceFullCompute = false,
       isLazy = true,
       isInit = false,
       isSourceHistory = false,
@@ -2923,6 +2924,7 @@ export class Draw {
       // 则跳过全量 computeRowList + _computePageList。
       const positionContext = this.position.getPositionContext()
       const useFastPath =
+        !isForceFullCompute &&
         !isSourceHistory &&
         !isInit &&
         positionContext.isTable &&

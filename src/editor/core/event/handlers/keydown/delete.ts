@@ -106,16 +106,19 @@ export function del(evt: KeyboardEvent, host: CanvasEvent) {
     }
   }
   draw.getGlobalEvent().setCanvasEventAbility()
+  const renderOption = isCrossRowCol ? { isForceFullCompute: true } : {}
   if (curIndex === null) {
     rangeManager.setRange(startIndex, startIndex)
     draw.render({
       curIndex: startIndex,
-      isSubmitHistory: false
+      isSubmitHistory: false,
+      ...renderOption
     })
   } else {
     rangeManager.setRange(curIndex, curIndex)
     draw.render({
-      curIndex
+      curIndex,
+      ...renderOption
     })
   }
 }

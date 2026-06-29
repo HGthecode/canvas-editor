@@ -313,12 +313,15 @@ export class RangeManager {
     return this.getRangeParagraphInfo()?.elementList || null
   }
 
-  // 获取选区表格
+  // 获取选区表格（支持嵌套表格）
   public getRangeTableElement(): IElement | null {
     const positionContext = this.position.getPositionContext()
     if (!positionContext.isTable) return null
     const originalElementList = this.draw.getOriginalElementList()
-    return originalElementList[positionContext.index!]
+    return this.position.getTableElementByContext(
+      originalElementList,
+      positionContext
+    )
   }
 
   public getIsSelectAll() {
@@ -440,11 +443,14 @@ export class RangeManager {
       this.range.endTdIndex = endTdIndex
       this.range.startTrIndex = startTrIndex
       this.range.endTrIndex = endTrIndex
+      // 表格跨行/列选区：tableId 与行列索引均已设置且起止位置不同
       this.range.isCrossRowCol = !!(
-        startTdIndex ||
-        endTdIndex ||
-        startTrIndex ||
-        endTrIndex
+        tableId != null &&
+        startTdIndex != null &&
+        endTdIndex != null &&
+        startTrIndex != null &&
+        endTrIndex != null &&
+        (startTdIndex !== endTdIndex || startTrIndex !== endTrIndex)
       )
       this.setDefaultStyle(null)
     }

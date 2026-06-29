@@ -18,6 +18,30 @@ import {
 import { CanvasEvent } from '../CanvasEvent'
 import { IOverrideResult } from '../../override/Override'
 import { deepClone, normalizeLineBreak } from '../../../utils'
+import { IClipboardData } from '../../../utils/clipboard'
+
+/**
+ * 判断是否应使用编辑器内部剪贴板数据
+ * 表格多单元格复制时，浏览器纯文本格式可能与内部记录不完全一致
+ */
+function shouldUseEditorClipboard(
+  editorClipboardData: IClipboardData | null,
+  clipboardText: string,
+  isTable: boolean
+): boolean {
+  if (!editorClipboardData) return false
+  if (
+    normalizeLineBreak(clipboardText) ===
+    normalizeLineBreak(editorClipboardData.text)
+  ) {
+    return true
+  }
+  return (
+    isTable &&
+    editorClipboardData.elementList.length > 0 &&
+    editorClipboardData.elementList[0].type === ElementType.TABLE
+  )
+}
 
 /**
  * 按网格位置（rowIndex, colIndex）在目标表格中查找对应的 td
@@ -95,13 +119,17 @@ function pasteTableCells(host: CanvasEvent, sourceTableElement: IElement) {
   const draw = host.getDraw()
   if (draw.isReadonly() || draw.isDisabled()) return
 
-  const positionContext = draw.getPosition().getPositionContext()
-  const { index, trIndex, tdIndex } = positionContext
-  if (index === undefined || trIndex === undefined || tdIndex === undefined) return
+  const position = draw.getPosition()
+  const positionContext = position.getPositionContext()
+  const { trIndex, tdIndex } = positionContext
+  if (trIndex === undefined || tdIndex === undefined) return
 
   const originalElementList = draw.getOriginalElementList()
-  const targetTable = originalElementList[index]
-  const targetTrList = targetTable.trList
+  const targetTable = position.getTableElementByContext(
+    originalElementList,
+    positionContext
+  )
+  const targetTrList = targetTable?.trList
   if (!targetTrList?.length) return
 
   // 获取光标所在 td 的网格位置
@@ -139,7 +167,7 @@ function pasteTableCells(host: CanvasEvent, sourceTableElement: IElement) {
 
     // 更新表格/行/单元格 ID 以匹配目标
     for (const el of clonedValue) {
-      el.tableId = targetTable.id
+      el.tableId = targetTable!.id
       el.trId = target.tr.id
       el.tdId = target.td.id
     }
@@ -148,10 +176,11 @@ function pasteTableCells(host: CanvasEvent, sourceTableElement: IElement) {
     target.td.value = clonedValue
   }
 
-  // 渲染并提交历史
+  // 多单元格变更需全量重算，否则仅当前格 rowList 更新导致显示滞后
   draw.render({
     curIndex: cursorTd.value.length - 1,
-    isSubmitHistory: true
+    isSubmitHistory: true,
+    isForceFullCompute: true
   })
 }
 
@@ -168,12 +197,8 @@ export function pasteElement(host: CanvasEvent, elementList: IElement[]) {
   if (elementList.length && elementList[0].type === ElementType.TABLE) {
     const positionContext = draw.getPosition().getPositionContext()
     if (positionContext.isTable) {
-      const range = draw.getRange().getRange()
-      // MVP 仅支持单单元格目标，跨行列选区不回退
-      if (!range.isCrossRowCol) {
-        pasteTableCells(host, elementList[0])
-        return
-      }
+      pasteTableCells(host, elementList[0])
+      return
     }
   }
   const rangeManager = draw.getRange()
@@ -277,13 +302,9 @@ export function pasteByEvent(host: CanvasEvent, evt: ClipboardEvent) {
   if (!getIsClipboardContainFile(clipboardData)) {
     const clipboardText = clipboardData.getData('text')
     const editorClipboardData = getClipboardData()
-    // 不同系统间默认换行符不同 windows:\r\n mac:\n
-    if (
-      editorClipboardData &&
-      normalizeLineBreak(clipboardText) ===
-        normalizeLineBreak(editorClipboardData.text)
-    ) {
-      pasteElement(host, editorClipboardData.elementList)
+    const isTable = draw.getPosition().getPositionContext().isTable
+    if (shouldUseEditorClipboard(editorClipboardData, clipboardText, isTable)) {
+      pasteElement(host, editorClipboardData!.elementList)
       return
     }
   }
@@ -336,12 +357,9 @@ export async function pasteByApi(host: CanvasEvent, options?: IPasteOption) {
   // 优先读取编辑器内部粘贴板数据
   const clipboardText = await navigator.clipboard.readText()
   const editorClipboardData = getClipboardData()
-  if (
-    editorClipboardData &&
-    normalizeLineBreak(clipboardText) ===
-      normalizeLineBreak(editorClipboardData.text)
-  ) {
-    pasteElement(host, editorClipboardData.elementList)
+  const isTable = draw.getPosition().getPositionContext().isTable
+  if (shouldUseEditorClipboard(editorClipboardData, clipboardText, isTable)) {
+    pasteElement(host, editorClipboardData!.elementList)
     return
   }
   removeClipboardData()

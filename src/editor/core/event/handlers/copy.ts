@@ -1,7 +1,9 @@
 import { ElementType } from '../../../dataset/enum/Element'
 import { IElement } from '../../../interface/Element'
 import { ICopyOption } from '../../../interface/Event'
+import { ITd } from '../../../interface/table/Td'
 import { ITr } from '../../../interface/table/Tr'
+import { deepClone } from '../../../utils'
 import { writeElementList } from '../../../utils/clipboard'
 import { getTextFromElementList, zipElementList } from '../../../utils/element'
 import { IOverrideResult } from '../../override/Override'
@@ -50,7 +52,7 @@ export async function copy(host: CanvasEvent, options?: ICopyOption) {
         minHeight: tr.minHeight
       }
       for (let c = 0; c < row.length; c++) {
-        coptTr.tdList.push(row[c])
+        coptTr.tdList.push(deepClone(row[c]) as ITd)
       }
       copyTableElement.trList!.push(coptTr)
     }

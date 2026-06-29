@@ -8,6 +8,8 @@ export interface IDrawOption {
   isSetCursor?: boolean
   isSubmitHistory?: boolean
   isCompute?: boolean
+  /** 表格结构或多单元格变更后跳过快速路径，强制全量布局重算 */
+  isForceFullCompute?: boolean
   isLazy?: boolean
   isInit?: boolean
   isSourceHistory?: boolean

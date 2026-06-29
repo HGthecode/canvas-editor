@@ -95,7 +95,7 @@ export class TableOperate {
       [element]
     )
     this.range.setRange(curIndex, curIndex)
-    this.draw.render({ curIndex, isSetCursor: false })
+    this.draw.render({ curIndex, isSetCursor: false, isForceFullCompute: true })
   }
 
   public insertTableTopRow() {
@@ -157,7 +157,7 @@ export class TableOperate {
     })
     this.range.setRange(0, 0)
     // 重新渲染
-    this.draw.render({ curIndex: 0 })
+    this.draw.render({ curIndex: 0, isForceFullCompute: true })
     this.tableTool.render()
   }
 
@@ -222,7 +222,7 @@ export class TableOperate {
     })
     this.range.setRange(0, 0)
     // 重新渲染
-    this.draw.render({ curIndex: 0 })
+    this.draw.render({ curIndex: 0, isForceFullCompute: true })
   }
 
   public adjustColWidth(element: IElement) {
@@ -294,7 +294,7 @@ export class TableOperate {
     })
     this.range.setRange(0, 0)
     // 重新渲染
-    this.draw.render({ curIndex: 0 })
+    this.draw.render({ curIndex: 0, isForceFullCompute: true })
     this.tableTool.render()
   }
 
@@ -344,7 +344,7 @@ export class TableOperate {
     })
     this.range.setRange(0, 0)
     // 重新渲染
-    this.draw.render({ curIndex: 0 })
+    this.draw.render({ curIndex: 0, isForceFullCompute: true })
   }
 
   public deleteTableRow() {
@@ -403,7 +403,8 @@ export class TableOperate {
     this.range.clearRange()
     // 重新渲染
     this.draw.render({
-      curIndex: positionContext.index
+      curIndex: positionContext.index,
+      isForceFullCompute: true
     })
     this.tableTool.dispose()
   }
@@ -448,7 +449,8 @@ export class TableOperate {
     this.range.setRange(0, 0)
     // 重新渲染
     this.draw.render({
-      curIndex: positionContext.index
+      curIndex: positionContext.index,
+      isForceFullCompute: true
     })
     this.tableTool.dispose()
   }
@@ -481,7 +483,7 @@ export class TableOperate {
       index: curIndex
     })
     this.range.setRange(curIndex, curIndex)
-    this.draw.render({ curIndex })
+    this.draw.render({ curIndex, isForceFullCompute: true })
     this.tableTool.dispose()
   }
 
@@ -624,7 +626,7 @@ export class TableOperate {
     const curIndex = anchorTd.value.length - 1
     this.range.setRange(curIndex, curIndex)
     // 重新渲染
-    this.draw.render()
+    this.draw.render({ isForceFullCompute: true })
     this.tableTool.render()
   }
 
@@ -690,7 +692,7 @@ export class TableOperate {
     // 重新渲染
     const curIndex = curTd.value.length - 1
     this.range.setRange(curIndex, curIndex)
-    this.draw.render()
+    this.draw.render({ isForceFullCompute: true })
     this.tableTool.render()
   }
 
@@ -749,7 +751,7 @@ export class TableOperate {
       }
     }
     // 重新渲染
-    this.draw.render()
+    this.draw.render({ isForceFullCompute: true })
     this.tableTool.render()
   }
 
@@ -816,7 +818,7 @@ export class TableOperate {
       t++
     }
     // 重新渲染
-    this.draw.render()
+    this.draw.render({ isForceFullCompute: true })
     this.tableTool.render()
   }
 
@@ -840,7 +842,8 @@ export class TableOperate {
     }
     const { endIndex } = this.range.getRange()
     this.draw.render({
-      curIndex: endIndex
+      curIndex: endIndex,
+      isForceFullCompute: true
     })
   }
 
@@ -859,7 +862,8 @@ export class TableOperate {
     element.borderType = payload
     const { endIndex } = this.range.getRange()
     this.draw.render({
-      curIndex: endIndex
+      curIndex: endIndex,
+      isForceFullCompute: true
     })
   }
 
