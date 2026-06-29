@@ -449,6 +449,10 @@ export class RangeManager {
       this.setDefaultStyle(null)
     }
     this.range.zone = this.draw.getZone().getZone()
+    // 同步 area 高亮（全局仅一个）
+    if (isChange) {
+      this.draw.getArea().syncActiveHighlight()
+    }
     // 激活控件
     const control = this.draw.getControl()
     if (~startIndex && ~endIndex) {

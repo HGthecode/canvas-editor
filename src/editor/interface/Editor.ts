@@ -35,6 +35,7 @@ import { IGraffitiData, IGraffitiOption } from './Graffiti'
 import { IWhiteSpaceOption } from './WhiteSpace'
 import { IMagnifierOption } from './Magnifier'
 import { IAccessibilityOption } from './Accessibility'
+import { IAreaOption } from './AreaOption'
 
 export interface IEditorData {
   header?: IElement[]
@@ -117,6 +118,7 @@ export interface IEditorOption {
   list?: IListOption
   magnifier?: IMagnifierOption
   accessibility?: IAccessibilityOption
+  area?: IAreaOption
 }
 
 export interface IEditorResult {

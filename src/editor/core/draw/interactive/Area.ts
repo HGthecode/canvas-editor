@@ -33,6 +33,8 @@ export class Area {
   private position: Position
   private options: DeepRequired<IEditorOption>
   private areaInfoMap = new Map<string, IAreaInfo>()
+  /** 程序化高亮的区域 ID */
+  private highlightAreaId: string | null = null
 
   constructor(draw: Draw) {
     this.draw = draw
@@ -52,6 +54,58 @@ export class Area {
     const elementList = this.draw.getElementList()
     const element = elementList[startIndex]
     return element?.areaId || null
+  }
+
+  public getHighlightAreaId(): string | null {
+    return this.highlightAreaId
+  }
+
+  /** 设置/清除高亮区域（全局仅保留最后一个） */
+  public setHighlightAreaId(areaId: string | null) {
+    if (this.highlightAreaId === areaId) return
+    this.highlightAreaId = areaId
+    this.draw.render({
+      isSetCursor: false
+    })
+  }
+
+  /** 光标所在区域变化时同步高亮（不触发重绘，由后续 render 统一绘制） */
+  public syncActiveHighlight() {
+    if (!this.options.area.showActiveBorder) return
+    const activeAreaId = this.getActiveAreaId()
+    if (this.highlightAreaId !== activeAreaId) {
+      this.highlightAreaId = activeAreaId
+    }
+  }
+
+  /** 绘制区域边框 */
+  private drawAreaBorder(
+    ctx: CanvasRenderingContext2D,
+    pageNo: number,
+    areaId: string,
+    borderColor: string,
+    borderWidth: number
+  ) {
+    const areaInfo = this.areaInfoMap.get(areaId)
+    if (!areaInfo || areaInfo.area?.hide) return
+    const pagePositionList = areaInfo.positionList.filter(
+      p => p.pageNo === pageNo
+    )
+    if (!pagePositionList.length) return
+    const margins = this.draw.getMargins()
+    const width = this.draw.getInnerWidth()
+    const firstPosition = pagePositionList[0]
+    const lastPosition = pagePositionList[pagePositionList.length - 1]
+    const x = margins[3]
+    const y = Math.ceil(firstPosition.coordinate.leftTop[1])
+    const height = Math.ceil(lastPosition.coordinate.rightBottom[1] - y)
+    ctx.save()
+    ctx.translate(0.5, 0.5)
+    ctx.lineWidth = borderWidth
+    ctx.strokeStyle = borderColor
+    ctx.strokeRect(x, y, width, height)
+    ctx.translate(-0.5, -0.5)
+    ctx.restore()
   }
 
   public getActiveAreaInfo(): IAreaInfo | null {
@@ -161,6 +215,17 @@ export class Area {
         })
       }
       ctx.translate(-0.5, -0.5)
+    }
+    // 仅绘制当前唯一高亮区域边框
+    if (this.highlightAreaId) {
+      const areaOption = this.options.area
+      this.drawAreaBorder(
+        ctx,
+        pageNo,
+        this.highlightAreaId,
+        areaOption.highlightBorderColor,
+        areaOption.borderWidth
+      )
     }
     ctx.restore()
   }

@@ -62,6 +62,8 @@ import { IGraffitiOption } from '../interface/Graffiti'
 import { defaultGraffitiOption } from '../dataset/constant/Graffiti'
 import { IWhiteSpaceOption } from '../interface/WhiteSpace'
 import { defaultWhiteSpaceOption } from '../dataset/constant/WhiteSpace'
+import { defaultAreaOption } from '../dataset/constant/Area'
+import { IAreaOption } from '../interface/AreaOption'
 
 export function mergeOption(
   options: IEditorOption = {}
@@ -174,6 +176,10 @@ export function mergeOption(
     ...defaultAccessibilityOption,
     ...options.accessibility
   }
+  const areaOptions: Required<IAreaOption> = {
+    ...defaultAreaOption,
+    ...options.area
+  }
   const modeRuleOption: DeepRequired<IModeRule> = {
     print: {
       ...defaultModeRuleOption.print,
@@ -263,6 +269,7 @@ export function mergeOption(
     imgCaption: imgCaptionOptions,
     list: listOptions,
     magnifier: magnifierOptions,
-    accessibility: accessibilityOptions
+    accessibility: accessibilityOptions,
+    area: areaOptions
   }
 }

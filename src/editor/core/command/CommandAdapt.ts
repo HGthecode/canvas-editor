@@ -135,6 +135,7 @@ import {
   ISetAreaPropertiesOption,
   ISetAreaValueOption
 } from '../../interface/Area'
+import { IHighlightAreaOption } from '../../interface/AreaOption'
 import { IAreaBadge, IBadge } from '../../interface/Badge'
 import { IRichtextOption } from '../../interface/Command'
 import { WatermarkType } from '../../dataset/enum/Watermark'
@@ -2712,6 +2713,14 @@ export class CommandAdapt {
 
   public setAreaProperties(payload: ISetAreaPropertiesOption) {
     this.draw.getArea().setAreaProperties(payload)
+  }
+
+  public highlightArea(payload: IHighlightAreaOption = {}) {
+    this.draw.getArea().setHighlightAreaId(payload.id ?? null)
+  }
+
+  public clearAreaHighlight() {
+    this.draw.getArea().setHighlightAreaId(null)
   }
 
   public deleteArea(options?: IDeleteAreaOption) {
