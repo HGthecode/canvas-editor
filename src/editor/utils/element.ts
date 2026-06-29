@@ -341,7 +341,7 @@ export function formatElementList(
         color: el.control?.bracketColor || editorOptions.control.bracketColor
       }
       // 前缀
-      const prefixStrList = splitText(prefix || controlOption.prefix)
+      const prefixStrList = splitText(prefix ?? controlOption.prefix)
       for (let p = 0; p < prefixStrList.length; p++) {
         const value = prefixStrList[p]
         elementList.splice(i, 0, {
@@ -550,7 +550,7 @@ export function formatElementList(
         }
       }
       // 后缀
-      const postfixStrList = splitText(postfix || controlOption.postfix)
+      const postfixStrList = splitText(postfix ?? controlOption.postfix)
       for (let p = 0; p < postfixStrList.length; p++) {
         const value = postfixStrList[p]
         elementList.splice(i, 0, {

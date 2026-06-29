@@ -227,11 +227,13 @@ export class ImageParticle {
     ctx: CanvasRenderingContext2D,
     element: IElement,
     x: number,
-    y: number
+    y: number,
+    renderWidth?: number,
+    renderHeight?: number
   ) {
     const { scale } = this.options
-    const width = element.width! * scale
-    const height = element.height! * scale
+    const width = renderWidth ?? element.width! * scale
+    const height = renderHeight ?? element.height! * scale
     if (this.imageCache.has(element.value)) {
       const img = this.imageCache.get(element.value)!
       this._drawImageWithCrop(ctx, img, element, x, y, width, height)

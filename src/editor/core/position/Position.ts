@@ -312,11 +312,17 @@ export class Position {
       for (let j = 0; j < curRow.elementList.length; j++) {
         const element = curRow.elementList[j]
         const metrics = element.metrics
-        const offsetY =
-          !element.hide &&
-          ((element.imgDisplay !== ImageDisplay.INLINE &&
-            element.type === ElementType.IMAGE) ||
-            element.type === ElementType.LATEX)
+        const lineGap = (this.options.lineGap || 0) * scale
+        const isControlValueImage =
+          element.controlId &&
+          element.controlComponent === ControlComponent.VALUE &&
+          element.type === ElementType.IMAGE
+        const offsetY = isControlValueImage
+          ? lineGap / 2
+          : !element.hide &&
+              ((element.imgDisplay !== ImageDisplay.INLINE &&
+                element.type === ElementType.IMAGE) ||
+                element.type === ElementType.LATEX)
             ? curRow.ascent - metrics.height
             : curRow.ascent
         // 偏移量（内部计算使用）

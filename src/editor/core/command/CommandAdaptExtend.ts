@@ -686,6 +686,37 @@ export type ISetControlValueByFieldOption = Record<
 >
 
 /**
+ * 扫描全部区域元素，按 extension.field 收集 controlId。
+ * 不依赖 getControlList（空前缀控件无法被 zip 压缩，getControlList 会漏掉）。
+ */
+function collectControlIdsByField(adapt: CommandAdapt): Map<string, string> {
+  const map = new Map<string, string>()
+  const draw = (adapt as any).draw
+
+  const scan = (elementList: IElement[]) => {
+    for (const el of elementList) {
+      if (el.type === ElementType.TABLE) {
+        const trList = el.trList ?? []
+        for (const tr of trList) {
+          for (const td of tr.tdList) {
+            scan(td.value)
+          }
+        }
+      }
+      const field = (el.control?.extension as { field?: string } | undefined)?.field
+      if (field && el.controlId && !map.has(field)) {
+        map.set(field, el.controlId)
+      }
+    }
+  }
+
+  scan(draw.getHeaderElementList())
+  scan(draw.getOriginalMainElementList())
+  scan(draw.getFooterElementList())
+  return map
+}
+
+/**
  * 按 extension.field 批量设置表单控件值。
  * 同一 field 可能对应多个 IElement（控件展开后），取首个 controlId。
  */
@@ -697,15 +728,7 @@ export function setControlValueByField(
   const fields = Object.keys(payload)
   if (!fields.length) return
 
-  const controlList = adapt.getControlList()
-  const fieldToControlId = new Map<string, string>()
-  for (const el of controlList) {
-    const field = (el.control?.extension as { field?: string } | undefined)?.field
-    if (field && !fieldToControlId.has(field) && el.controlId) {
-      fieldToControlId.set(field, el.controlId)
-    }
-  }
-
+  const fieldToControlId = collectControlIdsByField(adapt)
   const { isSubmitHistory = true } = options ?? {}
   const valuePayload: ISetControlValueOption[] = []
   for (const field of fields) {

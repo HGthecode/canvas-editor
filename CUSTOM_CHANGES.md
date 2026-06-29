@@ -59,3 +59,11 @@
 |------|---------|
 | `src/editor/core/draw/Draw.ts` | 新增 `public recomputeTableCellLayout()` 方法，包装已有的 `_recomputeSingleTableCellRowList()` |
 | `src/editor/core/command/CommandAdaptExtend.ts` | `setTableCellTextContent()` 中在设置 `td.value` 后调用 `draw.recomputeTableCellLayout()` |
+
+### 7. 控件内图片签名零上下边距
+**改动目的**：表单控件 VALUE 含图片时，取消控件内元素上下 rowMargin，渲染时图片撑满行内容区高度，消除约 6px 空白。
+| 文件 | 改动内容 |
+|------|---------|
+| `src/editor/core/draw/Draw.ts` | 新增 `collectControlIdsWithImageValue`、`getEffectiveElementRowMargin`、`isControlValueImage`；`computeRowList` 与边框绘制使用零 rowMargin；`drawRow` 控件内图片按行高拉伸绘制 |
+| `src/editor/core/position/Position.ts` | 控件 VALUE 图片顶对齐（`offsetY = lineGap/2`） |
+| `src/editor/core/draw/particle/ImageParticle.ts` | `render()` 支持可选 `renderWidth`/`renderHeight` 覆盖尺寸 |

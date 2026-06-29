@@ -1397,6 +1397,53 @@ export class Draw {
     )
   }
 
+  /** 收集 VALUE 含图片的控件 ID，用于取消控件上下行距 */
+  public collectControlIdsWithImageValue(elementList: IElement[]): Set<string> {
+    const controlIds = new Set<string>()
+    const scan = (list: IElement[]) => {
+      for (let i = 0; i < list.length; i++) {
+        const el = list[i]
+        if (
+          el.controlId &&
+          el.controlComponent === ControlComponent.VALUE &&
+          el.type === ElementType.IMAGE
+        ) {
+          controlIds.add(el.controlId)
+        }
+        if (el.type === ElementType.TABLE && el.trList) {
+          for (let r = 0; r < el.trList.length; r++) {
+            const tr = el.trList[r]
+            for (let d = 0; d < tr.tdList.length; d++) {
+              scan(tr.tdList[d].value)
+            }
+          }
+        }
+      }
+    }
+    scan(elementList)
+    return controlIds
+  }
+
+  /** 含图片签名的控件内元素不使用上下 rowMargin */
+  public getEffectiveElementRowMargin(
+    element: IElement,
+    controlIdsWithImageValue: Set<string>
+  ): number {
+    if (element.controlId && controlIdsWithImageValue.has(element.controlId)) {
+      return 0
+    }
+    return this.getElementRowMargin(element)
+  }
+
+  /** 控件 VALUE 内的图片元素 */
+  public isControlValueImage(element: IElement): boolean {
+    return !!(
+      element.controlId &&
+      element.controlComponent === ControlComponent.VALUE &&
+      element.type === ElementType.IMAGE
+    )
+  }
+
   public computeRowList(payload: IComputeRowListPayload) {
     const {
       innerWidth,
@@ -1416,6 +1463,8 @@ export class Draw {
       defaultTabWidth
     } = this.options
     const defaultBasicRowMarginHeight = this.getDefaultBasicRowMarginHeight()
+    const controlIdsWithImageValue =
+      this.collectControlIdsWithImageValue(elementList)
     const ctx = this._measureCtx
     // const canvas = document.createElement('canvas')
     // const ctx = canvas.getContext('2d') as CanvasRenderingContext2D
@@ -1460,7 +1509,10 @@ export class Draw {
     for (let i = 0; i < elementList.length; i++) {
       const curRow: IRow = rowList[rowList.length - 1]
       const element = elementList[i]
-      const rowMargin = this.getElementRowMargin(element)
+      const rowMargin = this.getEffectiveElementRowMargin(
+        element,
+        controlIdsWithImageValue
+      )
       const metrics: IElementMetrics = {
         width: 0,
         height: 0,
@@ -2355,6 +2407,8 @@ export class Draw {
     const isPrintMode = this.isPrintMode()
     const isGraffitiMode = this.isGraffitiMode()
     const { isCrossRowCol, tableId } = this.range.getRange()
+    const controlIdsWithImageValue =
+      this.collectControlIdsWithImageValue(elementList)
     let index = startIndex
     for (let i = 0; i < rowList.length; i++) {
       const curRow = rowList[i]
@@ -2392,7 +2446,20 @@ export class Draw {
             element.imgDisplay !== ImageDisplay.FLOAT_TOP &&
             element.imgDisplay !== ImageDisplay.FLOAT_BOTTOM
           ) {
-            this.imageParticle.render(ctx, element, x, y + offsetY)
+            const lineGap = (this.options.lineGap || 0) * scale
+            if (this.isControlValueImage(element)) {
+              const renderHeight = curRow.height - lineGap
+              this.imageParticle.render(
+                ctx,
+                element,
+                x,
+                y + lineGap / 2,
+                element.width! * scale,
+                renderHeight
+              )
+            } else {
+              this.imageParticle.render(ctx, element, x, y + offsetY)
+            }
           }
         } else if (element.type === ElementType.LATEX) {
           this.textParticle.complete()
@@ -2509,7 +2576,10 @@ export class Draw {
             this.control.drawBorder(ctx)
           }
           // 当前元素位置信息记录
-          const rowMargin = this.getElementRowMargin(element)
+          const rowMargin = this.getEffectiveElementRowMargin(
+            element,
+            controlIdsWithImageValue
+          )
           const lineGap = (this.options.lineGap || 0) * scale
           this.control.recordBorderInfo(
             x,
