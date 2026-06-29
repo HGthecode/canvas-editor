@@ -103,6 +103,8 @@ export class ListParticle {
     elementList: IElement[]
   ): Map<string, number> {
     const listStyleMap = new Map<string, number>()
+    // 空数组直接返回，避免 elementList[0] 为 undefined 导致崩溃
+    if (!elementList.length) return listStyleMap
     let start = 0
     let curListId = elementList[start].listId
     let curElementList: IElement[] = []

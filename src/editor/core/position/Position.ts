@@ -391,7 +391,7 @@ export class Position {
             for (let d = 0; d < tr.tdList!.length; d++) {
               const td = tr.tdList[d]
               td.positionList = []
-              const rowList = td.rowList!
+              const rowList = td.rowList || []
               const drawRowResult = this.computePageRowPosition({
                 positionList: td.positionList,
                 rowList,

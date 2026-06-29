@@ -49,6 +49,7 @@ function backspaceHideElement(host: CanvasEvent) {
 export function backspace(evt: KeyboardEvent, host: CanvasEvent) {
   const draw = host.getDraw()
   if (draw.isReadonly()) return
+  if (draw.isDisabled()) return
   // 可输入性验证
   const rangeManager = draw.getRange()
   if (!rangeManager.getIsCanInput()) return

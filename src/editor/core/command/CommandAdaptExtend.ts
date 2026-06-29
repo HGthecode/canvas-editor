@@ -461,10 +461,10 @@ function getTdTextContent(td: ITd): string {
  */
 export function getAllTableCellsWithValuePath(
   adapt: CommandAdapt
-): { elementIndex: number; trIndex: number; tdIndex: number; valuePath: string; field: string; currentText: string }[] {
+): { elementIndex: number; trIndex: number; tdIndex: number; valuePath: string; field: string; tableField: string; currentText: string }[] {
   const draw = (adapt as any).draw
   const originalElementList = draw.getOriginalElementList() as any[]
-  const result: { elementIndex: number; trIndex: number; tdIndex: number; valuePath: string; field: string; currentText: string }[] = []
+  const result: { elementIndex: number; trIndex: number; tdIndex: number; valuePath: string; field: string; tableField: string; currentText: string }[] = []
 
   for (let elIdx = 0; elIdx < originalElementList.length; elIdx++) {
     const el = originalElementList[elIdx]
@@ -482,6 +482,7 @@ export function getAllTableCellsWithValuePath(
           tdIndex: tdIdx,
           valuePath: td.valuePath,
           field: td.field ?? '',
+          tableField: (el.extension as any)?.field || `_table_${elIdx}`,
           currentText: getTdTextContent(td),
         })
       }
@@ -577,19 +578,19 @@ export function setTableCellTextContent(
   td.value = [{ value: text, rowFlex }]
   // 重新计算目标单元格的行布局
   // 确保公式等非当前编辑单元格能被正确渲染
-  const recomputed = draw.recomputeTableCellLayout(elementIndex, trIndex, tdIndex)
-  console.log(
-    '[DEBUG setTableCellTextContent] 目标单元格 elementIndex=',
-    elementIndex,
-    'trIndex=',
-    trIndex,
-    'tdIndex=',
-    tdIndex,
-    'text=',
-    text,
-    'recomputeTableCellLayout返回(heightChanged)=',
-    recomputed
-  )
+  // const recomputed = draw.recomputeTableCellLayout(elementIndex, trIndex, tdIndex)
+  // console.log(
+  //   '[DEBUG setTableCellTextContent] 目标单元格 elementIndex=',
+  //   elementIndex,
+  //   'trIndex=',
+  //   trIndex,
+  //   'tdIndex=',
+  //   tdIndex,
+  //   'text=',
+  //   text,
+  //   'recomputeTableCellLayout返回(heightChanged)=',
+  //   recomputed
+  // )
   const { endIndex } = range.getRange()
   draw.render({ curIndex: endIndex >= 0 ? endIndex : 0 })
 }
@@ -654,7 +655,7 @@ export interface CommandAdaptExtend {
   getTableColAttr: () => ITableColAttrOption
   setShowCellNumber: (show: boolean) => void
   /** 扫描所有表格，收集含 valuePath 的单元格位置与当前文本 */
-  getAllTableCellsWithValuePath: () => { elementIndex: number; trIndex: number; tdIndex: number; valuePath: string; field: string; currentText: string }[]
+  getAllTableCellsWithValuePath: () => { elementIndex: number; trIndex: number; tdIndex: number; valuePath: string; field: string; tableField: string; currentText: string }[]
   /** 按三坐标设置指定表格单元格文本内容并重绘 */
   setTableCellTextContent: (elementIndex: number, trIndex: number, tdIndex: number, text: string) => void
   /** 按三坐标读取指定表格单元格文本内容 */
