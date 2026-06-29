@@ -10,6 +10,12 @@ export interface IDrawOption {
   isCompute?: boolean
   /** 表格结构或多单元格变更后跳过快速路径，强制全量布局重算 */
   isForceFullCompute?: boolean
+  /** valuePath 等场景：额外重算 rowList 的表格单元格（不触发历史） */
+  extraTableCells?: Array<{
+    elementIndex: number
+    trIndex: number
+    tdIndex: number
+  }>
   isLazy?: boolean
   isInit?: boolean
   isSourceHistory?: boolean

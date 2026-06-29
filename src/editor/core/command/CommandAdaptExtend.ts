@@ -12,6 +12,7 @@ import { IPositionContext } from '../../interface/Position'
 import type { CommandAdapt } from './CommandAdapt'
 import type { IColgroup } from '../../interface/table/Colgroup'
 import type { IElement } from '../../interface/Element'
+import type { ISetControlValueOption } from '../../interface/Control'
 import type { ITd } from '../../interface/table/Td'
 import type { ITr } from '../../interface/table/Tr'
 import { formatElementContext, formatElementList } from '../../utils/element'
@@ -557,6 +558,51 @@ export function setTableHideList(
 }
 
 /**
+ * 批量设置表格单元格文本（valuePath 公式回写），统一重绘一次。
+ */
+export interface ITableCellTextUpdate {
+  elementIndex: number
+  trIndex: number
+  tdIndex: number
+  text: string
+}
+
+function applyTableCellTextUpdates(
+  adapt: CommandAdapt,
+  updates: ITableCellTextUpdate[]
+): void {
+  if (!updates.length) return
+  const draw = (adapt as any).draw
+  const range = (adapt as any).range
+  const originalElementList = draw.getOriginalElementList() as any[]
+  const extraTableCells: Array<{
+    elementIndex: number
+    trIndex: number
+    tdIndex: number
+  }> = []
+
+  for (let i = 0; i < updates.length; i++) {
+    const { elementIndex, trIndex, tdIndex, text } = updates[i]
+    const td = originalElementList[elementIndex]?.trList?.[trIndex]?.tdList?.[
+      tdIndex
+    ]
+    if (!td) continue
+    const rowFlex = td.value?.[0]?.rowFlex
+    td.value = [{ value: text, rowFlex }]
+    extraTableCells.push({ elementIndex, trIndex, tdIndex })
+  }
+
+  if (!extraTableCells.length) return
+  const { endIndex } = range.getRange()
+  draw.render({
+    curIndex: endIndex >= 0 ? endIndex : 0,
+    isSubmitHistory: false,
+    isSetCursor: false,
+    extraTableCells
+  })
+}
+
+/**
  * 按三坐标设置指定表格单元格的文本内容，覆盖原有内容并触发重绘。
  * 用于 emr-editor 层执行 valuePath 表达式绑定后将结果写入单元格。
  */
@@ -567,32 +613,19 @@ export function setTableCellTextContent(
   tdIndex: number,
   text: string
 ): void {
-  const draw = (adapt as any).draw
-  const range = (adapt as any).range
-  const originalElementList = draw.getOriginalElementList() as any[]
-  const el = originalElementList[elementIndex]
-  const td = el?.trList?.[trIndex]?.tdList?.[tdIndex]
-  if (!td) return
-  // 保留单元格属性（如 rowFlex），只替换文本内容
-  const rowFlex = td.value?.[0]?.rowFlex
-  td.value = [{ value: text, rowFlex }]
-  // 重新计算目标单元格的行布局
-  // 确保公式等非当前编辑单元格能被正确渲染
-  // const recomputed = draw.recomputeTableCellLayout(elementIndex, trIndex, tdIndex)
-  // console.log(
-  //   '[DEBUG setTableCellTextContent] 目标单元格 elementIndex=',
-  //   elementIndex,
-  //   'trIndex=',
-  //   trIndex,
-  //   'tdIndex=',
-  //   tdIndex,
-  //   'text=',
-  //   text,
-  //   'recomputeTableCellLayout返回(heightChanged)=',
-  //   recomputed
-  // )
-  const { endIndex } = range.getRange()
-  draw.render({ curIndex: endIndex >= 0 ? endIndex : 0 })
+  applyTableCellTextUpdates(adapt, [
+    { elementIndex, trIndex, tdIndex, text }
+  ])
+}
+
+/**
+ * 批量设置表格单元格文本，仅重绘一次（性能优化）。
+ */
+export function setTableCellTextContentBatch(
+  adapt: CommandAdapt,
+  updates: ITableCellTextUpdate[]
+): void {
+  applyTableCellTextUpdates(adapt, updates)
 }
 
 /**
@@ -644,6 +677,51 @@ export function getTableFieldByIndex(
   return ext?.field ?? ''
 }
 
+/* ---------- 表单控件按 field 赋值 ---------- */
+
+/** field → 控件值，value 类型与 executeSetControlValue 一致 */
+export type ISetControlValueByFieldOption = Record<
+  string,
+  string | IElement[] | null
+>
+
+/**
+ * 按 extension.field 批量设置表单控件值。
+ * 同一 field 可能对应多个 IElement（控件展开后），取首个 controlId。
+ */
+export function setControlValueByField(
+  adapt: CommandAdapt,
+  payload: ISetControlValueByFieldOption,
+  options?: { isSubmitHistory?: boolean }
+): void {
+  const fields = Object.keys(payload)
+  if (!fields.length) return
+
+  const controlList = adapt.getControlList()
+  const fieldToControlId = new Map<string, string>()
+  for (const el of controlList) {
+    const field = (el.control?.extension as { field?: string } | undefined)?.field
+    if (field && !fieldToControlId.has(field) && el.controlId) {
+      fieldToControlId.set(field, el.controlId)
+    }
+  }
+
+  const { isSubmitHistory = true } = options ?? {}
+  const valuePayload: ISetControlValueOption[] = []
+  for (const field of fields) {
+    const controlId = fieldToControlId.get(field)
+    if (!controlId) continue
+    valuePayload.push({
+      id: controlId,
+      value: payload[field],
+      isSubmitHistory
+    })
+  }
+
+  if (!valuePayload.length) return
+  adapt.setControlValueList(valuePayload)
+}
+
 /* ---------- 注册入口 ---------- */
 
 export interface CommandAdaptExtend {
@@ -658,6 +736,8 @@ export interface CommandAdaptExtend {
   getAllTableCellsWithValuePath: () => { elementIndex: number; trIndex: number; tdIndex: number; valuePath: string; field: string; tableField: string; currentText: string }[]
   /** 按三坐标设置指定表格单元格文本内容并重绘 */
   setTableCellTextContent: (elementIndex: number, trIndex: number, tdIndex: number, text: string) => void
+  /** 批量设置表格单元格文本，统一重绘一次 */
+  setTableCellTextContentBatch: (updates: ITableCellTextUpdate[]) => void
   /** 按三坐标读取指定表格单元格文本内容 */
   getTableCellTextContent: (elementIndex: number, trIndex: number, tdIndex: number) => string
   /** 按三坐标读取指定表格单元格 field（写回路径） */
@@ -674,6 +754,11 @@ export interface CommandAdaptExtend {
   rebuildDynamicTableDataRows: (elementIndex: number, config: IDynamicTableConfig, dataArray: any[]) => void
   /** 扫描所有区域，收集所有动态表格的信息 */
   getAllDynamicTables: () => { elementIndex: number; config: IDynamicTableConfig; currentRowCount: number }[]
+  /** 按 extension.field 批量设置表单控件值 */
+  setControlValueByField: (
+    payload: ISetControlValueByFieldOption,
+    options?: { isSubmitHistory?: boolean }
+  ) => void
 }
 
 export function registerExtend(adapt: CommandAdapt): CommandAdaptExtend {
@@ -687,6 +772,7 @@ export function registerExtend(adapt: CommandAdapt): CommandAdaptExtend {
     setShowCellNumber: setShowCellNumber.bind(null, adapt),
     getAllTableCellsWithValuePath: getAllTableCellsWithValuePath.bind(null, adapt),
     setTableCellTextContent: setTableCellTextContent.bind(null, adapt),
+    setTableCellTextContentBatch: setTableCellTextContentBatch.bind(null, adapt),
     getTableCellTextContent: getTableCellTextContent.bind(null, adapt),
     getTableCellField: getTableCellField.bind(null, adapt),
     getTableFieldByIndex: getTableFieldByIndex.bind(null, adapt),
@@ -695,5 +781,6 @@ export function registerExtend(adapt: CommandAdapt): CommandAdaptExtend {
     insertDynamicTableAtCursor: insertDynamicTableAtCursor.bind(null, adapt),
     rebuildDynamicTableDataRows: rebuildDynamicTableDataRows.bind(null, adapt),
     getAllDynamicTables: getAllDynamicTables.bind(null, adapt),
+    setControlValueByField: setControlValueByField.bind(null, adapt),
   }
 }

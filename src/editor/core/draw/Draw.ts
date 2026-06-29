@@ -2894,6 +2894,7 @@ export class Draw {
       isSetCursor = true,
       isCompute = true,
       isForceFullCompute = false,
+      extraTableCells,
       isLazy = true,
       isInit = false,
       isSourceHistory = false,
@@ -2923,8 +2924,24 @@ export class Draw {
       // 若单元格高度未变（大多数击键不触发换行），
       // 则跳过全量 computeRowList + _computePageList。
       const positionContext = this.position.getPositionContext()
+      // 公式单元格等非当前编辑格变更：先重算其 rowList，任一高度变化则走全量布局
+      let tableLayoutChanged = isForceFullCompute
+      if (extraTableCells?.length) {
+        for (let c = 0; c < extraTableCells.length; c++) {
+          const cell = extraTableCells[c]
+          if (
+            this._recomputeSingleTableCellRowList(
+              cell.elementIndex,
+              cell.trIndex,
+              cell.tdIndex
+            )
+          ) {
+            tableLayoutChanged = true
+          }
+        }
+      }
       const useFastPath =
-        !isForceFullCompute &&
+        !tableLayoutChanged &&
         !isSourceHistory &&
         !isInit &&
         positionContext.isTable &&
