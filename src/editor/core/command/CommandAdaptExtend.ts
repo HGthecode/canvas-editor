@@ -292,29 +292,41 @@ export function getAllDynamicTables(
   return result
 }
 
+export interface IBarcodeElementInfo {
+  id: string
+  barcodeType: 'barcode1d' | 'barcode2d'
+  options: Record<string, any>
+}
+
 export interface IBarcode2DElementInfo {
   id: string
   options: Record<string, any>
 }
 
-/** 递归扫描元素列表，收集配置了 dataSourcePath 的二维码 IMAGE */
-function collectBarcode2DInList(
+/** 递归扫描元素列表，收集配置了 dataSourcePath 的条形码/二维码 IMAGE */
+function collectBarcodeInList(
   elementList: IElement[],
-  result: IBarcode2DElementInfo[]
+  result: IBarcodeElementInfo[]
 ): void {
   for (const el of elementList) {
     if (el.type === ElementType.IMAGE) {
       const ext = el.extension as any
       const path = ext?.options?.dataSourcePath
-      if (ext?.type === 'barcode2d' && path && String(path).trim() && el.id) {
-        result.push({ id: el.id, options: ext.options })
+      const barcodeType = ext?.type
+      if (
+        (barcodeType === 'barcode1d' || barcodeType === 'barcode2d') &&
+        path &&
+        String(path).trim() &&
+        el.id
+      ) {
+        result.push({ id: el.id, barcodeType, options: ext.options })
       }
     }
     if (el.type === ElementType.TABLE && el.trList?.length) {
       for (const tr of el.trList) {
         for (const td of tr.tdList) {
           if (td.value?.length) {
-            collectBarcode2DInList(td.value, result)
+            collectBarcodeInList(td.value, result)
           }
         }
       }
@@ -322,26 +334,39 @@ function collectBarcode2DInList(
   }
 }
 
+function scanAllBarcodeElements(adapt: CommandAdapt): IBarcodeElementInfo[] {
+  const draw = (adapt as any).draw
+  const result: IBarcodeElementInfo[] = []
+  const mainList =
+    draw.getOriginalMainElementList() || draw.getOriginalElementList()
+  if (mainList?.length) {
+    collectBarcodeInList(mainList, result)
+  }
+  const headerList = draw.getHeaderElementList()
+  if (headerList?.length) {
+    collectBarcodeInList(headerList, result)
+  }
+  const footerList = draw.getFooterElementList()
+  if (footerList?.length) {
+    collectBarcodeInList(footerList, result)
+  }
+  return result
+}
+
+/**
+ * 扫描正文/页眉/页脚及表格单元格，收集所有带 dataSourcePath 的条形码/二维码元素。
+ */
+export function getAllBarcodeElements(adapt: CommandAdapt): IBarcodeElementInfo[] {
+  return scanAllBarcodeElements(adapt)
+}
+
 /**
  * 扫描正文/页眉/页脚及表格单元格，收集所有带 dataSourcePath 的二维码元素。
  */
 export function getAllBarcode2DElements(adapt: CommandAdapt): IBarcode2DElementInfo[] {
-  const draw = (adapt as any).draw
-  const result: IBarcode2DElementInfo[] = []
-  const mainList =
-    draw.getOriginalMainElementList() || draw.getOriginalElementList()
-  if (mainList?.length) {
-    collectBarcode2DInList(mainList, result)
-  }
-  const headerList = draw.getHeaderElementList()
-  if (headerList?.length) {
-    collectBarcode2DInList(headerList, result)
-  }
-  const footerList = draw.getFooterElementList()
-  if (footerList?.length) {
-    collectBarcode2DInList(footerList, result)
-  }
-  return result
+  return scanAllBarcodeElements(adapt)
+    .filter(item => item.barcodeType === 'barcode2d')
+    .map(({ id, options }) => ({ id, options }))
 }
 
 /* ---------- 扩展方法实现 ---------- */
@@ -833,6 +858,8 @@ export interface CommandAdaptExtend {
   rebuildDynamicTableDataRows: (elementIndex: number, config: IDynamicTableConfig, dataArray: any[]) => void
   /** 扫描所有区域，收集所有动态表格的信息 */
   getAllDynamicTables: () => { elementIndex: number; config: IDynamicTableConfig; currentRowCount: number }[]
+  /** 扫描所有区域，收集配置了 dataSourcePath 的条形码/二维码元素 */
+  getAllBarcodeElements: () => IBarcodeElementInfo[]
   /** 扫描所有区域，收集配置了 dataSourcePath 的二维码元素 */
   getAllBarcode2DElements: () => IBarcode2DElementInfo[]
   /** 按 extension.field 批量设置表单控件值 */
@@ -862,6 +889,7 @@ export function registerExtend(adapt: CommandAdapt): CommandAdaptExtend {
     insertDynamicTableAtCursor: insertDynamicTableAtCursor.bind(null, adapt),
     rebuildDynamicTableDataRows: rebuildDynamicTableDataRows.bind(null, adapt),
     getAllDynamicTables: getAllDynamicTables.bind(null, adapt),
+    getAllBarcodeElements: getAllBarcodeElements.bind(null, adapt),
     getAllBarcode2DElements: getAllBarcode2DElements.bind(null, adapt),
     setControlValueByField: setControlValueByField.bind(null, adapt),
   }
