@@ -238,8 +238,12 @@ export function rebuildDynamicTableDataRows(
   // 替换 trList
   element.trList = newTrList
 
-  // 重绘，不提交历史
-  draw.render({ isSubmitHistory: false, isSetCursor: false })
+  // 重绘，不提交历史；强制全量布局，避免光标在表格内时走单单元格快速路径导致新行 td.rowList 未计算
+  draw.render({
+    isSubmitHistory: false,
+    isSetCursor: false,
+    isForceFullCompute: true
+  })
 }
 
 /**
