@@ -52,6 +52,7 @@ import { SelectionObserver } from '../observer/SelectionObserver'
 import { TableParticle } from './particle/table/TableParticle'
 import { TableTool } from './particle/table/TableTool'
 import { HyperlinkParticle } from './particle/HyperlinkParticle'
+import { ElementTooltip } from './particle/ElementTooltip'
 import { LabelParticle } from './particle/LabelParticle'
 import { Header } from './frame/Header'
 import { SuperscriptParticle } from './particle/SuperscriptParticle'
@@ -170,6 +171,7 @@ export class Draw {
   private header: Header
   private footer: Footer
   private hyperlinkParticle: HyperlinkParticle
+  private elementTooltip: ElementTooltip
   private labelParticle: LabelParticle
   private dateParticle: DateParticle
   private separatorParticle: SeparatorParticle
@@ -260,6 +262,7 @@ export class Draw {
     this.header = new Header(this, data.header)
     this.footer = new Footer(this, data.footer)
     this.hyperlinkParticle = new HyperlinkParticle(this)
+    this.elementTooltip = new ElementTooltip(this)
     this.labelParticle = new LabelParticle(this)
     this.dateParticle = new DateParticle(this)
     this.separatorParticle = new SeparatorParticle(this)
@@ -999,36 +1002,44 @@ export class Draw {
 
   public async getDataURL(payload: IGetImageOption = {}): Promise<string[]> {
     const { pixelRatio, mode, snapDomFunction } = payload
-    // 放大像素比
-    if (pixelRatio) {
-      this.setPagePixelRatio(pixelRatio)
-    }
-    // 不同模式
     const currentMode = this.mode
     const isSwitchMode = !!mode && currentMode !== mode
-    if (isSwitchMode) {
-      this.setMode(mode)
+    const hadPixelRatio = !!pixelRatio
+    try {
+      if (pixelRatio) {
+        this.setPagePixelRatio(pixelRatio)
+      }
+      if (isSwitchMode) {
+        this.setMode(mode!)
+      }
+      this.render({
+        isLazy: false,
+        isCompute: false,
+        isSetCursor: false,
+        isSubmitHistory: false
+      })
+      await this.imageObserver.allSettled()
+      if (snapDomFunction) {
+        await this.blockParticle.drawIframeToPage(this.pageList, snapDomFunction)
+      }
+      return this.pageList.map(c => c.toDataURL())
+    } finally {
+      // 先恢复编辑模式，再恢复像素比，避免 PRINT 态下中间渲染
+      if (isSwitchMode && this.mode !== currentMode) {
+        this.setMode(currentMode)
+      }
+      if (hadPixelRatio) {
+        this.setPagePixelRatio(null)
+      }
+      // 截图后强制全量重绘，防止懒加载导致非可视页残留 PRINT 态画布
+      if (isSwitchMode || hadPixelRatio) {
+        this.render({
+          isLazy: false,
+          isSetCursor: false,
+          isSubmitHistory: false
+        })
+      }
     }
-    this.render({
-      isLazy: false,
-      isCompute: false,
-      isSetCursor: false,
-      isSubmitHistory: false
-    })
-    await this.imageObserver.allSettled()
-    // 叠加iframe图片
-    if (snapDomFunction) {
-      await this.blockParticle.drawIframeToPage(this.pageList, snapDomFunction)
-    }
-    const dataUrlList = this.pageList.map(c => c.toDataURL())
-    // 还原
-    if (pixelRatio) {
-      this.setPagePixelRatio(null)
-    }
-    if (isSwitchMode) {
-      this.setMode(currentMode)
-    }
-    return dataUrlList
   }
 
   public getPainterStyle(): IElementStyle | null {
@@ -2342,6 +2353,7 @@ export class Draw {
       let preHighlight: string | undefined = undefined
       for (let j = 0; j < curRow.elementList.length; j++) {
         const element = curRow.elementList[j]
+        if (!element) continue
         const preElement = curRow.elementList[j - 1]
         // 高亮配置：元素 > 控件配置
         const highlight =
@@ -3222,6 +3234,7 @@ export class Draw {
     this.workerManager.destroy()
     this.magnifier.destroy()
     this.accessibility.destroy()
+    this.elementTooltip.destroy()
     this.lazyRenderIntersectionObserver?.disconnect()
   }
 
@@ -3234,5 +3247,7 @@ export class Draw {
     this.getHyperlinkParticle().clearHyperlinkPopup()
     // 日期控件
     this.getDateParticle().clearDatePicker()
+    // 元素悬停提示
+    this.elementTooltip.hide()
   }
 }

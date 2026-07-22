@@ -466,11 +466,13 @@ export class RangeManager {
       const element = elementList[startIndex]
       if (element?.controlId) {
         control.initControl()
-        return
+      } else {
+        control.destroyControl()
       }
+    } else {
+      control.destroyControl()
     }
-    control.destroyControl()
-    // 抛出选区变化事件
+    // 抛出选区变化事件（控件后缀等位置同样需要通知，供外部同步 areaId 等上下文）
     if (isChange && this.eventBus.isSubscribe('rangeChange')) {
       this.eventBus.emit('rangeChange', this.range)
     }

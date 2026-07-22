@@ -652,6 +652,10 @@ export class Control {
     const elementList = this.getElementList()
     const range = this.getRange()
     const element = elementList[range.startIndex]
+    if (!element) {
+      this.destroyControl({ isEmitEvent: false })
+      return
+    }
     this.activeControl.setElement(element)
     if (
       (this.activeControl instanceof DateControl ||

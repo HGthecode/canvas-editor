@@ -8,6 +8,7 @@
 @import './contextmenu/contextmenu.css';
 @import './hyperlink/hyperlink.css';
 @import './zone/zone.css';
+@import './elementTooltip/elementTooltip.css';
 @import './magnifier/magnifier.css';
 @import './accessibility/accessibility.css';
 

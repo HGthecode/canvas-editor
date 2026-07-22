@@ -75,6 +75,8 @@ export interface IControlBasic {
   type: ControlType
   value: IElement[] | null
   placeholder?: string
+  /** 鼠标悬停提示文本 */
+  tooltip?: string
   conceptId?: string
   groupId?: string
   prefix?: string

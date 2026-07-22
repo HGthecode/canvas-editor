@@ -22,6 +22,8 @@ export interface IElementBasic {
   value: string
   extension?: unknown
   externalId?: string
+  /** 鼠标悬停提示文本 */
+  tooltip?: string
 }
 
 export interface IElementStyle {
