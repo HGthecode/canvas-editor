@@ -101,7 +101,7 @@ export class TableTool {
     )
     if (!element || !position) return
     // 表格工具配置禁用又非设计模式时不渲染
-    if (element.tableToolDisabled && !this.draw.isDesignMode()) return
+    if ( !this.draw.isDesignMode()) return
     // 渲染所需数据
     const {
       scale,

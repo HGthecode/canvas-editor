@@ -373,11 +373,15 @@ export class Draw {
     }
     this.clearSideEffect()
     this.range.clearRange()
+    // 模式切换会替换 elementList（如 PRINT 深拷贝），需清空表格上下文并强制全量布局，
+    // 避免表格快速路径跳过 computeRowList 导致 pageRowList 与 elementList 不一致
+    this.position.setPositionContext({ isTable: false })
     this.mode = payload
     this.options.mode = payload
     this.render({
       isSetCursor: false,
-      isSubmitHistory: false
+      isSubmitHistory: false,
+      isForceFullCompute: true
     })
   }
 
