@@ -470,6 +470,14 @@ export class Command {
       'executeSetAreaProperties',
       adapt.setAreaProperties.bind(adapt)
     )
+    this.executeHighlightArea = this.wrap(
+      'executeHighlightArea',
+      adapt.highlightArea.bind(adapt)
+    )
+    this.executeClearAreaHighlight = this.wrap(
+      'executeClearAreaHighlight',
+      adapt.clearAreaHighlight.bind(adapt)
+    )
     this.executeDeleteArea = this.wrap(
       'executeDeleteArea',
       adapt.deleteArea.bind(adapt)

@@ -2425,6 +2425,10 @@ export class Draw {
     if (!tr) return true
     const td = tr.tdList[tdIndex]
     if (!td) return true
+    // 外部抬高 minHeight（未同步到 tr.height）时需走全量布局
+    if ((tr.minHeight || 0) - (tr.height || 0) > 0.01) {
+      return true
+    }
     const { tdPadding } = this.options.table
     const tdPaddingWidth = tdPadding[1] + tdPadding[3]
     const tdPaddingHeight = tdPadding[0] + tdPadding[2]
@@ -3326,10 +3330,15 @@ export class Draw {
           }
         }
       }
+      // maxPageNo 截断/光标迁移依赖 _computePageList，不可走快速路径
+      const hasMaxPageNo = Number.isInteger(
+        this.options.pageNumber.maxPageNo
+      )
       const useFastPath =
         !tableLayoutChanged &&
         !isSourceHistory &&
         !isInit &&
+        !hasMaxPageNo &&
         positionContext.isTable &&
         positionContext.index !== undefined &&
         positionContext.trIndex !== undefined &&

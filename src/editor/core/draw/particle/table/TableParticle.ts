@@ -839,12 +839,10 @@ export class TableParticle {
     startY: number,
     fragment?: ITableRowFragment
   ) {
-    // this._drawBackgroundColor(ctx, element, startX, startY)
-    // this._drawBorder(ctx, element, startX, startY)
-    // this._drawCellNumber(ctx, element, startX, startY)
     // 片段单元格枚举一次，供背景与边框复用
     const drawTdList = this._getDrawTdList(element, fragment)
     this._drawBackgroundColor(ctx, startX, startY, drawTdList)
     this._drawBorder(ctx, element, startX, startY, drawTdList, fragment)
+    this._drawCellNumber(ctx, element, startX, startY)
   }
 }

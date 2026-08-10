@@ -1022,7 +1022,7 @@ export class TableOperate {
       element.translateX = 0
     }
     const { endIndex } = this.range.getRange()
-    this.draw.render({ curIndex: endIndex })
+    this.draw.render({ curIndex: endIndex, isForceFullCompute: true })
     this.tableTool.render()
   }
 
@@ -1037,7 +1037,7 @@ export class TableOperate {
     scaleColgroupToWidth(element.colgroup!, this.draw.getOriginalInnerWidth())
     element.translateX = 0
     const { endIndex } = this.range.getRange()
-    this.draw.render({ curIndex: endIndex })
+    this.draw.render({ curIndex: endIndex, isForceFullCompute: true })
     this.tableTool.render()
   }
 
