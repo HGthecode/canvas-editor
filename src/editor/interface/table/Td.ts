@@ -35,4 +35,5 @@ export interface ITd {
   deletable?: boolean // 内容不可删除
   field?: string // 数据源字段名
   valuePath?: string // 数据源值路径表达式
+  hint?: string // 单元格悬浮提示文案：鼠标移入单元格内任意元素时展示
 }

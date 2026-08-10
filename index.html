@@ -396,86 +396,77 @@
         </div>
         <div class="catalog__main"></div>
       </div>
-      <div class="editor"></div>
-      <div class="comment" editor-component="comment"></div>
-      <div class="footer" editor-component="footer">
-        <div>
-          <div class="catalog-mode" title="目录">
-            <i></i>
-          </div>
-          <div class="page-mode">
-            <i title="页面模式(分页、连页)"></i>
-            <div class="options">
-              <ul>
-                <li data-page-mode="paging" class="active">分页</li>
-                <li data-page-mode="continuity">连页</li>
-              </ul>
-            </div>
-          </div>
-          <span>可见页码：<span class="page-no-list">1</span></span>
-          <span
-            >页面：<span class="page-no">1</span>/<span class="page-size"
-              >1</span
-            ></span
-          >
-          <span>字数：<span class="word-count">0</span></span>
-          <span>行：<span class="row-no">0</span></span>
-          <span>列：<span class="col-no">0</span></span>
+      <div class="editor-mode" title="编辑模式(编辑、清洁、只读、表单、设计、涂鸦、留痕)">
+        <span class="text">编辑模式</span>
+        <ul class="options">
+          <li data-mode="edit" class="active">编辑模式</li>
+          <li data-mode="clean">清洁模式</li>
+          <li data-mode="readonly">只读模式</li>
+          <li data-mode="form">表单模式</li>
+          <li data-mode="print">打印模式</li>
+          <li data-mode="design">设计模式</li>
+          <li data-mode="graffiti">涂鸦模式</li>
+          <li data-mode="trace" class="trace-mode-item">
+            <span class="trace-mode-label">留痕模式</span>
+            <label class="trace-toggle" title="勾选后，新增/删除将作为留痕记录；留痕查看模式下不可修改">
+              <input type="checkbox" class="trace-toggle__input" />
+              <span>记录</span>
+            </label>
+          </li>
+        </ul>
+      </div>
+      <div>
+        <div class="page-scale-minus" title="缩小(Ctrl+-)">
+          <i></i>
         </div>
-        <div
-          class="editor-mode"
-          title="编辑模式(编辑、清洁、只读、表单、设计、涂鸦)"
-        >
-          编辑模式
+        <span class="page-scale-percentage" title="显示比例(点击可复原Ctrl+0)">100%</span>
+        <div class="page-scale-add" title="放大(Ctrl+=)">
+          <i></i>
         </div>
-        <div>
-          <div class="page-scale-minus" title="缩小(Ctrl+-)">
-            <i></i>
+        <div class="paper-size">
+          <i title="纸张类型"></i>
+          <div class="options">
+            <ul>
+              <li data-paper-size="794*1123" class="active">A4</li>
+              <li data-paper-size="1593*2251">A2</li>
+              <li data-paper-size="1125*1593">A3</li>
+              <li data-paper-size="565*796">A5</li>
+              <li data-paper-size="412*488">5号信封</li>
+              <li data-paper-size="450*866">6号信封</li>
+              <li data-paper-size="609*862">7号信封</li>
+              <li data-paper-size="862*1221">9号信封</li>
+              <li data-paper-size="813*1266">法律用纸</li>
+              <li data-paper-size="813*1054">信纸</li>
+            </ul>
           </div>
-          <span class="page-scale-percentage" title="显示比例(点击可复原Ctrl+0)"
-            >100%</span
-          >
-          <div class="page-scale-add" title="放大(Ctrl+=)">
-            <i></i>
+        </div>
+        <div class="paper-direction">
+          <i title="纸张方向"></i>
+          <div class="options">
+            <ul>
+              <li data-paper-direction="vertical" class="active">纵向</li>
+              <li data-paper-direction="horizontal">横向</li>
+              <li class="option-caption">指定页面</li>
+              <li data-section-direction="horizontal">本节横向</li>
+              <li data-section-direction="vertical">本节纵向</li>
+              <li data-section-direction="inherit">跟随全局</li>
+            </ul>
           </div>
-          <div class="paper-size">
-            <i title="纸张类型"></i>
-            <div class="options">
-              <ul>
-                <li data-paper-size="794*1123" class="active">A4</li>
-                <li data-paper-size="1593*2251">A2</li>
-                <li data-paper-size="1125*1593">A3</li>
-                <li data-paper-size="565*796">A5</li>
-                <li data-paper-size="412*488">5号信封</li>
-                <li data-paper-size="450*866">6号信封</li>
-                <li data-paper-size="609*862">7号信封</li>
-                <li data-paper-size="862*1221">9号信封</li>
-                <li data-paper-size="813*1266">法律用纸</li>
-                <li data-paper-size="813*1054">信纸</li>
-              </ul>
-            </div>
-          </div>
-          <div class="paper-direction">
-            <i title="纸张方向"></i>
-            <div class="options">
-              <ul>
-                <li data-paper-direction="vertical" class="active">纵向</li>
-                <li data-paper-direction="horizontal">横向</li>
-              </ul>
-            </div>
-          </div>
-          <div class="paper-margin" title="页边距">
-            <i></i>
-          </div>
-          <div class="fullscreen" title="全屏显示">
-            <i></i>
-          </div>
-          <div class="editor-option" title="编辑器设置">
-            <i></i>
-          </div>
-          <div class="editor-save" title="保存数据">
-            <i></i>
-          </div>
+        </div>
+        <div class="paper-margin" title="页边距">
+          <i></i>
+        </div>
+        <div class="column-config" title="分栏">
+          <i></i>
+        </div>
+        <div class="ruler-toggle" title="标尺">
+          <i></i>
+        </div>
+        <div class="fullscreen" title="全屏显示">
+          <i></i>
+        </div>
+        <div class="editor-option" title="编辑器设置">
+          <i></i>
         </div>
       </div>
     </div>

@@ -5,7 +5,11 @@ import { ITd } from '../../../interface/table/Td'
 import { ITr } from '../../../interface/table/Tr'
 import { deepClone } from '../../../utils'
 import { writeElementList } from '../../../utils/clipboard'
-import { getTextFromElementList, zipElementList } from '../../../utils/element'
+import {
+  getNonDeletedElementList,
+  getTextFromElementList,
+  zipElementList
+} from '../../../utils/element'
 import { IOverrideResult } from '../../override/Override'
 import { CanvasEvent } from '../CanvasEvent'
 
@@ -65,7 +69,7 @@ export async function copy(host: CanvasEvent, options?: ICopyOption) {
   if (options?.isPlainText && copyElementList?.length) {
     copyElementList = [
       {
-        value: getTextFromElementList(copyElementList)
+        value: getTextFromElementList(getNonDeletedElementList(copyElementList))
       }
     ]
   }

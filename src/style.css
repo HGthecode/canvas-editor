@@ -799,6 +799,11 @@ ul {
   margin: 80px auto;
 }
 
+/* 标尺滚动吸附时避开固定工具栏 */
+.editor .ce-ruler-x {
+  top: 60px;
+}
+
 .ce-page-container canvas {
   box-shadow: rgb(158 161 165 / 40%) 0px 2px 12px 0px;
 }
@@ -1040,12 +1045,65 @@ ul {
   background-image: url('./assets/images/paper-margin.svg');
 }
 
+.footer .column-config {
+  cursor: pointer;
+}
+
+.footer .column-config i {
+  background-image: url('./assets/images/column-config.svg');
+}
+
+.footer .ruler-toggle {
+  cursor: pointer;
+}
+
+.footer .ruler-toggle i {
+  background-image: url('./assets/images/ruler.svg');
+}
+
 .footer .editor-mode {
   cursor: pointer;
   user-select: none;
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
+}
+
+.footer .editor-mode .options {
+  left: 50%;
+  bottom: calc(100% + 4px);
+  transform: translateX(-50%);
+  width: max-content;
+  min-width: 90px;
+  white-space: nowrap;
+}
+
+.footer .trace-mode-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.footer .trace-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.footer .trace-toggle__input {
+  margin: 0;
+  cursor: pointer;
+}
+
+.footer .trace-toggle__input:disabled {
+  cursor: not-allowed;
+}
+
+.footer .trace-toggle__input:disabled + span {
+  opacity: 0.5;
 }
 
 .footer .paper-size {
@@ -1072,6 +1130,18 @@ ul {
 .footer .paper-direction .options {
   right: 0;
   left: unset;
+}
+
+.footer .paper-direction .options .option-caption {
+  color: #a0a4ab;
+  font-size: 12px;
+  cursor: default;
+  border-top: 1px solid #e2e6ed;
+  padding-top: 8px;
+}
+
+.footer .paper-direction .options .option-caption:hover {
+  background-color: transparent;
 }
 
 .ce-contextmenu-signature {

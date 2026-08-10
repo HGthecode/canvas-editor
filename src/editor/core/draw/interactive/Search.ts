@@ -127,9 +127,7 @@ export class Search {
       coordinate: { leftTop, leftBottom, rightTop },
       pageNo
     } = position
-    const height = this.draw.getHeight()
-    const pageGap = this.draw.getPageGap()
-    const preY = pageNo * (height + pageGap)
+    const { x: pageLeft, y: preY } = this.draw.getPageOffset(pageNo)
     // 创建定位锚点
     const anchor = document.createElement('div')
     anchor.style.position = 'absolute'
@@ -139,7 +137,7 @@ export class Search {
     anchor.style.height = `${
       leftBottom[1] - leftTop[1] + ANCHOR_OVERFLOW_SIZE
     }px`
-    anchor.style.left = `${leftTop[0]}px`
+    anchor.style.left = `${leftTop[0] + pageLeft}px`
     anchor.style.top = `${leftTop[1] + preY}px`
     this.draw.getContainer().append(anchor)
     // 移动到可视范围
@@ -240,6 +238,7 @@ export class Search {
       i++
     }
     // 搜索文本
+    const traceParticle = this.draw.getTraceParticle()
     function searchClosure(
       payload: string | null,
       type: EditorContext,
@@ -255,7 +254,8 @@ export class Search {
             e.controlComponent !== ControlComponent.RADIO &&
             !e.hide &&
             !e.control?.hide &&
-            !e.area?.hide)
+            !e.area?.hide &&
+            !traceParticle.isTraceHidden(e))
             ? e.value
             : ZERO
         )
@@ -415,6 +415,10 @@ export class Search {
     }
     if (!matchList?.length) return
     const isDesignMode = this.draw.isDesignMode()
+    if (!this.draw.getOptions().trace.disabled) {
+      this.replaceWithTrace(payload, matchList)
+      return
+    }
     // 匹配index变化的差值
     let pageDiffCount = 0
     let tableDiffCount = 0
@@ -549,6 +553,101 @@ export class Search {
     // 重新渲染
     this.draw.render({
       curIndex: firstIndex
+    })
+  }
+
+  private replaceWithTrace(payload: string, matchList: ISearchResult[]) {
+    const matchGroupList: ISearchResult[][] = []
+    for (const match of matchList) {
+      const lastGroup = matchGroupList[matchGroupList.length - 1]
+      if (!lastGroup || lastGroup[0].groupId !== match.groupId) {
+        matchGroupList.push([match])
+      } else {
+        lastGroup.push(match)
+      }
+    }
+    const elementList = this.draw.getOriginalElementList()
+    let firstReplacedMatch: ISearchResult | null = null
+    let firstReplacedIndex = -1
+    for (let g = matchGroupList.length - 1; g >= 0; g--) {
+      const matchGroup = matchGroupList[g]
+      const firstMatch = matchGroup[0]
+      let targetElementList: IElement[]
+      let tdDeletable = true
+      if (firstMatch.type === EditorContext.TABLE) {
+        const { tableIndex, trIndex, tdIndex } = firstMatch
+        const td = elementList[tableIndex!].trList![trIndex!].tdList[tdIndex!]
+        targetElementList = td.value
+        tdDeletable = td.deletable !== false
+      } else {
+        targetElementList = elementList
+      }
+      const startIndex = firstMatch.index
+      const matchElementList = targetElementList.slice(
+        startIndex,
+        startIndex + matchGroup.length
+      )
+      if (
+        matchElementList.some(
+          element =>
+            element.type === ElementType.CONTROL &&
+            element.controlComponent !== ControlComponent.VALUE
+        )
+      ) {
+        continue
+      }
+      const deleteElementList =
+        this.draw.deleteElementList(
+          targetElementList,
+          startIndex,
+          matchGroup.length,
+          { tdDeletable }
+        ) || []
+      const sourceElement = deleteElementList[0]
+      if (!sourceElement) continue
+      const replaceIndex = targetElementList.indexOf(sourceElement, startIndex)
+      if (payload) {
+        const insertElementList = payload.split('').map(value => {
+          const element: IElement = {
+            ...sourceElement,
+            value
+          }
+          delete element.trace
+          return element
+        })
+        this.draw.getTraceParticle().markElementListInserted(insertElementList)
+        this.draw.spliceElementList(
+          targetElementList,
+          replaceIndex,
+          0,
+          insertElementList
+        )
+      }
+      firstReplacedMatch = firstMatch
+      firstReplacedIndex = payload
+        ? replaceIndex + payload.length - 1
+        : Math.max(replaceIndex - 1, 0)
+    }
+    if (!firstReplacedMatch) return
+    if (firstReplacedMatch.type === EditorContext.TABLE) {
+      const { tableIndex, trIndex, tdIndex, tdId, tableId } = firstReplacedMatch
+      this.position.setPositionContext({
+        isTable: true,
+        index: tableIndex,
+        trIndex,
+        tdIndex,
+        tdId,
+        trId: elementList[tableIndex!].trList![trIndex!].id,
+        tableId
+      })
+    } else {
+      this.position.setPositionContext({
+        isTable: false
+      })
+    }
+    this.draw.getRange().setRange(firstReplacedIndex, firstReplacedIndex)
+    this.draw.render({
+      curIndex: firstReplacedIndex
     })
   }
 }

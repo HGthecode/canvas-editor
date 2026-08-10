@@ -24,12 +24,42 @@ import { EDITOR_COMPONENT, EditorComponent } from '@hufe921/canvas-editor'
 
 ## executeMode
 
-功能：切换编辑器模式（编辑、清洁、只读、表单）
+功能：切换编辑器模式（编辑、清洁、只读、表单、打印、设计、涂鸦、留痕）
 
 用法：
 
 ```javascript
 instance.command.executeMode(editorMode: EditorMode)
+```
+
+## executeToggleTrace
+
+功能：切换留痕记录开关。
+
+用法：
+
+```javascript
+instance.command.executeToggleTrace(payload?: boolean)
+```
+
+## executeCompare
+
+功能：对比两个版本的文档数据，并切换到留痕模式展示内容差异。
+
+用法：
+
+```javascript
+instance.command.executeCompare(payload: IComparePayload)
+```
+
+## executeToggleRuler
+
+功能：切换标尺显示。
+
+用法：
+
+```javascript
+instance.command.executeToggleRuler(payload?: boolean)
 ```
 
 ## executeCut
@@ -342,7 +372,7 @@ instance.command.executeList(listType: ListType | null, listStyle?: ListStyle)
 
 ## executeRowFlex
 
-功能：行对齐
+功能：段落对齐
 
 用法：
 
@@ -352,7 +382,7 @@ instance.command.executeRowFlex(rowFlex: RowFlex)
 
 ## executeRowMargin
 
-功能：行间距
+功能：段落行间距
 
 用法：
 
@@ -548,6 +578,26 @@ instance.command.executeTableTdBackgroundColor(payload: string)
 
 ```javascript
 instance.command.executeTableSelectAll()
+```
+
+## executeTableAutoFitToContent
+
+功能：根据内容自动调整表格（每列宽度按该列单元格内容实测最大宽度调整，列宽不低于 defaultColMinWidth；overflow 为 false 时结果会等比例压缩至页面内容区内）
+
+用法：
+
+```javascript
+instance.command.executeTableAutoFitToContent()
+```
+
+## executeTableAutoFitToPage
+
+功能：根据窗口自动调整表格（表格总宽等比缩放至页面内容区宽度）
+
+用法：
+
+```javascript
+instance.command.executeTableAutoFitToPage()
 ```
 
 ## executeImage
@@ -818,6 +868,16 @@ instance.command.executePaperSize(width: number, height: number)
 instance.command.executePaperDirection(paperDirection: PaperDirection)
 ```
 
+## executePageDirection
+
+功能：设置光标所在节的纸张方向。分页符作为分节边界；首节修改全局方向，传 `null` 恢复全局方向。
+
+用法：
+
+```javascript
+instance.command.executePageDirection(paperDirection: PaperDirection | null)
+```
+
 ## executeSetPaperMargin
 
 功能：设置纸张页边距
@@ -826,6 +886,16 @@ instance.command.executePaperDirection(paperDirection: PaperDirection)
 
 ```javascript
 instance.command.executeSetPaperMargin([top: number, right: number, bottom: number, left: number])
+```
+
+## executeSetColumns
+
+功能：设置分栏配置
+
+用法：
+
+```javascript
+instance.command.executeSetColumns(config: IColumnOption | null)
 ```
 
 ## executeSetMainBadge
@@ -896,16 +966,6 @@ instance.command.executeDeleteElementById(payload: IDeleteElementByIdOption)
 
 ```javascript
 instance.command.executeSetValue(payload: Partial<IEditorData>, options?: ISetValueOption)
-```
-
-## executeRemoveControl
-
-功能：删除控件
-
-用法：
-
-```javascript
-instance.command.executeRemoveControl(payload?: IRemoveControlOption)
 ```
 
 ## executeSetLocale
@@ -988,105 +1048,7 @@ instance.command.executeLocationGroup(groupId: string)
 instance.command.executeSetZone(zone: EditorZone)
 ```
 
-## executeSetControlValue
-
-功能：设置控件值
-
-用法：
-
-```javascript
-instance.command.executeSetControlValue(payload: ISetControlValueOption)
-```
-
-## executeSetControlValueList
-
-功能：批量设置控件值
-
-用法：
-
-```javascript
-instance.command.executeSetControlValueList(payload: ISetControlValueOption[])
-```
-
-## executeSetControlExtension
-
-功能：设置控件扩展值
-
-用法：
-
-```javascript
-instance.command.executeSetControlExtension(payload: ISetControlExtensionOption)
-```
-
-## executeSetControlExtensionList
-
-功能：批量设置控件扩展值
-
-用法：
-
-```javascript
-instance.command.executeSetControlExtensionList(payload: ISetControlExtensionOption[])
-```
-
-## executeSetControlProperties
-
-功能：设置控件属性
-
-用法：
-
-```javascript
-instance.command.executeSetControlProperties(payload: ISetControlProperties)
-```
-
-## executeSetControlPropertiesList
-
-功能：批量设置控件属性
-
-用法：
-
-```javascript
-instance.command.executeSetControlPropertiesList(payload: ISetControlProperties[])
-```
-
-## executeSetControlHighlight
-
-功能：设置控件高亮（根据关键词）
-
-用法：
-
-```javascript
-instance.command.executeSetControlHighlight(payload: ISetControlHighlightOption)
-```
-
-## executeLocationControl
-
-功能：定位并激活控件
-
-用法：
-
-```javascript
-instance.command.executeLocationControl(controlId: string, options?: ILocationControlOption)
-```
-
-## executeInsertControl
-
-功能：插入控件
-
-用法：
-
-```javascript
-instance.command.executeInsertControl(payload: IElement)
-```
-
-## executeJumpControl
-
-功能：跳转到下/上一个控件
-
-用法：
-
-```javascript
-instance.command.executeJumpControl(payload?: { direction?: MoveDirection })
-```
+控件相关命令已迁移至[控件-方法](./control/command.md)，校验命令已迁移至[控件-验证](./control/validate.md)。
 
 ## executeUpdateOptions
 

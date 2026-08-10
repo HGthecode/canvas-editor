@@ -42,7 +42,8 @@ export default defineConfig({
           { text: '入门', link: '/guide/start' },
           { text: '配置', link: '/guide/option' },
           { text: '国际化', link: '/guide/i18n' },
-          { text: '数据结构', link: '/guide/schema' }
+          { text: '数据结构', link: '/guide/schema' },
+          { text: '功能总览', link: '/guide/features' }
         ]
       },
       {
@@ -76,6 +77,19 @@ export default defineConfig({
       {
         text: '重写方法',
         items: [{ text: '重写方法', link: '/guide/override' }]
+      },
+      {
+        text: '控件',
+        items: [
+          { text: '配置', link: '/guide/control/option' },
+          { text: '方法', link: '/guide/control/command' },
+          { text: '级联表达式', link: '/guide/control/cascade' },
+          { text: '验证', link: '/guide/control/validate' }
+        ]
+      },
+      {
+        text: '宏',
+        items: [{ text: '宏(Macro)', link: '/guide/macro' }]
       },
       {
         text: 'API',
@@ -144,7 +158,8 @@ export default defineConfig({
               { text: 'start', link: '/en/guide/start' },
               { text: 'option', link: '/en/guide/option' },
               { text: 'i18n', link: '/en/guide/i18n' },
-              { text: 'schema', link: '/en/guide/schema' }
+              { text: 'schema', link: '/en/guide/schema' },
+              { text: 'features', link: '/en/guide/features' }
             ]
           },
           {
@@ -178,6 +193,19 @@ export default defineConfig({
           {
             text: 'Override',
             items: [{ text: 'override', link: '/en/guide/override' }]
+          },
+          {
+            text: 'Control',
+            items: [
+              { text: 'option', link: '/en/guide/control/option' },
+              { text: 'command', link: '/en/guide/control/command' },
+              { text: 'cascade', link: '/en/guide/control/cascade' },
+              { text: 'validate', link: '/en/guide/control/validate' }
+            ]
+          },
+          {
+            text: 'Macro',
+            items: [{ text: 'macro', link: '/en/guide/macro' }]
           },
           {
             text: 'Api',

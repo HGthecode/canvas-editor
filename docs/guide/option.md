@@ -86,6 +86,10 @@ interface IEditorOption {
   list?: IListOption // 列表配置
   magnifier?: IMagnifierOption // 放大镜配置
   accessibility?: IAccessibilityOption // 无障碍配置
+  column?: IColumnOption // 分栏配置。默认：关闭
+  trace?: ITraceOption // 留痕配置。默认：禁用
+  ruler?: IRulerOption // 标尺配置。默认：禁用
+  hint?: IHintOption // 悬浮提示配置。默认：禁用
 }
 ```
 
@@ -96,7 +100,7 @@ interface ITableOption {
   tdPadding?: IPadding // 单元格内边距。默认：[0, 5, 5, 5]
   defaultTrMinHeight?: number // 默认表格行最小高度。默认：42
   defaultColMinWidth?: number // 默认表格列最小宽度（整体宽度足够时应用，否则会按比例缩小）。默认：40
-  overflow?: boolean // 是否允许表格超出正文区域。默认：true
+  overflow?: boolean // 是否允许表格超出正文区域。为 false 时表格总宽在布局阶段会被等比例压缩至页面内容区内（列宽不低于 defaultColMinWidth）。默认：false
 }
 ```
 
@@ -177,6 +181,7 @@ interface IControlOption {
   disabledBackgroundColor?: string // 禁用时背景色
   existValueBackgroundColor?: string // 有值时背景色
   noValueBackgroundColor?: string // 无值时背景色
+  errorBackgroundColor?: string // 校验失败背景色。默认：#FFECE8
 }
 ```
 
@@ -361,7 +366,6 @@ interface IModeRule {
     imagePreviewerDisabled?: boolean // 打印模式禁用图片预览
     backgroundDisabled?: boolean // 打印模式禁用背景
     filterEmptyControl?: boolean // 打印模式过滤无值控件。默认：true
-    filterHideElementRow?: boolean // 打印模式过滤隐藏元素空行。默认：false
     areaHideDisabled?: boolean // 打印模式忽略 area 的 hide 配置，强制显示区域及其内容。默认：false
   }
   readonly?: {
@@ -428,5 +432,50 @@ interface IMagnifierOption {
 ```typescript
 interface IAccessibilityOption {
   disabled?: boolean // 是否禁用无障碍支持。默认：true
+}
+```
+
+## 分栏配置
+
+```typescript
+interface IColumnOption {
+  count?: number // 栏数。count<=1 视为关闭分栏。默认：1
+  gap?: number // 栏间距（像素）。默认：20
+  separator?: boolean // 是否显示栏间分隔线。默认：false
+  separatorColor?: string // 分隔线颜色。默认：#000000
+  separatorWidth?: number // 分隔线宽度。默认：1
+}
+```
+
+## 留痕配置
+
+```typescript
+interface ITraceOption {
+  disabled?: boolean // 初始是否禁用留痕记录。默认：true
+  insertColor?: string // 新增痕迹下划线颜色。默认：#2B5CE6
+  deleteColor?: string // 删除痕迹中划线颜色。默认：#E03F3F
+  author?: string // 留痕记录作者标识。默认：''
+  lineWidth?: number // 留痕线条宽度。默认：2
+}
+```
+
+## 标尺配置
+
+```typescript
+interface IRulerOption {
+  disabled?: boolean // 初始是否禁用标尺。默认：true
+  height?: number // 标尺高度。默认：26
+}
+```
+
+## 悬浮提示配置
+
+```typescript
+interface IHintOption {
+  disabled?: boolean // 总开关。默认：true（默认关闭，设为 false 开启）
+  backgroundColor?: string // 浮窗背景色。默认：#fff
+  color?: string // 浮窗文字颜色。默认：#000000
+  fontSize?: number // 浮窗字号。默认：12
+  maxWidth?: number // 浮窗最大宽度，超出自动换行。默认：280
 }
 ```

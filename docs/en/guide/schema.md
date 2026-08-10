@@ -26,6 +26,7 @@ interface IElement {
   extension?: unknown;
   externalId?: string;
   hide?: boolean;
+  hint?: string; // Hover hint text (requires the hint option to be enabled)
   // style
   font?: string;
   size?: number;
@@ -74,6 +75,7 @@ interface IElement {
       externalId?: string;
       disabled?: boolean;
       deletable?: boolean;
+      hint?: string; // Cell hover hint text: shown when the cursor enters any element in the cell
     }[];
   }[];
   borderType?: TableBorder;
@@ -88,59 +90,9 @@ interface IElement {
   // Dividing line
   dashArray?: number[]; // Array for dashed line style
   lineWidth?: number; // Line width of the separator
+  paperDirection?: PaperDirection; // Orientation after a page break
   // control
-  control?: {
-    type: {
-      TEXT = 'text',
-      SELECT = 'select',
-      CHECKBOX = 'checkbox',
-      RADIO = 'radio',
-      DATE = 'date',
-      NUMBER = 'number'
-    };
-    value: IElement[] | null;
-    placeholder?: string;
-    groupId?: string;
-    conceptId?: string;
-    prefix?: string;
-    postfix?: string;
-    preText?: string;
-    postText?: string;
-    minWidth?: number;
-    underline?: boolean;
-    border?: boolean;
-    extension?: unknown;
-    indentation?: ControlIndentation;
-    rowFlex?: RowFlex
-    deletable?: boolean;
-    disabled?: boolean;
-    pasteDisabled?: boolean;
-    hide?: boolean;
-    code: string | null;
-    min?: number;
-    max?: number;
-    flexDirection: FlexDirection;
-    valueSets: {
-      value: string;
-      code: string;
-    }[];
-    isMultiSelect?: boolean;
-    multiSelectDelimiter?: string;
-    dateFormat?: string;
-    font?: string;
-    size?: number;
-    bold?: boolean;
-    color?: string;
-    highlight?: string;
-    italic?: boolean;
-    strikeout?: boolean;
-    selectExclusiveOptions?: {
-      inputAble?: boolean;
-    },
-    numberExclusiveOptions?: {
-      calculatorDisabled?: boolean;
-    }
-  };
+  control?: IControl; // Control data structure, see: Control-Options
   controlComponent?: {
     PREFIX = 'prefix',
     POSTFIX = 'postfix',
@@ -213,6 +165,7 @@ interface IElement {
   listType?: ListType;
   listStyle?: ListStyle;
   listWrap?: boolean;
+  listLevel?: number;
   // area
   areaId?: string;
   area?: {

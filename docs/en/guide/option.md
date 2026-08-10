@@ -86,6 +86,10 @@ interface IEditorOption {
   list?: IListOption // List configuration
   magnifier?: IMagnifierOption // Magnifier configuration
   accessibility?: IAccessibilityOption // Accessibility configuration
+  column?: IColumnOption // Column configuration. default: disabled
+  trace?: ITraceOption // Trace configuration. default: disabled
+  ruler?: IRulerOption // Ruler configuration. default: disabled
+  hint?: IHintOption // Hover hint configuration. default: disabled
 }
 ```
 
@@ -96,7 +100,7 @@ interface ITableOption {
   tdPadding?: IPadding // Cell padding. default: [0, 5, 5, 5]
   defaultTrMinHeight?: number // Default table row minimum height. default: 42
   defaultColMinWidth?: number // Default minimum width for table columns (applied if the overall width is sufficient, otherwise
-  overflow?: boolean // Is it allowed for the table to exceed the main body. Default: true
+  overflow?: boolean // Is it allowed for the table to exceed the main body. When false, the total table width is proportionally shrunk to fit the page content area during layout (column width is not less than defaultColMinWidth). Default: false
 }
 ```
 
@@ -177,6 +181,7 @@ interface IControlOption {
   disabledBackgroundColor?: string // Background color when disabled
   existValueBackgroundColor?: string // Background color when has value
   noValueBackgroundColor?: string // Background color when no value
+  errorBackgroundColor?: string // Background color for failed validation. default: #FFECE8
 }
 ```
 
@@ -361,7 +366,6 @@ interface IModeRule {
     imagePreviewerDisabled?: boolean // Disable image previewer in print mode
     backgroundDisabled?: boolean // Disable background in print mode
     filterEmptyControl?: boolean // Filter empty controls in print mode. default: true
-    filterHideElementRow?: boolean // Filter hidden element empty rows in print mode. default: false
     areaHideDisabled?: boolean // Ignore area's hide config in print mode, force display the area and its content. default: false
   }
   readonly?: {
@@ -428,5 +432,50 @@ interface IMagnifierOption {
 ```typescript
 interface IAccessibilityOption {
   disabled?: boolean // Whether to disable accessibility support. default: true
+}
+```
+
+## Column Configuration
+
+```typescript
+interface IColumnOption {
+  count?: number // Number of columns. count<=1 disables columns. default: 1
+  gap?: number // Gap between columns in pixels. default: 20
+  separator?: boolean // Whether to draw separator lines between columns. default: false
+  separatorColor?: string // Separator line color. default: #000000
+  separatorWidth?: number // Separator line width. default: 1
+}
+```
+
+## Trace Configuration
+
+```typescript
+interface ITraceOption {
+  disabled?: boolean // Whether to disable trace recording initially. default: true
+  insertColor?: string // Color of the underline for inserted traces. default: #2B5CE6
+  deleteColor?: string // Color of the strikeout for deleted traces. default: #E03F3F
+  author?: string // Author identifier for trace records. default: ''
+  lineWidth?: number // Trace line width. default: 2
+}
+```
+
+## Ruler Configuration
+
+```typescript
+interface IRulerOption {
+  disabled?: boolean // Whether to disable the ruler initially. default: true
+  height?: number // Ruler height. default: 26
+}
+```
+
+## Hover Hint Configuration
+
+```typescript
+interface IHintOption {
+  disabled?: boolean // Master switch. default: true (disabled by default; set to false to enable)
+  backgroundColor?: string // Popup background color. default: #fff
+  color?: string // Popup text color. default: #000000
+  fontSize?: number // Popup font size. default: 12
+  maxWidth?: number // Popup max width; wraps when exceeded. default: 280
 }
 ```

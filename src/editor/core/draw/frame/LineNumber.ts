@@ -18,7 +18,7 @@ export class LineNumber {
       lineNumber: { color, size, font, right, type }
     } = this.options
     const textParticle = this.draw.getTextParticle()
-    const margins = this.draw.getMargins()
+    const { margins } = this.draw.getPageSize(pageNo)
     const positionList = this.draw.getPosition().getOriginalMainPositionList()
     const pageRowList = this.draw.getPageRowList()
     const rowList = pageRowList[pageNo]
@@ -29,7 +29,7 @@ export class LineNumber {
       const row = rowList[i]
       const {
         coordinate: { leftBottom }
-      } = positionList[row.startIndex]
+      } = row.fragmentPosition || positionList[row.startIndex]
       const seq = type === LineNumberType.PAGE ? i + 1 : row.rowIndex + 1
       const textMetrics = textParticle.measureText(ctx, {
         value: `${seq}`

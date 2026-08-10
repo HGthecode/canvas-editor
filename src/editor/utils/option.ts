@@ -24,11 +24,17 @@ import { defaultMagnifierOption } from '../dataset/constant/Magnifier'
 import { defaultAccessibilityOption } from '../dataset/constant/Accessibility'
 import { IAccessibilityOption } from '../interface/Accessibility'
 import { IBackgroundOption } from '../interface/Background'
+import { defaultColumnOption } from '../dataset/constant/Column'
+import { IColumnOption } from '../interface/Column'
 import { ICheckboxOption } from '../interface/Checkbox'
 import { DeepRequired } from '../interface/Common'
 import { IControlOption } from '../interface/Control'
 import { ICursorOption } from '../interface/Cursor'
 import { IEditorOption, IModeRule } from '../interface/Editor'
+import { ITraceOption } from '../interface/Trace'
+import { IRulerOption } from '../interface/Ruler'
+import { IHintOption } from '../interface/Hint'
+import { defaultHintOption } from '../dataset/constant/Hint'
 import { IMagnifierOption } from '../interface/Magnifier'
 import { IFooter } from '../interface/Footer'
 import { IGroup } from '../interface/Group'
@@ -64,6 +70,8 @@ import { IWhiteSpaceOption } from '../interface/WhiteSpace'
 import { defaultWhiteSpaceOption } from '../dataset/constant/WhiteSpace'
 import { defaultAreaOption } from '../dataset/constant/Area'
 import { IAreaOption } from '../interface/AreaOption'
+import { defaultTraceOption } from '../dataset/constant/Trace'
+import { defaultRulerOption } from '../dataset/constant/Ruler'
 
 export function mergeOption(
   options: IEditorOption = {}
@@ -180,6 +188,22 @@ export function mergeOption(
     ...defaultAreaOption,
     ...options.area
   }
+  const columnOptions: Required<IColumnOption> = {
+    ...defaultColumnOption,
+    ...options.column
+  }
+  const traceOptions: Required<ITraceOption> = {
+    ...defaultTraceOption,
+    ...options.trace
+  }
+  const rulerOptions: Required<IRulerOption> = {
+    ...defaultRulerOption,
+    ...options.ruler
+  }
+  const hintOptions: Required<IHintOption> = {
+    ...defaultHintOption,
+    ...options.hint
+  }
   const modeRuleOption: DeepRequired<IModeRule> = {
     print: {
       ...defaultModeRuleOption.print,
@@ -270,6 +294,10 @@ export function mergeOption(
     list: listOptions,
     magnifier: magnifierOptions,
     accessibility: accessibilityOptions,
-    area: areaOptions
+    area: areaOptions,
+    column: columnOptions,
+    trace: traceOptions,
+    ruler: rulerOptions,
+    hint: hintOptions
   }
 }

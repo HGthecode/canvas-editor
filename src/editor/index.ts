@@ -41,6 +41,7 @@ import { INavigateInfo } from './core/draw/interactive/Search'
 import { Shortcut } from './core/shortcut/Shortcut'
 import { KeyMap } from './dataset/enum/KeyMap'
 import { BlockType } from './dataset/enum/Block'
+import { MacroType } from './dataset/enum/Macro'
 import { IBlock } from './interface/Block'
 import { ILang } from './interface/i18n/I18n'
 import { VerticalAlign } from './dataset/enum/VerticalAlign'
@@ -51,6 +52,7 @@ import { ListStyle, ListType } from './dataset/enum/List'
 import { ICatalog, ICatalogItem } from './interface/Catalog'
 import { Plugin } from './core/plugin/Plugin'
 import { UsePlugin } from './interface/Plugin'
+import { MacroManager } from './core/macro/MacroManager'
 import { EventBus } from './core/event/eventbus/EventBus'
 import { EventBusMap } from './interface/EventBus'
 import {
@@ -89,6 +91,7 @@ export default class Editor {
   public register: Register
   public destroy: () => void
   public use: UsePlugin
+  public macro: MacroManager
 
   constructor(
     container: HTMLDivElement,
@@ -146,6 +149,8 @@ export default class Editor {
     )
     // 命令
     this.command = new Command(new CommandAdapt(draw))
+    // 宏
+    this.macro = new MacroManager(this.command)
     // 菜单
     const contextMenu = new ContextMenu(draw, this.command)
     // 快捷键
@@ -202,6 +207,7 @@ export {
   Command,
   KeyMap,
   BlockType,
+  MacroType,
   PaperDirection,
   TableBorder,
   TdBorder,
