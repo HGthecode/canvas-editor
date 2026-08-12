@@ -1,5 +1,6 @@
 import { IElement } from '../../../..'
 import { EDITOR_PREFIX } from '../../../../dataset/constant/Editor'
+import { EditorMode } from '../../../../dataset/enum/Editor'
 import { TableOrder } from '../../../../dataset/enum/table/TableTool'
 import { DeepRequired } from '../../../../interface/Common'
 import { IEditorOption } from '../../../../interface/Editor'
@@ -104,11 +105,16 @@ export class TableTool {
       positionList,
       positionContext
     )
-    if (!element || !position) return
-    // TODO: 判断跟下方的逻辑是否有一个就行了？ 表格工具配置禁用又非设计模式时不渲染
-    // if ( !this.draw.isDesignMode()) return
     if (!element || !position) {
       // 元素或位置失效时清理旧工具
+      this.dispose()
+      return
+    }
+    // 只读 / 表单模式不渲染（表单模式下光标在控件内 isReadonly 为 false，需单独拦截）
+    if (
+      this.draw.isReadonly() ||
+      this.draw.getMode() === EditorMode.FORM
+    ) {
       this.dispose()
       return
     }
@@ -131,6 +137,7 @@ export class TableTool {
     const fragmentStartTrIndex = fragment?.startTrIndex ?? 0
     const fragmentEndTrIndex = fragment?.endTrIndex ?? trList!.length
     // 锚点未变化且布局未重排时不重复重建：
+    
     // 键包含缩放、坐标、片段边界与行列尺寸，任一变化都会使缓存失效
     let layoutKey = `${scale}:${leftTop[0]}:${leftTop[1]}:${
       position.metrics.height
