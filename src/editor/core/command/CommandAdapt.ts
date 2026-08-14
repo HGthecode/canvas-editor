@@ -1420,7 +1420,10 @@ export class CommandAdapt {
       let tempEditor: InstanceType<typeof Editor> | null = null
       try {
         tempEditor = new Editor(container, data, options)
-        await tempEditor.command.executePrint()
+        await tempEditor.command.executePrint({
+          startPageNo: option.startPageNo,
+          endPageNo: option.endPageNo
+        })
       } finally {
         tempEditor?.destroy()
         container.remove()
@@ -1436,16 +1439,42 @@ export class CommandAdapt {
       pixelRatio: printPixelRatio,
       mode: EditorMode.PRINT
     })
-    await print(base64List, {
+    // 按指定页码范围切片（页码从 1 开始）
+    const total = base64List.length
+    const start = Math.max(1, option?.startPageNo ?? 1)
+    const end = Math.min(total, option?.endPageNo ?? total)
+    const sliced =
+      start === 1 && end === total
+        ? base64List
+        : base64List.slice(start - 1, end)
+    if (!sliced.length) {
+      if (scale !== 1) {
+        this.draw.setPageScale(scale)
+      }
+      return
+    }
+    const pageDirections = this.draw.getPageDirectionList()
+    const iframeInfoList = this.draw.getBlockParticle().pickIframeInfo()
+    await print(sliced, {
       width,
       height,
       direction: paperDirection,
-      pageDirections: this.draw.getPageDirectionList(),
-      iframeInfoList: this.draw.getBlockParticle().pickIframeInfo()
+      pageDirections:
+        start === 1 && end === total
+          ? pageDirections
+          : pageDirections.slice(start - 1, end),
+      iframeInfoList:
+        start === 1 && end === total
+          ? iframeInfoList
+          : iframeInfoList.slice(start - 1, end)
     })
     if (scale !== 1) {
       this.draw.setPageScale(scale)
     }
+  }
+
+  public getPageCount(): number {
+    return this.draw.getPageCount()
   }
 
   public replaceImageElement(payload: string) {
@@ -1665,6 +1694,8 @@ export class CommandAdapt {
     const positionList = this.position.getPositionList()
     const startPosition = positionList[startIndex]
     const endPosition = positionList[endIndex]
+    // 粘贴等场景下 range 已更新但 position 尚未重算完成，直接返回 null
+    if (!startPosition || !endPosition) return null
     const startPageNo = startPosition.pageNo
     const endPageNo = endPosition.pageNo
     const startRowNo = startPosition.rowIndex
@@ -1675,7 +1706,7 @@ export class CommandAdapt {
     let startColNo = 0
     let endColNo = 0
     // 以光标显示位置为准
-    if (!this.draw.getCursor().getHitLineStartIndex()) {
+    if (!this.draw.getCursor().getHitLineStartIndex() && startRow) {
       // 换行符不计算列数量
       startColNo =
         startRow.elementList[0]?.value === ZERO
@@ -1685,7 +1716,7 @@ export class CommandAdapt {
     // 光标闭合时列位置相同
     if (startPosition === endPosition) {
       endColNo = startColNo
-    } else {
+    } else if (endRow) {
       endColNo =
         endRow.elementList[0]?.value === ZERO
           ? endPosition.index! - endRow.startIndex
@@ -1767,7 +1798,7 @@ export class CommandAdapt {
       const preElement = elementList[start - 1]
       if (curElement.titleId && curElement.titleId !== preElement?.titleId) {
         titleId = curElement.titleId
-        titleStartPageNo = positionList[start].pageNo
+        titleStartPageNo = positionList[start]?.pageNo ?? null
         break
       }
       start--

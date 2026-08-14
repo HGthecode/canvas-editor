@@ -139,6 +139,7 @@ export class Command {
   public getHTML: CommandAdapt['getHTML']
   public getText: CommandAdapt['getText']
   public getWordCount: CommandAdapt['getWordCount']
+  public getPageCount: CommandAdapt['getPageCount']
   public getCursorPosition: CommandAdapt['getCursorPosition']
   public getRemainingContentHeight: CommandAdapt['getRemainingContentHeight']
   public getRange: CommandAdapt['getRange']
@@ -579,6 +580,7 @@ export class Command {
     this.getHTML = adapt.getHTML.bind(adapt)
     this.getText = adapt.getText.bind(adapt)
     this.getWordCount = adapt.getWordCount.bind(adapt)
+    this.getPageCount = adapt.getPageCount.bind(adapt)
     this.getCursorPosition = adapt.getCursorPosition.bind(adapt)
     this.getRemainingContentHeight = adapt.getRemainingContentHeight.bind(adapt)
     this.getRange = adapt.getRange.bind(adapt)
