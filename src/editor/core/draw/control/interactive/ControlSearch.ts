@@ -37,14 +37,24 @@ export class ControlSearch {
   public getControlHighlight(elementList: IElement[], index: number) {
     const {
       control: {
-        activeBackgroundColor,
-        disabledBackgroundColor,
-        existValueBackgroundColor,
-        noValueBackgroundColor
+        activeBackgroundColor: globalActiveBackgroundColor,
+        disabledBackgroundColor: globalDisabledBackgroundColor,
+        existValueBackgroundColor: globalExistValueBackgroundColor,
+        noValueBackgroundColor: globalNoValueBackgroundColor
       }
     } = this.options
     const element = elementList[index]
     if (!element) return ''
+    // 颜色配置：控件自身 > 全局配置
+    const activeBackgroundColor =
+      element.control?.activeBackgroundColor || globalActiveBackgroundColor
+    const disabledBackgroundColor =
+      element.control?.disabledBackgroundColor || globalDisabledBackgroundColor
+    const existValueBackgroundColor =
+      element.control?.existValueBackgroundColor ||
+      globalExistValueBackgroundColor
+    const noValueBackgroundColor =
+      element.control?.noValueBackgroundColor || globalNoValueBackgroundColor
     const isPrintMode = this.draw.isPrintMode()
     const activeControlElement = this.control.getActiveControl()?.getElement()
     // 颜色配置：元素 > 控件激活 > 控件禁用 > 控件存在值 > 控件不存在值

@@ -143,7 +143,9 @@ export class NumberControl extends TextControl {
     }
 
     // 设置值
-    this.setValue(data)
+    this.setValue(data, {
+      range: { startIndex: prefixIndex, endIndex: prefixIndex }
+    })
 
     // 重新渲染控件
     this.control.repaintControl({

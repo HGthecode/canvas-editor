@@ -36,6 +36,8 @@ export class Command {
   public executeList: CommandAdapt['list']
   public executeRowFlex: CommandAdapt['rowFlex']
   public executeRowMargin: CommandAdapt['rowMargin']
+  public executeSpacingBefore: CommandAdapt['spacingBefore']
+  public executeSpacingAfter: CommandAdapt['spacingAfter']
   public executeInsertTable: CommandAdapt['insertTable']
   public executeInsertTableTopRow: CommandAdapt['insertTableTopRow']
   public executeInsertTableBottomRow: CommandAdapt['insertTableBottomRow']
@@ -67,6 +69,7 @@ export class Command {
   public executeAddWatermark: CommandAdapt['addWatermark']
   public executeDeleteWatermark: CommandAdapt['deleteWatermark']
   public executeSearch: CommandAdapt['search']
+  public executeSetSpellcheckRangeList: CommandAdapt['setSpellcheckRangeList']
   public executeSearchNavigatePre: CommandAdapt['searchNavigatePre']
   public executeSearchNavigateNext: CommandAdapt['searchNavigateNext']
   public executeReplace: CommandAdapt['replace']
@@ -138,6 +141,7 @@ export class Command {
   public getAreaValue: CommandAdapt['getAreaValue']
   public getHTML: CommandAdapt['getHTML']
   public getText: CommandAdapt['getText']
+  public getSpellcheckWordList: CommandAdapt['getSpellcheckWordList']
   public getWordCount: CommandAdapt['getWordCount']
   public getPageCount: CommandAdapt['getPageCount']
   public getCursorPosition: CommandAdapt['getCursorPosition']
@@ -147,6 +151,7 @@ export class Command {
   public getRangeContext: CommandAdapt['getRangeContext']
   public getRangeRow: CommandAdapt['getRangeRow']
   public getRangeParagraph: CommandAdapt['getRangeParagraph']
+  public getSurroundElementList: CommandAdapt['getSurroundElementList']
   public getKeywordRangeList: CommandAdapt['getKeywordRangeList']
   public getKeywordContext: CommandAdapt['getKeywordContext']
   public getPaperMargin: CommandAdapt['getPaperMargin']
@@ -154,6 +159,7 @@ export class Command {
   public getSearchNavigateInfo: CommandAdapt['getSearchNavigateInfo']
   public getLocale: CommandAdapt['getLocale']
   public getGroupIds: CommandAdapt['getGroupIds']
+  public getGroupRectList: CommandAdapt['getGroupRectList']
   public getControlValue: CommandAdapt['getControlValue']
   public getControlList: CommandAdapt['getControlList']
   public getContainer: CommandAdapt['getContainer']
@@ -257,6 +263,14 @@ export class Command {
     this.executeRowMargin = this.wrap(
       'executeRowMargin',
       adapt.rowMargin.bind(adapt)
+    )
+    this.executeSpacingBefore = this.wrap(
+      'executeSpacingBefore',
+      adapt.spacingBefore.bind(adapt)
+    )
+    this.executeSpacingAfter = this.wrap(
+      'executeSpacingAfter',
+      adapt.spacingAfter.bind(adapt)
     )
     // 表格、图片上传、超链接、搜索、打印、图片操作
     this.executeInsertTable = this.wrap(
@@ -377,6 +391,10 @@ export class Command {
       adapt.deleteWatermark.bind(adapt)
     )
     this.executeSearch = this.wrap('executeSearch', adapt.search.bind(adapt))
+    this.executeSetSpellcheckRangeList = this.wrap(
+      'executeSetSpellcheckRangeList',
+      adapt.setSpellcheckRangeList.bind(adapt)
+    )
     this.executeSearchNavigatePre = this.wrap(
       'executeSearchNavigatePre',
       adapt.searchNavigatePre.bind(adapt)
@@ -579,6 +597,7 @@ export class Command {
     this.getValueAsync = adapt.getValueAsync.bind(adapt)
     this.getHTML = adapt.getHTML.bind(adapt)
     this.getText = adapt.getText.bind(adapt)
+    this.getSpellcheckWordList = adapt.getSpellcheckWordList.bind(adapt)
     this.getWordCount = adapt.getWordCount.bind(adapt)
     this.getPageCount = adapt.getPageCount.bind(adapt)
     this.getCursorPosition = adapt.getCursorPosition.bind(adapt)
@@ -588,6 +607,7 @@ export class Command {
     this.getRangeContext = adapt.getRangeContext.bind(adapt)
     this.getRangeRow = adapt.getRangeRow.bind(adapt)
     this.getRangeParagraph = adapt.getRangeParagraph.bind(adapt)
+    this.getSurroundElementList = adapt.getSurroundElementList.bind(adapt)
     this.getKeywordRangeList = adapt.getKeywordRangeList.bind(adapt)
     this.getKeywordContext = adapt.getKeywordContext.bind(adapt)
     this.getCatalog = adapt.getCatalog.bind(adapt)
@@ -596,6 +616,7 @@ export class Command {
     this.getSearchNavigateInfo = adapt.getSearchNavigateInfo.bind(adapt)
     this.getLocale = adapt.getLocale.bind(adapt)
     this.getGroupIds = adapt.getGroupIds.bind(adapt)
+    this.getGroupRectList = adapt.getGroupRectList.bind(adapt)
     this.getContainer = adapt.getContainer.bind(adapt)
     this.getTitleValue = adapt.getTitleValue.bind(adapt)
     this.getPositionContextByEvent = adapt.getPositionContextByEvent.bind(adapt)

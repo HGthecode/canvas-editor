@@ -82,28 +82,66 @@
               </ul>
             </div>
           </div>
-          <div class="menu-item__size">
-            <span class="select" title="字体">小四</span>
-            <div class="options">
-              <ul>
-                <li data-size="56">初号</li>
-                <li data-size="48">小初</li>
-                <li data-size="34">一号</li>
-                <li data-size="32">小一</li>
-                <li data-size="29">二号</li>
-                <li data-size="24">小二</li>
-                <li data-size="21">三号</li>
-                <li data-size="20">小三</li>
-                <li data-size="18">四号</li>
-                <li data-size="16">小四</li>
-                <li data-size="14">五号</li>
-                <li data-size="12">小五</li>
-                <li data-size="10">六号</li>
-                <li data-size="8">小六</li>
-                <li data-size="7">七号</li>
-                <li data-size="6">八号</li>
-              </ul>
+        </div>
+        <div class="menu-item__spacing">
+          <i title="段落间距"></i>
+          <div class="options">
+            <div class="spacing-option">
+              <span class="spacing-option__label">段前距</span>
+              <div class="spacing-option__stepper">
+                <button type="button" data-spacingbefore-decrease>-</button>
+                <input type="number" min="0" step="6" value="0" data-spacingbefore-input />
+                <button type="button" data-spacingbefore-increase>+</button>
+              </div>
             </div>
+            <div class="spacing-option">
+              <span class="spacing-option__label">段后距</span>
+              <div class="spacing-option__stepper">
+                <button type="button" data-spacingafter-decrease>-</button>
+                <input type="number" min="0" step="6" value="0" data-spacingafter-input />
+                <button type="button" data-spacingafter-increase>+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="menu-item__list">
+          <i></i>
+          <div class="options">
+            <ul>
+              <li>
+                <label>取消列表</label>
+              </li>
+              <li data-list-type="ol" data-list-style='decimal'>
+                <label>有序列表：</label>
+                <ol>
+                  <li>________</li>
+                </ol>
+              </li>
+              <li data-list-type="ul" data-list-style='checkbox'>
+                <label>复选框列表：</label>
+                <ul style="list-style-type: '☑️ ';">
+                  <li>________</li>
+                </ul>
+              </li>
+              <li data-list-type="ul" data-list-style='disc'>
+                <label>实心圆点列表：</label>
+                <ul style="list-style-type: disc;">
+                  <li>________</li>
+                </ul>
+              </li>
+              <li data-list-type="ul" data-list-style='circle'>
+                <label>空心圆点列表：</label>
+                <ul style="list-style-type: circle;">
+                  <li>________</li>
+                </ul>
+              </li>
+              <li data-list-type="ul" data-list-style='square'>
+                <label>空心方块列表：</label>
+                <ul style="list-style-type: '☐ ';">
+                  <li>________</li>
+                </ul>
+              </li>
+            </ul>
           </div>
           <div class="menu-item__size-add">
             <i></i>
@@ -387,11 +425,29 @@
           </div>
         </div>
       </div>
-      <div class="catalog" editor-component="catalog">
-        <div class="catalog__header">
-          <span>目录</span>
-          <div class="catalog__header__close">
-            <i></i>
+      <div class="catalog__main"></div>
+    </div>
+    <div class="editor"></div>
+    <div class="comment-line-toggle" editor-component="comment-line-toggle">
+      <span>连接线</span>
+      <label class="comment-line-toggle__switch" title="显示/隐藏批注连接线">
+        <input type="checkbox" id="comment-line-switch" />
+        <i></i>
+      </label>
+    </div>
+    <div class="comment" editor-component="comment"></div>
+    <div class="footer" editor-component="footer">
+      <div>
+        <div class="catalog-mode" title="目录">
+          <i></i>
+        </div>
+        <div class="page-mode">
+          <i title="页面模式(分页、连页)"></i>
+          <div class="options">
+            <ul>
+              <li data-page-mode="paging" class="active">分页</li>
+              <li data-page-mode="continuity">连页</li>
+            </ul>
           </div>
         </div>
         <div class="catalog__main"></div>
@@ -462,6 +518,15 @@
         <div class="ruler-toggle" title="标尺">
           <i></i>
         </div>
+        <div class="spellcheck" title="拼写检查">
+          <i></i>
+          <div class="options">
+            <label class="spellcheck-toggle">
+              <input type="checkbox" class="spellcheck-toggle__input" />
+              <span>启用拼写检查</span>
+            </label>
+          </div>
+        </div>
         <div class="fullscreen" title="全屏显示">
           <i></i>
         </div>
@@ -470,6 +535,8 @@
         </div>
       </div>
     </div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+
 </html>

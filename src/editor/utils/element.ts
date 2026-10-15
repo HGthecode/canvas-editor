@@ -1,7 +1,6 @@
 import {
   cloneProperty,
   deepClone,
-  deepCloneOmitKeys,
   deleteProperty,
   getUUID,
   isArrayEqual,
@@ -52,7 +51,6 @@ import { DeepRequired } from '../interface/Common'
 import { IControlSelect } from '../interface/Control'
 import { IEditorOption } from '../interface/Editor'
 import { IElement, ITraceRecord } from '../interface/Element'
-import { IRowElement } from '../interface/Row'
 import { ITd } from '../interface/table/Td'
 import { ITr } from '../interface/table/Tr'
 import { mergeOption } from './option'
@@ -870,7 +868,7 @@ export function zipElementList(
       if (element.trList) {
         for (let t = 0; t < element.trList.length; t++) {
           const tr = element.trList[t]
-          delete tr.id
+          if (!extraPickAttrs?.includes('id')) delete tr.id
           for (let d = 0; d < tr.tdList.length; d++) {
             const td = tr.tdList[d]
             const zipTd: ITd = {
@@ -886,6 +884,14 @@ export function zipElementList(
               const value = td[attr] as never
               if (value !== undefined) {
                 zipTd[attr] = value
+              }
+            })
+            // 按需保留单元格额外属性，value 为递归压缩内容不可覆盖
+            extraPickAttrs?.forEach(attr => {
+              if (attr === 'value') return
+              const value = td[attr as keyof ITd] as never
+              if (value !== undefined) {
+                zipTd[attr as keyof ITd] = value
               }
             })
             tr.tdList[d] = zipTd
@@ -1989,11 +1995,36 @@ export function getTextFromElementList(
   )
 }
 
+// 历史快照专用克隆：与 deepCloneOmitKeys(obj, ['metrics', 'style']) 语义一致，
+// 但标量字段直接赋值不再递归，仅深拷贝实际存在的嵌套可变结构
+function cloneOmitRenderKeys<T>(value: T): T {
+  if (!value || typeof value !== 'object') {
+    return value
+  }
+  if (Array.isArray(value)) {
+    const list = value as unknown[]
+    const clonedArray: unknown[] = new Array(list.length)
+    for (let i = 0; i < list.length; i++) {
+      clonedArray[i] = cloneOmitRenderKeys(list[i])
+    }
+    return clonedArray as T
+  }
+  const cloned: Record<string, unknown> = {}
+  for (const key in value) {
+    if (key === 'metrics' || key === 'style') continue
+    const item = (value as Record<string, unknown>)[key]
+    cloned[key] =
+      item && typeof item === 'object' ? cloneOmitRenderKeys(item) : item
+  }
+  return cloned as T
+}
+
 export function getSlimCloneElementList(elementList: IElement[]) {
-  return deepCloneOmitKeys<IElement[], IRowElement>(elementList, [
-    'metrics',
-    'style'
-  ])
+  const clonedList = new Array<IElement>(elementList.length)
+  for (let i = 0; i < elementList.length; i++) {
+    clonedList[i] = cloneOmitRenderKeys(elementList[i])
+  }
+  return clonedList
 }
 
 export function getIsBlockElement(element?: IElement) {

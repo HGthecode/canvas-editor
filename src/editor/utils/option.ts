@@ -30,7 +30,7 @@ import { ICheckboxOption } from '../interface/Checkbox'
 import { DeepRequired } from '../interface/Common'
 import { IControlOption } from '../interface/Control'
 import { ICursorOption } from '../interface/Cursor'
-import { IEditorOption, IModeRule } from '../interface/Editor'
+import { IEditorOption, ILabOption, IModeRule } from '../interface/Editor'
 import { ITraceOption } from '../interface/Trace'
 import { IRulerOption } from '../interface/Ruler'
 import { IHintOption } from '../interface/Hint'
@@ -72,10 +72,16 @@ import { defaultAreaOption } from '../dataset/constant/Area'
 import { IAreaOption } from '../interface/AreaOption'
 import { defaultTraceOption } from '../dataset/constant/Trace'
 import { defaultRulerOption } from '../dataset/constant/Ruler'
+import { defaultSpellcheckOption } from '../dataset/constant/Spellcheck'
+import type { ISpellcheckOption } from '../interface/Spellcheck'
 
 export function mergeOption(
   options: IEditorOption = {}
 ): DeepRequired<IEditorOption> {
+  const labOptions: Required<ILabOption> = {
+    incrementalCompute: false,
+    ...options.lab
+  }
   const tableOptions: Required<ITableOption> = {
     ...defaultTableOption,
     ...options.table
@@ -204,6 +210,10 @@ export function mergeOption(
     ...defaultHintOption,
     ...options.hint
   }
+  const spellcheckOptions: Required<ISpellcheckOption> = {
+    ...defaultSpellcheckOption,
+    ...options.spellcheck
+  }
   const modeRuleOption: DeepRequired<IModeRule> = {
     print: {
       ...defaultModeRuleOption.print,
@@ -266,6 +276,7 @@ export function mergeOption(
     scrollContainerSelector: '',
     pageOuterSelectionDisable: false,
     ...options,
+    lab: labOptions,
     table: tableOptions,
     header: headerOptions,
     footer: footerOptions,
@@ -298,6 +309,7 @@ export function mergeOption(
     column: columnOptions,
     trace: traceOptions,
     ruler: rulerOptions,
-    hint: hintOptions
+    hint: hintOptions,
+    spellcheck: spellcheckOptions
   }
 }

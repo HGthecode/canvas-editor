@@ -390,6 +390,26 @@ instance.command.executeRowFlex(rowFlex: RowFlex)
 instance.command.executeRowMargin(rowMargin: number)
 ```
 
+## executeSpacingBefore
+
+功能：段落段前间距
+
+用法：
+
+```javascript
+instance.command.executeSpacingBefore(spacingBefore: number)
+```
+
+## executeSpacingAfter
+
+功能：段落段后间距
+
+用法：
+
+```javascript
+instance.command.executeSpacingAfter(spacingAfter: number)
+```
+
 ## executeInsertTable
 
 功能：插入表格
@@ -716,6 +736,16 @@ instance.command.executeDeleteWatermark()
 
 ```javascript
 instance.command.executeSearch(keyword: string, options?: ISearchOption)
+```
+
+## executeSetSpellcheckRangeList
+
+功能：设置拼写检查错词区间，在区间下方渲染波浪线（叠加层渲染，不修改文档数据）。传`null`清空
+
+用法：
+
+```javascript
+instance.command.executeSetSpellcheckRangeList(payload: ISpellcheckRange[] | null)
 ```
 
 ## executeSearchNavigatePre
